@@ -1266,9 +1266,20 @@ function follow(){
    or cold seat does not get hammered for six minutes. */
 function followDelay(){
   const waited = S.waiting ? Date.now() - S.waiting.t0 : 0;
-  if(waited <  15000) return 600;    // the snap window — most chat turns land here
-  if(waited <  45000) return 1500;   // a working turn (tools, a cold seat)
-  if(waited < 120000) return 3000;
+  /* 600ms WAS TOO GREEDY AND IT COST HIM THE ROOM (2026-09-13). v159 took this
+     from a flat 5,000ms to 600ms, which is EIGHT TIMES the request rate — and
+     every one of these is cross-origin from the Pages shell to the tailnet
+     spine, so each poll drags a CORS preflight behind it: ~200 requests a
+     minute per open tab. His spine's log filled with "Request timed out" on
+     /api/threads/<id>/messages, /api/voice/<id> and even POST /api/hotshot/route,
+     and the symptom on the glass was exactly what he reported: no answer, and
+     the mic's own POST to /api/stt timing out with it. I made the poll faster
+     and the room slower.
+     1,400ms still halves the old dead air (2.5s average -> 0.7s) at a quarter of
+     the traffic. The real fix for snap is the stream, not a tighter loop. */
+  if(waited <  20000) return 1400;   // the snap window — most chat turns land here
+  if(waited <  60000) return 2500;   // a working turn (tools, a cold seat)
+  if(waited < 120000) return 4000;
   return 5000;                       // a long haul: the old cadence
 }
 /* the pad's afterglow: the read-back runs on the worker after the answer lands
@@ -1277,7 +1288,7 @@ function followDelay(){
 function afterglow(sayId){
   let looks = 0;
   const look = async () => {
-    if(looks++ >= 3 || S.waiting) return;
+    if(looks++ >= 3 || S.waiting) return;   // never poll on top of a live wait
     try{
       const d = await grab(`/api/threads/${S.run}/messages`);
       const known = new Set(S.msgs.map(m => m.id));
