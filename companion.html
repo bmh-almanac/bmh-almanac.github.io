@@ -83,6 +83,9 @@ body[data-mode="therapist"]{--key:228,188,140}
 /* brass = the chief of staff (card #224): the loads, the money, the web,
    his folders — and the one seat whose acts go to his phone */
 body[data-mode="atlas"]{--key:214,178,96}
+/* canary = the pad (his ruling 2026-09-13): the legal pad on the passenger
+   seat — think out loud, argued back, no voice; what he circles is kept */
+body[data-mode="brainstorm"]{--key:240,228,140}
 .sc-modes.sub{padding-top:0}
 .sc-modes.sub .sc-mode{min-height:26px;padding:6px 10px;font-size:9px}
 .sc-atlasnote{font:600 9px/1.4 var(--mono);letter-spacing:.1em;color:var(--dim);margin-left:4px}
@@ -323,6 +326,7 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
     <button class="sc-mode" data-mode="chat" role="radio" title="off the clock — quick voice, no ledger">CHAT</button>
     <button class="sc-mode" data-mode="therapist" role="radio" title="the inner room — walled from the work">THERAPIST</button>
     <button class="sc-mode" data-mode="atlas" role="radio" id="modeAtlas" title="the chief of staff — the loads, the money, the web, your folders; a change goes to your phone">ATLAS</button>
+    <button class="sc-mode" data-mode="brainstorm" role="radio" title="the pad — think out loud, it argues back; every few lines it offers your own words to keep">BRAINSTORM</button>
   </div>
   <div class="sc-modes sub" id="subdials" role="group" aria-label="atlas dials" hidden>
     <button class="sc-mode" id="dialDeep" title="TALK — local, streamed">DEEP</button>
@@ -482,12 +486,14 @@ const MODE_PLACEHOLDER = {
   chat:      "shoot the breeze — quick voice, no ledger",
   therapist: "say what's on you — this room holds it",
   atlas:     "say it — the chief of staff reaches for the loads, the money, the web, your folders",
+  brainstorm:"work it out loud — the pad keeps what you circle",
 };
 const MODE_QUIET = {
   analysis:  "a fresh run — say something into the dark. the operation answers in a voice that knows your numbers.",
   chat:      "a fresh run — say anything. off the clock, no ledger, quick voice.",
   therapist: "a fresh run — say what's on you. this room is walled from the work.",
   atlas:     "a fresh run — ask the chief of staff. it looks things up, reads your loads and folders, and files any change for your phone.",
+  brainstorm:"a fresh pad — say the half-formed thing. it pushes back, and every few lines it offers your own words back to keep. no voice, no ledger.",
 };
 function setMode(m, first){
   if(!MODE_PLACEHOLDER[m]) m = "analysis";
@@ -1233,7 +1239,12 @@ function follow(){
         const sayId = S.waiting.sayId; clearWait();
         for(const m of fresh) appendTurn(m);
         const el = $("wire").querySelector(`[data-id="${landed.id}"]`);
-        if(landed.kind === "answer" && el && CLIPS.played > 0 && CLIPS.sayId === sayId){
+        if(landed.kind === "answer" && el && landed.mode === "brainstorm"){
+          /* THE PAD HAS NO VOICE (his ruling 2026-09-13): the text IS the turn.
+             hearRow would sit ~9s waiting for a clip that is never cut. And the
+             read-back files its pin? chips AFTER this row — keep looking. */
+          markDone(el); S.reopenMic?.(); afterglow(sayId);
+        }else if(landed.kind === "answer" && el && CLIPS.played > 0 && CLIPS.sayId === sayId){
           markDone(el); S.reopenMic?.(); primePeaks(landed).catch?.(() => {});   // the clips already spoke this one
         }else if(landed.kind === "answer" && el && document.visibilityState === "visible"){
           hearRow(landed, el, true).then(() => primePeaks(landed));  // THE BREAK
@@ -1259,6 +1270,22 @@ function followDelay(){
   if(waited <  45000) return 1500;   // a working turn (tools, a cold seat)
   if(waited < 120000) return 3000;
   return 5000;                       // a long haul: the old cadence
+}
+/* the pad's afterglow: the read-back runs on the worker after the answer lands
+   (every third of his lines), so its chips arrive seconds later than the row
+   that ended the wait. Three looks, six seconds apart, appending anything new. */
+function afterglow(sayId){
+  let looks = 0;
+  const look = async () => {
+    if(looks++ >= 3 || S.waiting) return;
+    try{
+      const d = await grab(`/api/threads/${S.run}/messages`);
+      const known = new Set(S.msgs.map(m => m.id));
+      for(const m of (d.messages || [])) if(!known.has(m.id) && m.id > sayId) appendTurn(m);
+    }catch(e){ /* the afterglow never breaks the room */ }
+    T.push(setTimeout(look, 6000));
+  };
+  T.push(setTimeout(look, 6000));
 }
 let WAKE = null;
 async function holdWake(){ try{ WAKE = await navigator.wakeLock?.request("screen"); }catch(e){} }
