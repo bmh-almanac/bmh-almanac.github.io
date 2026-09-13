@@ -86,6 +86,12 @@ body[data-mode="atlas"]{--key:214,178,96}
 /* canary = the pad (his ruling 2026-09-13): the legal pad on the passenger
    seat — think out loud, argued back, no voice; what he circles is kept */
 body[data-mode="brainstorm"]{--key:240,228,140}
+/* a walled channel: the lamp goes to ink and the row carries a hairline bar —
+   he should be able to tell at a glance which conversations are not in the open */
+.lg-row.walled .lamp{background:#3A3F44;box-shadow:none}
+.lg-row.walled{border-left:2px solid rgba(var(--key),.55)}
+.lg-act.walled{opacity:.75;letter-spacing:.14em}
+.lg-act.arming{background:rgba(var(--key),.22)}
 .sc-modes.sub{padding-top:0}
 .sc-modes.sub .sc-mode{min-height:26px;padding:6px 10px;font-size:9px}
 .sc-atlasnote{font:600 9px/1.4 var(--mono);letter-spacing:.1em;color:var(--dim);margin-left:4px}
@@ -797,7 +803,7 @@ function ago(iso){
 function logRow(t, live){
   const row = document.createElement("div");
   row.className = "lg-row" + (live ? " lit" : "") + (S.run === t.id ? " now" : "")
-                + (t.unheard ? " unheard" : "");
+                + (t.unheard ? " unheard" : "") + (t.walled_at ? " walled" : "");
   row.dataset.id = t.id;
 
   const lamp = document.createElement("span"); lamp.className = "lamp";
@@ -822,7 +828,51 @@ function logRow(t, live){
   flip.title = live ? "retire it — every turn is kept and one tap brings it back"
                     : "put it back on the dial";
   flip.addEventListener("click", () => flipDial(row, t.id, live));
-  acts.append(name, flip);
+
+  /* WALL IT — a HOLD, not a tap (his gesture grammar: a hold is constitutional
+     and irreversible in meaning, and this one is). Once walled, every turn in
+     the channel — including what he already said — leaves `messages` and lives
+     behind the wall; there is no un-wall gesture on the glass, by design. The
+     button states what it is rather than asking. */
+  const wall = document.createElement("button");
+  const isWalled = !!t.walled_at;
+  wall.className = "lg-act" + (isWalled ? " walled" : "");
+  wall.textContent = isWalled ? "WALLED" : "WALL IT";
+  wall.title = isWalled
+    ? "walled " + ago(t.walled_at) + " — its words are not in the open"
+    : "HOLD to wall this conversation — everything said here, already said or not, goes behind the wall. There is no undo.";
+  if(isWalled){
+    wall.disabled = true;
+  }else{
+    let wt = 0, wt0 = 0;
+    const armWall = e => {
+      e.preventDefault();
+      wt0 = performance.now();
+      wall.classList.add("arming");
+      wt = setTimeout(async () => {
+        if(performance.now() - wt0 < 700) return;   // a longer hold than a pin: this one cannot be undone
+        buzz([18,30,18,30,18]);
+        wall.classList.remove("arming");
+        try{
+          const r = await fetch(url(`/api/threads/${t.id}/wall`), { method:"POST",
+            headers: hdr({"Content-Type":"application/json"}), body: "{}" });
+          const d = await r.json().catch(() => ({}));
+          if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
+          wall.textContent = "WALLED"; wall.classList.add("walled"); wall.disabled = true;
+          row.classList.add("walled");
+          const n = d.moved || 0, w = d.wavs || 0;
+          toast(`walled — ${n} turn${n===1?"":"s"} moved behind it`
+                + (w ? `, ${w} voice cut${w===1?"":"s"} gathered` : "")
+                + ((d.wavs_left_open||[]).length ? ` · ${d.wavs_left_open.length} cut(s) COULD NOT be moved` : ""));
+          loadRuns();
+        }catch(err){ thud(); toast("not walled — " + (err.message||err)); }
+      }, 720);
+    };
+    wall.addEventListener("pointerdown", armWall);
+    ["pointerup","pointerleave","pointercancel"].forEach(ev =>
+      wall.addEventListener(ev, () => { clearTimeout(wt); wall.classList.remove("arming"); }));
+  }
+  acts.append(name, wall, flip);
 
   row.append(lamp, tuneBtn, acts);
   return row;
