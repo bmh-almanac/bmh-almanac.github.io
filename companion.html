@@ -1243,7 +1243,22 @@ function follow(){
       }
     }catch(e){ /* the follow never breaks the room */ }
     follow();
-  }, 5000);
+  }, followDelay());
+}
+/* THE DEAD AIR WAS THE POLL, NOT THE MODEL (2026-09-13, his "it was slow").
+   The answer row lands in the DB the moment the seat finishes — brain.py writes
+   it BEFORE it cuts the voice — and this loop then sat on a flat 5,000ms timer,
+   so every turn carried up to five seconds of pure waiting after it was already
+   answered, 2.5s on average. Measured against a chat turn that now takes 3-5s of
+   model time, the poll was as much of the wait as the thinking.
+   Fast while he is watching the arc, backing off as the turn gets long so a slow
+   or cold seat does not get hammered for six minutes. */
+function followDelay(){
+  const waited = S.waiting ? Date.now() - S.waiting.t0 : 0;
+  if(waited <  15000) return 600;    // the snap window — most chat turns land here
+  if(waited <  45000) return 1500;   // a working turn (tools, a cold seat)
+  if(waited < 120000) return 3000;
+  return 5000;                       // a long haul: the old cadence
 }
 let WAKE = null;
 async function holdWake(){ try{ WAKE = await navigator.wakeLock?.request("screen"); }catch(e){} }
