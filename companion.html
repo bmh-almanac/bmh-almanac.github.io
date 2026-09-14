@@ -1055,7 +1055,7 @@ function wordTimes(el, dur){
    while ATLAS is still generating — buddy's signature moment. Gated like an
    arrival (visible, not muted); a tune, a pagehide or a new turn stops them;
    the ▶ replay is the full WAV cut at the end, never both at once. */
-const CLIPS = { q: [], busy: false, gen: 0, audio: null, played: 0, dropped: 0, sayId: null, closed: true, voicedFinal: null };
+const CLIPS = { q: [], busy: false, gen: 0, audio: null, played: 0, dropped: 0, sayId: null, closed: true, voicedFinal: null, tag: "ATL" };
 function stopClips(){
   CLIPS.gen++; CLIPS.dropped += CLIPS.q.length; CLIPS.q.length = 0; CLIPS.busy = false;
   if(CLIPS.audio){ try{ CLIPS.audio.pause(); }catch(e){} CLIPS.audio = null; }
@@ -1082,7 +1082,7 @@ async function playClips(){
         if(gen !== CLIPS.gen) break;
       }
       const a = new Audio(obj); CLIPS.audio = a;
-      arc("arc", true); stateWord("ATL · SPEAKING");
+      arc("arc", true); stateWord(`${CLIPS.tag || "ATL"} · SPEAKING`);
       await new Promise(res => {
         a.addEventListener("ended", res, { once:true });
         a.addEventListener("error", res, { once:true });
@@ -1360,17 +1360,20 @@ function releaseWake(){ try{ WAKE?.release(); }catch(e){} WAKE = null; }
 async function sendAtlas(body, key){
   if(S.stream){ try{ S.stream.abort(); }catch(e){} S.stream = null; }
   const ctrl = new AbortController(); S.stream = ctrl;
-  const fix = await freshFix();      // where the truck is — this request only
+  const mode = S.mode === "chat" ? "chat" : "atlas";   // #256: chat rides the same reader
+  const fix = mode === "atlas" ? await freshFix() : null;   // where the truck is — atlas only, this request only
   /* nine seconds to HEADERS, same as the legacy door — a dead tailnet must
      not hold the key at KEYED; the AbortError lands in wireKey's own words */
   const hdrT = setTimeout(() => ctrl.abort(), 9000);
   let r;
   try{
-    r = await fetch(url(`/api/threads/${S.run}/atlas`), { method:"POST",
+    r = await fetch(url(`/api/threads/${S.run}/${mode === "atlas" ? "atlas" : "stream"}`), { method:"POST",
       headers: hdr({"Content-Type":"application/json",
         "Idempotency-Key": key || (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()))}),
-      body: JSON.stringify({ body, gear: S.gear, web: S.web,
-                             origin: fix ? { lat: fix.lat, lng: fix.lng, age_s: Math.round((Date.now() - GEO.at)/1000) } : null }),
+      body: JSON.stringify(mode === "atlas"
+        ? { body, gear: S.gear, web: S.web,
+            origin: fix ? { lat: fix.lat, lng: fix.lng, age_s: Math.round((Date.now() - GEO.at)/1000) } : null }
+        : { body, mode }),
       signal: ctrl.signal });
     clearTimeout(hdrT);
   }catch(err){ clearTimeout(hdrT); S.stream = null; throw err; }
@@ -1378,7 +1381,11 @@ async function sendAtlas(body, key){
     S.stream = null;
     const d = await r.json().catch(() => ({}));
     if(r.status === 409 && d.code === "off") refreshAtlas();
-    if(r.status === 405) return sendLegacyAtlas(body, key);   // an older spine with no atlas door
+    /* the door said no in words and nothing was written: an older spine (405),
+       a WALLED channel or a mode this door does not carry (409) — the legacy
+       /say door answers in the same voice, its voice path behind the wall */
+    if(r.status === 405 || (r.status === 409 && (d.code === "walled" || d.code === "mode")))
+      return sendLegacyAtlas(body, key, mode);
     throw new Error(d.error || ("the spine answered " + r.status));
   }
   if(!(r.headers.get("Content-Type") || "").includes("text/event-stream") || !r.body){
@@ -1395,21 +1402,23 @@ async function sendAtlas(body, key){
       settled = true; try{ ctrl.abort(); }catch(e){}
       recoverAtlas(body, key, true).then(resolve, reject);   // the POST was a 200: the row exists
     }, 20000);
-    readAtlasStream(r, body, ctrl, ev => { clearTimeout(guard); meta(ev); })
+    readAtlasStream(r, body, ctrl, ev => { clearTimeout(guard); meta(ev); }, mode)
       .then(() => { clearTimeout(guard); if(!settled){ settled = true; resolve({ id: null, answering: false }); } })
       .catch(err => { clearTimeout(guard); if(!settled){ settled = true; reject(err); } });
   });
 }
-async function readAtlasStream(r, body, ctrl, onMeta){
+async function readAtlasStream(r, body, ctrl, onMeta, mode = "atlas"){
   const reader = r.body.getReader(), dec = new TextDecoder();
   let buf = "", sayId = null, live = null, liveBd = null, text = "", done = false;
   const seen = new Set();
-  arc("atl", true); holdWake(); stateWord("ATL · LISTENING");
+  const tag = mode === "chat" ? "CHAT" : "ATL";   // #256: the same reader, the seat's own name
+  CLIPS.tag = tag;
+  arc("atl", true); holdWake(); stateWord(`${tag} · LISTENING`);
   const ensureLive = () => {
     if(live) return;
     live = document.createElement("div"); live.className = "sc-row atl live"; live.dataset.id = "live";
     const st = document.createElement("div"); st.className = "st";
-    st.innerHTML = `<span class="who">ATLAS${S.gear === "deep" ? " · DEEP" : ""} · now</span><span class="sp"></span>`;
+    st.innerHTML = `<span class="who">ATLAS${mode === "chat" ? " · CHAT" : S.gear === "deep" ? " · DEEP" : ""} · now</span><span class="sp"></span>`;
     liveBd = document.createElement("div"); liveBd.className = "bd";
     live.appendChild(st); live.appendChild(liveBd);
     const w = $("wire"); if(!S.msgs.length) w.textContent = ""; w.prepend(live); w.scrollTop = 0;
@@ -1426,8 +1435,8 @@ async function readAtlasStream(r, body, ctrl, onMeta){
     if(ev.t === "meta"){
       sayId = ev.say_id; rogerBeep(); buzz([14,26,14]);
       stopClips(); CLIPS.played = 0; CLIPS.dropped = 0; CLIPS.sayId = sayId; CLIPS.closed = false; CLIPS.voicedFinal = null;   // a new turn: whatever was speaking stops
-      appendTurn({ id: sayId, at: new Date().toISOString(), sender:"bryan", kind:"say", body, thread_id: S.run, mode:"atlas" });
-      ensureLive(); stateWord(ev.gear === "deep" ? "ATL · DEEP · CLAUDE" : "ATL · THINKING");
+      appendTurn({ id: sayId, at: new Date().toISOString(), sender:"bryan", kind:"say", body, thread_id: S.run, mode });
+      ensureLive(); stateWord(ev.gear === "deep" ? `${tag} · DEEP · CLAUDE` : `${tag} · THINKING`);
       onMeta && onMeta(ev);
       T.push(setTimeout(refill, 4000));   // a turn this key abandoned lands its rows on the glass anyway
     }else if(ev.t === "status"){
@@ -1435,18 +1444,18 @@ async function readAtlasStream(r, body, ctrl, onMeta){
       if(/^DEEP is dark|^answering on the local seat|^Claude declined/.test(s)){
         text = ""; if(liveBd) liveBd.textContent = ""; stopClips();   // Claude's half is not the answer
       }
-      stateWord("ATL · " + s.toUpperCase());
+      stateWord(`${tag} · ` + s.toUpperCase());
     }else if(ev.t === "voiced"){
       CLIPS.voicedFinal = ev.n;                    // the spine's final count of clips actually cut
     }else if(ev.t === "token"){
-      ensureLive(); text += ev.c; liveBd.textContent = text; stateWord("ATL · SPEAKING");
+      ensureLive(); text += ev.c; liveBd.textContent = text; stateWord(`${tag} · SPEAKING`);
     }else if(ev.t === "tool"){
       /* a preface before a tool call is not the answer — the row clears and the
          stamp says what it reaches for */
       text = ""; if(liveBd) liveBd.textContent = "";
-      stateWord("ATL · " + (ev.names || []).join(", ").toUpperCase());
+      stateWord(`${tag} · ` + (ev.names || []).join(", ").toUpperCase());
     }else if(ev.t === "think"){
-      stateWord("ATL · THINKING · " + ev.n);
+      stateWord(`${tag} · THINKING · ` + ev.n);
     }else if(ev.t === "row"){
       if(ev.row && !seen.has(ev.row.id)){ seen.add(ev.row.id); dropLive(); appendTurn(ev.row); }
     }else if(ev.t === "flag"){
@@ -1456,7 +1465,7 @@ async function readAtlasStream(r, body, ctrl, onMeta){
     }else if(ev.t === "done"){
       done = true; dropLive();
       const m = { id: ev.id, at: new Date().toISOString(), sender:"operation", kind:"answer",
-                  body: ev.body, thread_id: S.run, mode:"atlas", read_at: null };
+                  body: ev.body, thread_id: S.run, mode, read_at: null };
       appendTurn(m);
       const el = $("wire").querySelector(`[data-id="${m.id}"]`);
       if(ev.flags && ev.flags.length && el)
@@ -1544,17 +1553,18 @@ async function recoverAtlas(body, key, landed){
   }
   return sendLegacyAtlas(body, key);
 }
-async function sendLegacyAtlas(body, key){
-  /* the spawn path: /say with mode atlas → brain.companion's atlas branch —
-     the same voice and tools, painted when it lands rather than as it speaks */
+async function sendLegacyAtlas(body, key, mode = "atlas"){
+  /* the spawn path: /say with the mode → brain.companion's branch for it —
+     the same voice (and, for atlas, the tools), painted when it lands rather
+     than as it speaks; a walled chat channel always takes this door (#256) */
   const r = await fetch(url(`/api/threads/${S.run}/say`), { method:"POST",
     headers: hdr({"Content-Type":"application/json",
       "Idempotency-Key": key || (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()))}),
-    body: JSON.stringify({ body, mode: "atlas" }) });
+    body: JSON.stringify({ body, mode }) });
   const d = await r.json().catch(() => ({}));
   if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
   rogerBeep(); buzz([14,26,14]);
-  appendTurn({ id: d.id, at: new Date().toISOString(), sender:"bryan", kind:"say", body, thread_id: S.run, mode:"atlas" });
+  appendTurn({ id: d.id, at: new Date().toISOString(), sender:"bryan", kind:"say", body, thread_id: S.run, mode });
   if(d.answering) startWait(d.id);
   else toast("sent — but ATLAS could not take the mic; the turn stands");
   loadRuns();
@@ -1563,7 +1573,7 @@ async function sendLegacyAtlas(body, key){
 
 /* ══ the transmission itself — one door for typed and spoken turns ══ */
 async function sendTurn(body, key){
-  if(S.mode === "atlas") return sendAtlas(body, key);          // card #224: the streamed door
+  if(S.mode === "atlas" || S.mode === "chat") return sendAtlas(body, key);   // #224 atlas · #256 chat: the streamed doors
   const ctrl = new AbortController();
   const abortT = setTimeout(() => ctrl.abort(), 9000);
   try{
@@ -1635,13 +1645,21 @@ function wireKey(){
 }
 
 /* ══ TALK — the road loop (his ruling 2026-08-11: "never gonna be able to
-   hold to talk on the road"). One TAP opens the mic; ~2.3s of silence closes
+   hold to talk on the road"). One TAP opens the mic; ~1.8s of silence closes
    the take and SENDS it (a conversation turn is reversible and carries zero
    directive weight — the signed acts stay held: →19, the visor); when the
    answer finishes speaking, the mic REOPENS — a hands-free session. The same
    tap is the panic button the cab needs: mute during a take, silence during
    an answer, and a Fold call going fullscreen kills the mic automatically.
    Turn the radio down to key up — the mic hears the cab, same as a CB. ══ */
+/* THE SILENCE WINDOW (#256, 2026-09-13). 2,300ms was the old companion's
+   cadence, tuned when a take then paid ~4s of transcription and ~2.5s of
+   poll — the pause was invisible inside a fifteen-second wait. With the ear
+   resident (0.16s) and the answer streamed, the window became the single
+   largest stage between his last word and the first sound back. 1,800ms
+   still clears a natural mid-sentence breath (under a second) and closes
+   the turn half a second sooner. His feel rules this number. */
+const SILENCE_MS = 1800;
 function wireTalk(){
   const btn = $("talk"), rail = $("vurail"), say = $("say");
   const cap = t => { $("talkcap").textContent = t; };
@@ -1697,10 +1715,10 @@ function wireTalk(){
       g.fillStyle = "rgba(198,212,228,.6)";
       g.fillRect(x % w, (h-sh)/2, 1.4, sh);
       if(++x % w === 0) g.clearRect(0,0,w,h);
-      /* the companion's own proven cadence: speak, and ~2.3s of quiet sends it */
+      /* speak, and SILENCE_MS of quiet sends it (his cadence — see the constant) */
       const t = performance.now();
       if(rms > 0.028){ rec.spoke = true; rec.lastVoice = t; }
-      if(rec.spoke && t - rec.lastVoice > 2300) return finishTake("silence");
+      if(rec.spoke && t - rec.lastVoice > SILENCE_MS) return finishTake("silence");
       if(!rec.spoke && t - rec.t0 > 9000)      return finishTake("nothing");
       if(t - rec.t0 > 60000)                   return finishTake("cap");
       S.vuRaf = requestAnimationFrame(vu);
