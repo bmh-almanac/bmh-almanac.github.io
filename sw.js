@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v164';   // v164: THE BACK PAGES — the ear's book of days, the night's entry, the paste lane, the compass route
+const VERSION = 'almanac-shell-v165';   // v165: ATLAS IS THE LANDING — the dial's default is the seat that reaches everything
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded

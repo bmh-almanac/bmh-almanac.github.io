@@ -489,7 +489,14 @@ const S = {
   peaks: new Map(),       // msg id -> [0..1] buckets (this glass's tape memory)
   rec: null,              // {stream, ctx, proc, analyser, chunks, t0, key}
   vuRaf: 0, holdT: 0,
-  mode: localStorage.getItem("almanac_sc_mode") || "analysis",  // card #131
+  /* ATLAS IS THE LANDING (his ask 2026-09-14: "where is the central place to go
+     to access/interact this intelligence"). The dial had five equal positions
+     and defaulted to `analysis`, so the answer to "where do I go" was "choose
+     first" — five choices is not a central place. ATLAS is the seat that can
+     actually reach across everything (fifteen tools, the compass among them),
+     so it is the one a fresh device lands on. His own last choice still wins:
+     this is the default, never an override. */
+  mode: localStorage.getItem("almanac_sc_mode") || "atlas",  // card #131; the landing, 09-14
   gear: localStorage.getItem("almanac_sc_gear") || "talk",      // card #224: talk | deep
   web:  localStorage.getItem("almanac_sc_web") !== "0",         // card #224: look-ups on
   stream: null,           // the atlas turn's AbortController while its stream is open
@@ -512,7 +519,7 @@ const MODE_QUIET = {
   brainstorm:"a fresh pad — say the half-formed thing. it pushes back, and every few lines it offers your own words back to keep. no voice, no ledger.",
 };
 function setMode(m, first){
-  if(!MODE_PLACEHOLDER[m]) m = "analysis";
+  if(!MODE_PLACEHOLDER[m]) m = "atlas";      // an unknown dial lands on the chief of staff
   S.mode = m;
   localStorage.setItem("almanac_sc_mode", m);
   document.body.dataset.mode = m;
