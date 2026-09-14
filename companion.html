@@ -740,6 +740,34 @@ function wireProposal(m, el, bd){
     ["pointerup","pointerleave","pointercancel"].forEach(ev => el.addEventListener(ev, () => clearTimeout(t)));
     return;
   }
+  if(/heard\?/.test(m.title || "")){
+    /* A HEARD THING IS NOT A BELIEF (his correction 2026-09-14: "not everything i
+       listen to i believe in"). This chip used to POST the podcast's own sentence
+       into his compass as a claim. The compass is the record of what HE holds —
+       and the store already had the right pattern, where an outside input is the
+       SOURCE and the claim is his own sentence. So the hold KEEPS it as a heard
+       thing; what reaches the compass is what he says about it, on the pad. */
+    const hid = ((m.title || "").match(/#(\d+)/) || [])[1];
+    bd.innerHTML = `<span class="mk">◌</span> heard — <em>${esc(m.body)}</em> — hold to keep it; say what you make of it and that becomes yours`;
+    let t = 0, t0 = 0;
+    el.addEventListener("pointerdown", e => {
+      t0 = performance.now();
+      t = setTimeout(async () => {
+        if(performance.now() - t0 < 440) return;
+        buzz([14,26,14]);
+        try{
+          if(!hid) throw new Error("this chip carries no id");
+          const r = await fetch(url(`/api/heard/${hid}/keep`), { method:"POST",
+            headers: hdr({"Content-Type":"application/json"}), body: "{}" });
+          if(!r.ok) throw new Error("the spine answered " + r.status);
+          bd.innerHTML = `<span class="mk">◌</span> kept — <em>${esc(m.body)}</em>`;
+          toast("kept as something you heard. what you make of it is yours to say.");
+        }catch(err){ thud(); toast("not kept — " + (err.message||err)); }
+      }, 460);
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(ev => el.addEventListener(ev, () => clearTimeout(t)));
+    return;
+  }
   if(/bearing\?/.test(m.title || "")){
     /* THE COMPASS ROUTE (2026-09-14). A concept off a back page becomes a
        BEARING — the one store that reconciles, carrying what a take strains
