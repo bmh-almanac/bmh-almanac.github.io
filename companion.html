@@ -1151,7 +1151,13 @@ async function hearRow(m, el, isArrival){
   if(gen !== S.gen){ try{ a.pause(); }catch(e){} return; }
   arc("arc", true); stateWord("SPEAKING");
   const bd = el.querySelector(".bd");
-  const wins = reduce() ? [] : wordTimes(bd, 0);  // filled once duration is known
+  /* THE BEAM WALKS (card #210). wordTimes(bd, 0) returned one ZERO-WIDTH
+     window PER WORD — a non-empty array — so the `!wins.length` refill
+     guard below never fired and every window stayed {from:0,to:0}: every
+     word lit on frame one (t >= 0 always) and none ever walked (t < 0
+     never). Seed EMPTY so the guard fills it ONCE against the clip's real
+     decoded duration — the same fix #91 proved in detent.html. */
+  const wins = [];  // filled once a.duration is known (see paint)
   const paint = () => {
     if(!S.audio || S.audio !== a) return;
     const t = a.currentTime, dur = a.duration || 0;
