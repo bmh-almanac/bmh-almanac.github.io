@@ -1440,7 +1440,20 @@ async function readAtlasStream(r, body, ctrl, onMeta, mode = "atlas"){
   const handle = async ev => {
     if(ev.t === "meta"){
       sayId = ev.say_id; rogerBeep(); buzz([14,26,14]);
-      stopClips(); CLIPS.played = 0; CLIPS.dropped = 0; CLIPS.sayId = sayId; CLIPS.closed = false; CLIPS.voicedFinal = null;   // a new turn: whatever was speaking stops
+      /* A NEW TURN SILENCES BOTH LANES (pre-push gate, 2026-09-14). The answer
+         can be speaking as sentence CLIPS (CLIPS.audio) or as the full-WAV
+         arrival/replay (S.audio), and stopClips() only ever touched the first —
+         so a new turn keyed while a ▶ replay was still speaking put two voices
+         in the cab, and when that old WAV ended its own handler ran
+         `if(S.audio === a) stopPlayback()` and tore down the NEW turn's clips.
+         stopPlayback() calls stopClips() first, so one call ends both. The
+         S.gen++ is the other half: stopPlayback does NOT bump it, and a hearRow
+         parked in its 4×2200ms arrival retry would otherwise wake after this
+         turn started and set S.audio to the OLD answer. Shipped broken on the
+         atlas seat since #224; #256 widened it to chat, so it is fixed here for
+         both. */
+      S.gen++; stopPlayback();
+      CLIPS.played = 0; CLIPS.dropped = 0; CLIPS.sayId = sayId; CLIPS.closed = false; CLIPS.voicedFinal = null;
       appendTurn({ id: sayId, at: new Date().toISOString(), sender:"bryan", kind:"say", body, thread_id: S.run, mode });
       ensureLive(); stateWord(ev.gear === "deep" ? `${tag} · DEEP · CLAUDE` : `${tag} · THINKING`);
       onMeta && onMeta(ev);
@@ -1785,7 +1798,14 @@ function wireTalk(){
   btn.addEventListener("click", () => {
     if(document.visibilityState !== "visible") return;
     if(S.rec){ endLoop("muted — tap TALK to open the mic again"); return; }
-    if(S.audio && !S.audio.paused){ stopPlayback(); endLoop("quiet — tap TALK to open the mic again"); return; }
+    /* THE PANIC TAP COVERS THE CLIP LANE TOO (pre-push gate, 2026-09-14). This
+       rung tested only S.audio — the full WAV — so while ATLAS spoke its answer
+       as sentence clips the tap fell through to the rungs below and OPENED THE
+       MIC into ATLAS's own voice, in the cab, which is the one thing this button
+       exists to prevent. stopPlayback() calls stopClips() first, so one tap ends
+       whichever lane is speaking. (Live on the atlas seat since #224.) */
+    if((S.audio && !S.audio.paused) || CLIPS.audio || CLIPS.busy || CLIPS.q.length){
+      stopPlayback(); endLoop("quiet — tap TALK to open the mic again"); return; }
     if(S.loop){ endLoop("mic closed — the answer still lands in the run"); return; }
     if(!S.run){ toast("tune to a channel first — the log is the ☰, top right"); return; }
     S.loop = true; S.emptyTakes = 0;
