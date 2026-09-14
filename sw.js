@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v163';   // v163: CHAT RIDES THE STREAM — first sentence speaks mid-answer; silence 1.8s (card #256)
+const VERSION = 'almanac-shell-v164';   // v164: THE BACK PAGES — the ear's book of days, the night's entry, the paste lane, the compass route
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded

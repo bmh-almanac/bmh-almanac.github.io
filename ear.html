@@ -29,6 +29,7 @@
   --mono:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --key:198,212,228;
+  --glass2:rgba(18,22,28,.93); --amber:#E8A33D;
 }
 [hidden]{display:none !important}
 *{box-sizing:border-box}
@@ -97,6 +98,104 @@ body{background:var(--void);color:var(--ink);font-family:var(--sans);
 .feed .none{font:400 14px/1.5 var(--sans);color:var(--etch);font-style:italic;text-align:center}
 .law{font:600 8.5px/1.7 var(--mono);letter-spacing:.16em;color:var(--etch);text-align:center;
   max-width:92vw}
+
+/* ═══ THE BACK PAGES — the ear's book of days (his ask 2026-09-14) ═══════════
+   Lifted from companion.html's channel log on purpose: a day here behaves
+   exactly as a channel does there — a lamp, a name, a meta line, reversible
+   acts, and OFF is a MARK never a delete. One vocabulary across both surfaces.
+   `.lg-hours` is the ONE new class in the whole feature. ══════════════════ */
+.sc-log{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:34px;padding:7px 0;background:var(--glass);border:1px solid var(--line);
+  border-radius:4px;color:var(--mid);cursor:pointer;min-height:40px}
+.sc-log .bars{display:block;width:14px;height:10px;position:relative}
+.sc-log .bars::before,.sc-log .bars::after,.sc-log .bars i{content:"";position:absolute;
+  left:0;width:100%;height:1.5px;background:currentColor;border-radius:1px;
+  transition:background .25s}
+.sc-log .bars::before{top:0}
+.sc-log .bars i{top:4.25px}
+.sc-log .bars::after{bottom:0}
+.sc-log[aria-expanded="true"]{color:rgb(var(--key));border-color:rgba(var(--key),.55)}
+.sc-log .lamp{position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;
+  background:rgb(var(--key));box-shadow:0 0 8px rgba(var(--key),.9)}
+.sc-scrim{position:fixed;inset:0;background:rgba(4,6,9,.55);z-index:44;
+  opacity:0;transition:opacity .22s}
+.sc-scrim.on{opacity:1}
+.sc-logpanel{position:fixed;top:0;right:0;bottom:0;width:min(360px,88vw);z-index:45;
+  background:var(--glass2);border-left:1px solid var(--line);backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;
+  padding:max(12px,env(safe-area-inset-top)) 14px max(12px,env(safe-area-inset-bottom));
+  translate:100% 0;transition:translate .26s cubic-bezier(.22,.61,.36,1)}
+.sc-logpanel.on{translate:0 0}
+.lg-head{flex:0 0 auto;display:flex;align-items:baseline;gap:10px;padding-bottom:9px;
+  border-bottom:1px solid var(--line)}
+.lg-head h3{font:700 10px/1 var(--mono);letter-spacing:.2em;color:var(--dim);margin:0}
+.lg-head .x{margin-left:auto;background:none;border:0;color:var(--etch);cursor:pointer;
+  font:700 9px/1 var(--mono);letter-spacing:.14em;padding:3px 2px}
+.lg-head .x:hover{color:var(--ink)}
+.lg-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none}
+.lg-scroll::-webkit-scrollbar{display:none}
+.lg-none{color:var(--dim);font:400 12.5px/1.5 var(--sans);font-style:italic;padding:10px 2px}
+.lg-row{display:grid;grid-template-columns:9px 1fr auto;align-items:center;gap:9px;
+  padding:9px 2px;border-top:1px dotted var(--line);transition:opacity .22s,translate .22s}
+.lg-row:first-child{border-top:0}
+.lg-row .lamp{width:5px;height:5px;border-radius:50%;justify-self:center;
+  background:var(--etch);transition:background .3s,box-shadow .3s}
+.lg-row.lit .lamp{background:rgb(var(--key));box-shadow:0 0 7px rgba(var(--key),.75)}
+.lg-row.unheard .lamp{animation:lgpulse 2.1s ease-in-out infinite}
+@keyframes lgpulse{0%,100%{opacity:1}50%{opacity:.35}}
+.lg-row.now{background:rgba(var(--key),.07);border-radius:4px}
+.lg-tune{text-align:left;background:none;border:0;padding:0;cursor:pointer;min-width:0;
+  grid-column:2}
+.lg-tune .nm{display:block;font:600 13px/1.35 var(--sans);color:var(--mid);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-row.now .lg-tune .nm{color:var(--ink)}
+.lg-tune .meta{display:block;font:600 9px/1.4 var(--mono);letter-spacing:.1em;color:var(--etch);
+  font-variant-numeric:tabular-nums}
+.lg-acts{display:flex;gap:2px;align-items:stretch}
+.lg-act{background:none;border:0;color:var(--etch);cursor:pointer;
+  font:700 8.5px/1 var(--mono);letter-spacing:.1em;padding:12px 6px;white-space:nowrap;
+  display:flex;align-items:center;min-height:40px}
+.lg-act:hover{color:var(--ink)}
+.lg-act.off:hover{color:var(--amber)}
+.lg-offhead{flex:0 0 auto;margin-top:10px;padding:9px 2px;background:none;border:0;
+  border-top:1px solid var(--line);color:var(--dim);cursor:pointer;
+  font:700 9.5px/1 var(--mono);letter-spacing:.16em;text-align:left}
+.lg-offhead:hover{color:var(--ink)}
+.lg-foot{flex:0 0 auto;padding-top:9px;color:var(--etch);
+  font:600 8.5px/1.5 var(--mono);letter-spacing:.1em}
+/* THE DAY'S SHAPE — a ruled 24-hour line, one band per contiguous run. He
+   picks a day by its shape before he reads a word, which is what a logbook
+   has always done. Runs, not per-take ticks: a 300-take day stays legible. */
+.lg-hours{grid-column:2;position:relative;height:7px;margin-top:5px;border-radius:1px;
+  background:repeating-linear-gradient(90deg,rgba(150,170,190,.16) 0 1px,
+    transparent 1px calc(100%/24))}
+.lg-hours i{position:absolute;top:0;bottom:0;background:rgba(var(--key),.55);
+  border-radius:1px;min-width:2px}
+.lg-hours i.pst{background:rgba(232,163,61,.6)}
+/* ═══ THE PASTE — a transcript he hands over when the ear was off ═══════════ */
+.pst{position:fixed;inset:0;z-index:46;display:none;place-items:center;
+  background:rgba(4,6,9,.72);padding:16px}
+.pst.on{display:grid}
+.pst .card{background:var(--glass2);border:1px solid var(--line);border-radius:6px;
+  padding:18px;width:min(620px,94vw);display:flex;flex-direction:column;gap:10px}
+.pst h3{font:700 10px/1 var(--mono);letter-spacing:.2em;color:var(--dim);margin:0}
+.pst p{font:400 11.5px/1.5 var(--sans);color:var(--dim);margin:0}
+.pst input,.pst textarea{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line);
+  border-radius:3px;color:var(--ink);font:400 13px/1.45 var(--sans);padding:9px 11px;
+  user-select:text;-webkit-user-select:text;resize:vertical}
+.pst textarea{min-height:34vh;font:400 12.5px/1.5 var(--mono)}
+.pst .row{display:flex;gap:8px}
+.pst button{flex:1;padding:11px;background:rgba(var(--key),.14);
+  border:1px solid rgba(var(--key),.45);border-radius:4px;color:rgb(var(--key));
+  font:700 10px/1 var(--mono);letter-spacing:.16em;cursor:pointer;min-height:44px}
+.pst button.ghost{background:none;border-color:var(--line);color:var(--etch)}
+.pst button:hover{background:rgba(var(--key),.22)}
+.pst .cnt{font:600 9px/1 var(--mono);letter-spacing:.12em;color:var(--etch)}
+/* the ruling: a day's lines rule in from the top the way a ledger gets written */
+.feed .ln.rule{animation:ruleIn .34s cubic-bezier(.22,.61,.36,1) both}
+@keyframes ruleIn{from{opacity:0;translate:0 -8px}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion: reduce){ .feed .ln.rule{animation:none} }
+
 .toast{position:fixed;left:50%;bottom:24px;translate:-50% 0;background:var(--glass);
   border:1px solid var(--line);border-radius:5px;color:var(--ink);
   font:600 12px/1.4 var(--sans);padding:10px 16px;opacity:0;pointer-events:none;
@@ -109,20 +208,54 @@ body{background:var(--void);color:var(--ink);font-family:var(--sans);
 <div class="shell">
   <div class="mast">
     <div>
-      <div class="kick">THE DIET · INTAKE</div>
+      <div class="kick" id="kick">THE DIET · INTAKE</div>
       <div class="head">The Cab Ear</div>
     </div>
     <span class="sp"></span>
+    <button class="door" id="paste">PASTE</button>
     <button class="door" id="tosc">◂ SIDE CH</button>
     <button class="door" id="todesk">◂ THE DESK</button>
+    <button class="sc-log" id="logopen" aria-expanded="false" title="the back pages — every day the ear kept something">
+      <span class="bars"><i></i></span><span class="lamp" id="loglamp" hidden></span>
+    </button>
   </div>
   <div class="stagewrap"><div class="stage">
     <button class="big" id="big"><span class="ring" id="ring"></span>
       <span class="st" id="bst">OFF<span class="s2">TAP TO LISTEN</span></span></button>
     <div class="counts" id="counts">the ear is off — nothing is heard, nothing is kept</div>
     <div class="feed" id="feed"><div class="none">the trail prints here — take by take, as words are kept</div></div>
-    <div class="law">WORDS ARE KEPT · AUDIO IS DESTROYED ON ARRIVAL · A CALL TAKING THE SCREEN KILLS THE MIC · THE SAME TAP IS THE MUTE</div>
+    <div class="law">WORDS ARE KEPT · AUDIO IS DESTROYED ON ARRIVAL · THE SAME TAP IS THE MUTE<br>
+      LEAVING THIS PAGE CLOSES THE EAR — A CALL, ANOTHER APP, A DARK SCREEN. IT COMES BACK ON WHEN THE PAGE IS YOURS AGAIN.<br>
+      PLAYING ON THIS PHONE? THE EAR CANNOT HEAR IT — USE PASTE.</div>
   </div></div>
+</div>
+<div class="sc-scrim" id="scrim" hidden></div>
+<aside class="sc-logpanel" id="logpanel" aria-hidden="true">
+  <div class="lg-head">
+    <h3>THE BACK PAGES</h3>
+    <button class="x" id="logclose">CLOSE</button>
+  </div>
+  <div class="lg-scroll">
+    <div id="pagelist"><div class="lg-none">the book is empty — nothing has been kept yet</div></div>
+    <button class="lg-offhead" id="offhead" hidden aria-expanded="false"></button>
+    <div id="offlist"></div>
+  </div>
+  <div class="lg-foot">EVERY DAY IS A PAGE · WORDS ARE KEPT · NOTHING IS EVER DELETED</div>
+</aside>
+<div class="pst" id="pstwrap">
+  <div class="card">
+    <h3>PASTE A TRANSCRIPT</h3>
+    <p>For when the ear was off. A pasted transcript is clean, so its names are
+       trusted where the cab's never are. Timestamps and caption scaffolding are
+       stripped for you.</p>
+    <input id="pstlabel" placeholder="what it was — e.g. youtube · huberman on sleep" autocomplete="off">
+    <textarea id="psttext" placeholder="paste the transcript here"></textarea>
+    <div class="cnt" id="pstcnt">0 words</div>
+    <div class="row">
+      <button class="ghost" id="pstcancel">CANCEL</button>
+      <button id="pstsend">KEEP IT</button>
+    </div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -155,25 +288,140 @@ function paint(){
 }
 const eesc = s => String(s ?? "").replace(/[&<>"]/g,
   c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function feedAdd(row){
-  if(row.id <= E.lastId) return;
-  E.lastId = row.id;
+function feedAdd(row, ruling){
+  if(!ruling){
+    if(E.viewing) return;            // he is reading a back page; today keeps landing in the ledger
+    if(row.id <= E.lastId) return;
+    E.lastId = row.id;
+  }
   const f = $("feed");
   const empty = f.querySelector(".none"); if(empty) empty.remove();
   const el = document.createElement("div");
   el.className = "ln";
-  el.innerHTML = `<span class="t">${eesc((row.at || "").slice(11,16))}</span>` +
-    eesc(row.album || row.title || "");
+  el.className = "ln" + (ruling ? " rule" : "");
+  if(ruling) el.style.animationDelay = (Math.min(ruling, 14) * 26) + "ms";
+  el.innerHTML = `<span class="t">${eesc((row.at || "").slice(11,16))}</span>`
+    + (row.source === "pasted" ? '<span class="t" style="color:var(--amber)">PASTED</span>' : "")
+    + eesc(row.text || row.album || row.title || "");
   f.prepend(el);                     // column-reverse: prepend = the bottom edge
   while(f.children.length > 200) f.lastChild.remove();
 }
+/* ══ THE BACK PAGES ══════════════════════════════════════════════════════════
+   A day is a page; the hamburger is the book. One row per day, on the side
+   channel's own .lg-* grid, so the two surfaces read as one instrument. ══ */
+const P = { pages: [], retired: [], offOpen: false };
+function pageRow(d, on){
+  const row = document.createElement("div");
+  row.className = "lg-row" + (d.written ? " lit" : "") + (d.unread ? " unheard" : "")
+                + ((E.viewing || todayStr()) === d.day ? " now" : "");
+  const lamp = document.createElement("span"); lamp.className = "lamp";
+  const tune = document.createElement("button"); tune.className = "lg-tune";
+  tune.title = "turn to this page — the day's own words";
+  const bits = [];
+  if(d.minutes) bits.push(`${d.minutes} MIN IN EAR`);
+  if(d.pasted)  bits.push(d.pasted === 1 ? "1 PASTED" : `${d.pasted} PASTED`);
+  bits.push(d.written ? (d.unread ? "ENTRY WAITING" : "ENTRY WRITTEN") : "NO ENTRY YET");
+  tune.innerHTML = `<span class="nm">${eesc(d.today ? "today — " + d.name : d.name)}</span>`
+    + `<span class="meta">${bits.join(" · ")}</span>`;
+  tune.addEventListener("click", () => { turnTo(d.day); closeLog(); });
+  /* the day's SHAPE — one band per contiguous run, placed on a 24h rule */
+  const hours = document.createElement("div"); hours.className = "lg-hours";
+  for(const b of (d.strip || [])){
+    const i = document.createElement("i");
+    i.style.left = b.left + "%"; i.style.width = b.width + "%";
+    hours.appendChild(i);
+  }
+  const acts = document.createElement("div"); acts.className = "lg-acts";
+  if(d.thread_id){
+    const read = document.createElement("button");
+    read.className = "lg-act"; read.textContent = "READ";
+    read.title = "open the night's entry in the side channel";
+    read.addEventListener("click", e => { e.stopPropagation();
+      location.href = `companion.html#ch=${d.thread_id}`; });
+    acts.appendChild(read);
+  }
+  if(d.written){
+    const flip = document.createElement("button");
+    flip.className = "lg-act" + (on ? " off" : "");
+    flip.textContent = on ? "OFF THE PAGES" : "BACK ON";
+    flip.title = on ? "retire this page — every word is kept and one tap brings it back"
+                    : "put it back on the pages";
+    flip.addEventListener("click", async e => { e.stopPropagation();
+      try{
+        await fetch(url(`/api/listening/page/${d.day}/retire`), { method:"POST",
+          headers: hdr({"Content-Type":"application/json"}),
+          body: JSON.stringify({ on: on }) });
+        loadPages();
+      }catch(err){ toast("that did not take — " + (err.message || err)); }
+    });
+    acts.appendChild(flip);
+  }
+  row.appendChild(lamp); row.appendChild(tune); row.appendChild(acts); row.appendChild(hours);
+  return row;
+}
+function renderPages(){
+  const list = $("pagelist"), off = $("offlist"), head = $("offhead");
+  list.textContent = ""; off.textContent = "";
+  if(!P.pages.length){
+    list.innerHTML = '<div class="lg-none">the book is empty — nothing has been kept yet</div>';
+  }else for(const d of P.pages) list.appendChild(pageRow(d, true));
+  head.hidden = !P.retired.length;
+  if(P.retired.length){
+    head.textContent = (P.offOpen ? "▾ " : "▸ ") + `OFF THE PAGES · ${P.retired.length}`;
+    head.setAttribute("aria-expanded", String(P.offOpen));
+    if(P.offOpen) for(const d of P.retired) off.appendChild(pageRow(d, false));
+  }
+  $("loglamp").hidden = !P.pages.some(d => d.unread);
+}
+async function loadPages(){
+  try{
+    const d = await fetch(url("/api/listening/days"), { headers: hdr() }).then(x => x.json());
+    P.pages = d.pages || []; P.retired = d.retired || [];
+    renderPages();
+  }catch(e){ /* the book never breaks the ear */ }
+}
+function todayStr(){ const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; }
+function paintKick(){
+  $("kick").textContent = E.viewing ? "THE BACK PAGES · " + E.viewing.toUpperCase()
+                                    : "THE DIET · INTAKE";
+}
+async function turnTo(day){
+  /* THE RULING: the page rules itself in from the top, line by line, the way a
+     ledger gets written. Turning back a page never stops the ear — today keeps
+     landing in the ledger behind it. */
+  const isToday = day === todayStr();
+  E.viewing = isToday ? null : day;
+  paintKick(); renderPages();
+  const f = $("feed"); f.textContent = "";
+  try{
+    const d = await fetch(url(`/api/listening/day/${day}`), { headers: hdr() }).then(x => x.json());
+    const rows = d.rows || [];
+    if(!rows.length){ f.innerHTML = '<div class="none">nothing was kept on this page</div>'; }
+    else rows.forEach((r, i) => feedAdd(r, i + 1));
+    $("counts").textContent = isToday
+      ? (E.on ? "listening — today" : "today's page")
+      : `${rows.length} line(s) kept on ${day}` + (d.page ? " · the night wrote this page"
+                                                          : " · no entry written");
+    if(!isToday) toast("turned back to " + day + " — the ear keeps landing on today");
+  }catch(e){ f.innerHTML = '<div class="none">that page would not open</div>'; }
+}
+function openLog(){ $("scrim").hidden = false; requestAnimationFrame(() => {
+    $("scrim").classList.add("on"); $("logpanel").classList.add("on"); });
+  $("logopen").setAttribute("aria-expanded","true"); $("logpanel").setAttribute("aria-hidden","false");
+  loadPages(); }
+function closeLog(){ $("scrim").classList.remove("on"); $("logpanel").classList.remove("on");
+  $("logopen").setAttribute("aria-expanded","false"); $("logpanel").setAttribute("aria-hidden","true");
+  setTimeout(() => { $("scrim").hidden = true; }, 260); }
+
 async function pullTrail(){
   /* hydrate the day's trail (boot + after every kept take) — the ledger is
      the truth; the feed only ever shows what was actually written down */
   try{
+    if(E.viewing) return;                       // he is on a back page; leave it alone
     const d = await fetch(url("/api/listening?days=1"), { headers: hdr() }).then(x => x.json());
-    (d.rows || []).filter(m => m.source === "cab-ear")
-      .sort((a, b) => a.id - b.id).forEach(feedAdd);
+    (d.rows || []).filter(m => m.source === "cab-ear" || m.source === "pasted")
+      .sort((a, b) => a.id - b.id).forEach(r => feedAdd(r));
   }catch(e){}
 }
 async function post(blob){
@@ -260,6 +508,38 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 addEventListener("pagehide", () => disarm(true, true));
+$("logopen").addEventListener("click", () => {
+  $("logpanel").classList.contains("on") ? closeLog() : openLog(); });
+$("logclose").addEventListener("click", closeLog);
+$("scrim").addEventListener("click", closeLog);
+$("offhead").addEventListener("click", () => { P.offOpen = !P.offOpen; renderPages(); });
+/* THE PASTE — for when the ear was off (his ask 2026-09-14) */
+const pstWords = () => ($("psttext").value.trim().match(/\S+/g) || []).length;
+$("paste").addEventListener("click", () => { $("pstwrap").classList.add("on");
+  $("psttext").focus(); });
+$("pstcancel").addEventListener("click", () => $("pstwrap").classList.remove("on"));
+$("psttext").addEventListener("input", () => {
+  const n = pstWords();
+  $("pstcnt").textContent = `${n.toLocaleString()} word${n === 1 ? "" : "s"}`
+    + (n && n < 30 ? " — under 30 is a note, not a transcript" : ""); });
+$("pstsend").addEventListener("click", async () => {
+  const text = $("psttext").value;
+  if(pstWords() < 30){ toast("that is a note, not a transcript — nothing was kept"); return; }
+  $("pstsend").disabled = true; $("pstsend").textContent = "KEEPING…";
+  try{
+    const r = await fetch(url("/api/listening/paste"), { method:"POST",
+      headers: hdr({"Content-Type":"application/json"}),
+      body: JSON.stringify({ text, label: $("pstlabel").value || null, device: "desk" }) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || !d.kept) throw new Error(d.why || d.error || "the spine would not keep it");
+    toast(`kept — ${d.rows} line(s), ${d.words.toLocaleString()} words`);
+    $("psttext").value = ""; $("pstlabel").value = ""; $("pstcnt").textContent = "0 words";
+    $("pstwrap").classList.remove("on");
+    E.lastId = 0; E.viewing = null; paintKick();
+    $("feed").textContent = ""; pullTrail(); loadPages();
+  }catch(err){ toast(err.message || String(err)); }
+  finally{ $("pstsend").disabled = false; $("pstsend").textContent = "KEEP IT"; }
+});
 $("tosc").addEventListener("click", () => { location.href = "companion.html"; });
 $("todesk").addEventListener("click", () => { location.href = "desk.html"; });
 /* his standing intent: if the ear was on when this page last closed, it
@@ -267,6 +547,7 @@ $("todesk").addEventListener("click", () => { location.href = "desk.html"; });
 if(localStorage.getItem(FLAG) === "1") arm();
 paint();
 pullTrail();   // the day's trail meets him on open, armed or not
+loadPages();   // and the lamp says whether a page is waiting
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>

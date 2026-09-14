@@ -386,8 +386,18 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
 const $ = id => document.getElementById(id);
 let API = localStorage.getItem("almanac_api") || "";
 let TOK = localStorage.getItem("almanac_token") || "";
+let DEEP_CH = 0;      // a channel handed over by #ch= — tuned once, on boot
 (function bootstrap(){
   const h = location.hash || "";
+  /* THE BACK PAGES' DEEP LINK (2026-09-14): the ear's READ act sends him here
+     with the page's channel. The MODE is pinned with it — mode is a stored
+     global, so a man whose dial was last on chat would otherwise open his
+     entry in a seat that speaks, and the pad's whole guarantee is silence. */
+  const chm = h.match(/^#ch=(\d+)$/);
+  if(chm){
+    history.replaceState(null, "", location.pathname);
+    DEEP_CH = parseInt(chm[1], 10);
+  }
   if(h === "#reset" || h === "#nuke"){
     (async () => {
       try{
@@ -664,14 +674,24 @@ function wireRow(m){
   const bd = document.createElement("div"); bd.className = "bd";
   if(m.kind === "answer"){
     /* every word pre-wrapped ONCE, at render, through esc() — the beam's rails */
+    /* A WRITTEN ANSWER KEEPS ITS PARAGRAPHS (2026-09-14). The beam needs every
+       word wrapped, and the old split turned a blank line into ordinary
+       whitespace that HTML collapses — so the back pages' entry, written as
+       header / concept / question, arrived as one grey block. A whitespace run
+       carrying a newline becomes a real break; everything else is unchanged. */
     bd.innerHTML = m.body.split(/(\s+)/).map(t =>
-      /^\s+$/.test(t) ? t : `<span class="w">${esc(t)}</span>`).join("");
-    const play = document.createElement("button");
-    play.className = "play"; play.textContent = "▶";
-    play.title = "hear it again";
-    play.addEventListener("click", e => { e.stopPropagation(); hearRow(m, el, false); });
-    st.insertBefore(play, st.querySelector(".sp").nextSibling);
-    st.appendChild(play);
+      /^\s+$/.test(t) ? (t.includes("\n") ? "<br>".repeat(Math.min(2, (t.match(/\n/g)||[]).length)) : t)
+                       : `<span class="w">${esc(t)}</span>`).join("");
+    /* NO ▶ ON THE PAD. His ruling gives brainstorm no voice, so the button
+       could only ever fetch a clip that was never cut and refuse in words. */
+    if(m.mode !== "brainstorm"){
+      const play = document.createElement("button");
+      play.className = "play"; play.textContent = "▶";
+      play.title = "hear it again";
+      play.addEventListener("click", e => { e.stopPropagation(); hearRow(m, el, false); });
+      st.insertBefore(play, st.querySelector(".sp").nextSibling);
+      st.appendChild(play);
+    }
   }else if(m.kind === "undelivered"){
     bd.innerHTML = `<span class="mk">△</span> ${esc(m.body)} — your words hold; promote them if the session should read them.`;
   }else if(m.kind === "tool"){
@@ -708,6 +728,33 @@ function wireProposal(m, el, bd){
           bd.innerHTML = `<span class="mk">◉</span> clipped to the visor — <em>${esc(m.body)}</em>`;
           toast("clipped to the visor — rides in every seat from here.");
         }catch(err){ thud(); toast("not clipped — " + (err.message||err)); }
+      }, 460);
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(ev => el.addEventListener(ev, () => clearTimeout(t)));
+    return;
+  }
+  if(/bearing\?/.test(m.title || "")){
+    /* THE COMPASS ROUTE (2026-09-14). A concept off a back page becomes a
+       BEARING — the one store that reconciles, carrying what a take strains
+       and what supersedes it. Same 440ms hold as the visor: constitutional,
+       his hand only. The page proposes; nothing writes without the hold. */
+    bd.innerHTML = `<span class="mk">⌖</span> put this on the compass? <em>${esc(m.body)}</em> — hold to take the bearing`;
+    let t = 0, t0 = 0;
+    el.addEventListener("pointerdown", e => {
+      t0 = performance.now();
+      t = setTimeout(async () => {
+        if(performance.now() - t0 < 440) return;
+        buzz([14,26,14]);
+        try{
+          const r = await fetch(url("/api/bearings"), { method:"POST",
+            headers: hdr({"Content-Type":"application/json"}),
+            body: JSON.stringify({ claim: m.body.slice(0, 1200),
+                                   source: "the back pages — what was in his ears",
+                                   evidence: "from the day's listening, channel " + S.run }) });
+          if(!r.ok) throw new Error("the spine answered " + r.status);
+          bd.innerHTML = `<span class="mk">⌖</span> on the compass — <em>${esc(m.body)}</em>`;
+          toast("bearing taken — it rides the brief from here.");
+        }catch(err){ thud(); toast("not taken — " + (err.message||err)); }
       }, 460);
     });
     ["pointerup","pointerleave","pointercancel"].forEach(ev => el.addEventListener(ev, () => clearTimeout(t)));
@@ -1915,7 +1962,15 @@ async function boot(){
   paintCarrierGlass();
   try{
     await loadRuns();
-    if(S.runs.length) await tune(S.runs[0].id);
+    if(DEEP_CH){
+      /* he tapped READ on a back page: that channel opens, and the dial is
+         PINNED to the pad. Mode is a stored global, so without this a dial
+         left on chat would open his entry in a seat that speaks. */
+      setMode("brainstorm");
+      await tune(DEEP_CH);
+      DEEP_CH = 0;
+    }
+    else if(S.runs.length) await tune(S.runs[0].id);
     else { renderWire(); paintKick(); }
   }catch(e){
     if(TOK === "") return connect();
