@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v166';   // v166: HEARD IS NOT HELD — a heard idea is kept as heard; the compass stays his
+const VERSION = 'almanac-shell-v167';   // v167: THE MARKS ARE PRESSED, NOT TYPED — drawn star/check/dash on the year wall; workout became a bar
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded

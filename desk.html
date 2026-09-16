@@ -1276,13 +1276,47 @@ body.hot .act .h .n{color:var(--hot)}
 .pl-yc.pad{border:none;cursor:default}
 .pl-yc.dst{background:#7f1d1d;color:#fca5a5}
 .pl-yc.today{background:var(--amber);color:#000;font-weight:700}
-.pl-yc.wk{background:#16a34a;color:#fff}
+/* WORKOUT IS A BAR ALONG THE BASE, NOT A FILL (his ask 2026-09-15). A green
+   cell swallowed a green check whole — the one day he did the most read as
+   the day he did nothing. The bar leaves the cell's interior to the mark,
+   and it frees his COLOR to paint a workout day like any other. */
+.pl-yc.wk::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:#16a34a;box-shadow:0 -1px 0 rgba(0,0,0,.45)}
 .pl-yc.picked{outline:2px solid rgb(var(--key));outline-offset:1px}
+/* ══ THE MARKS — pressed on the wall, readable from across the barn ══════
+   A month row should read as a STREAK without reading a single glyph, so
+   the marks are drawn rather than typed: 7.5px mono characters were the
+   defect. Every mark carries a dark halo, because the cell underneath can
+   be his color, the dark season, today's amber, or nothing at all, and a
+   mark that only survives one of those is a mark he cannot trust. */
+.ym{position:absolute;inset:0;pointer-events:none}
+.ym::before{content:"";position:absolute;left:50%;top:50%}
+/* ALL SEVEN — the gold star. His word: "stars are good." */
+.ym.star::before{content:"★";left:0;top:0;width:100%;margin:0;
+  font:400 15px/19px var(--mono);color:#fbbf24;text-align:center;
+  -webkit-text-stroke:.7px #fbbf24;                /* the best day is the heaviest mark */
+  text-shadow:0 0 2px #000,0 0 5px rgba(0,0,0,.95)}
+/* MORNING DONE — a thick green check, two borders and a rotation */
+.ym.chk::before{width:5px;height:10px;
+  border:2.5px solid #4ade80;border-top:0;border-left:0;border-radius:1px;
+  transform:translate(-50%,-58%) rotate(41deg);
+  filter:drop-shadow(0 0 1.5px #000) drop-shadow(0 0 3px rgba(0,0,0,.85))}
+/* PARTIAL — a thick white dash: he showed up and did not finish */
+.ym.dash::before{width:11px;height:3.5px;border-radius:2px;background:#f1f5f9;
+  transform:translate(-50%,-50%);box-shadow:0 0 0 1px rgba(0,0,0,.75)}
+/* the one background gold cannot survive is today's gold */
+.pl-yc.today .ym.star::before{color:#231400;text-shadow:none}
 .pl-picker{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding:8px;border:1px solid var(--line);border-radius:3px}
 .pl-swatch{width:34px;height:34px;border-radius:3px;border:1px solid var(--line);cursor:pointer}
 .pl-swatch.clear{background:none;color:var(--dim);font:700 12px var(--mono)}
 .pl-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font:700 8px/1.6 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--etch)}
 .pl-legend .dstk{color:rgba(var(--hot-rgb),.7)}
+.pl-legend .tdk{color:var(--amber)}
+.pl-legend .wkk{color:#4ade80}
+/* the legend shows the MARK, not a word standing in for it */
+.pl-legend .lgk{display:inline-flex;align-items:center;gap:6px}
+.pl-legend .ymk{position:relative;display:inline-block;width:19px;height:19px;
+  border:1px solid var(--line);border-radius:2px}
 /* the lists — the bik Tasks grammar: inbox pair, then category columns
    carrying the four buckets */
 .pl-duo2,.pl-cols{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
@@ -7081,12 +7115,18 @@ function plannerRoom(){
       if(d < 1 || d > nD){ row += `<span class="pl-yc pad"></span>`; continue; }
       const ds = `${Y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
       const x = yd[ds];
-      const mark = x ? (x.all7 ? "⭐" : x.m >= 3 ? "✓" : (x.m || x.d) ? "–" : "") : "";
+      /* the mark is DRAWN, not typed — see .ym in the sheet. A marked day
+         trades its number for the mark, so the title carries what it means. */
+      const mk = x ? (x.all7 ? "star" : x.m >= 3 ? "chk" : (x.m || x.d) ? "dash" : "") : "";
+      const mark = mk ? `<i class="ym ${mk}"></i>` : "";
+      const meansW = { star: "all 7", chk: "morning done", dash: "partial" };
       const cls = "pl-yc" + (dst[ds] ? " dst" : "") + (ds === today ? " today" : "")
         + (x && x.workout ? " wk" : "") + (LP.pick === ds ? " picked" : "");
-      const paint = (x && x.color && !dst[ds] && ds !== today && !(x && x.workout))
+      /* workout is a BAR now, so it no longer blocks his color from painting */
+      const paint = (x && x.color && !dst[ds] && ds !== today)
         ? ` style="background:${x.color}"` : "";
-      row += `<span class="${cls}" data-d="${ds}"${paint} title="${ds}">${mark || d}</span>`;
+      const tt = ds + (mk ? ` — ${meansW[mk]}` : "") + (x && x.workout ? " · workout" : "");
+      row += `<span class="${cls}" data-d="${ds}"${paint} title="${tt}">${mark || d}</span>`;
     }
     grid += `<div class="pl-yrow">${row}</div>`;
   }
@@ -7100,7 +7140,7 @@ function plannerRoom(){
     <div class="pl-ytabs">${tabs}</div>
     <div class="pl-yearwrap">${wdHdr}${grid}</div>
     ${pickerHTML}
-    <div class="pl-legend"><span class="tdk">today</span><span class="wkk">workout</span><span class="dstk">dst zone</span><span>⭐ all 7</span><span>✓ morning</span><span>– partial</span><span>tap a day for its color</span></div>
+    <div class="pl-legend"><span class="tdk">today</span><span class="wkk">workout</span><span class="dstk">dst zone</span><span class="lgk"><i class="ymk"><i class="ym star"></i></i>all 7</span><span class="lgk"><i class="ymk"><i class="ym chk"></i></i>morning</span><span class="lgk"><i class="ymk"><i class="ym dash"></i></i>partial</span><span>tap a day for its color</span></div>
   </div>`;
   /* THE LISTS — the bik Tasks layout, his ruling: quick inbox + shopping
      up top, then vertical category COLUMNS each carrying the four
