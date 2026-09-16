@@ -1,5 +1,5 @@
 # ALMANAC — BLEEDING-EDGE UI TECHNIQUE PLAYBOOK
-### Researched against the live web platform, July 2026. Grounded in `~/Almanac/docs/DOCTRINE.md`, `DECISIONS.md`, `LEDGER.md`, `spine/entry.py::render_context()`, and the current shell at `/Users/bryanhertzig/Local Models/almanac-pwa/index.html`.
+### Researched against the live web platform, July 2026. Grounded in `~/Almanac/docs/DOCTRINE.md`, `DECISIONS.md`, `LEDGER.md`, `spine/entry.py::render_context()`, and the current shell at `~/Local Models/almanac-pwa/index.html`.
 
 ---
 

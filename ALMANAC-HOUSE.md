@@ -2,7 +2,7 @@
 
 There are **two** token systems in play, and they do not touch each other. That fact is the single most important archaeological finding.
 
-### 1a. The house system — `/Users/bryanhertzig/Local Models/bik/design/`
+### 1a. The house system — `~/Local Models/bik/design/`
 
 Load order is declared in `tokens.css:5-9`: `tokens.css` → `themes/*.css` → `components.css` → `motion.css`, concatenated by `build.sh` into `dist/bmh-design.css`.
 
@@ -46,7 +46,7 @@ color-scheme: dark;
 
 **Motion primitives** (`design/motion.css:6-45`): keyframes `ds-shimmer, ds-toast-in, ds-fade-in, ds-slide-up, ds-scale-in, ds-pulse`; classes `.ds-anim-fade-in/-slide-up/-scale-in/-pulse`, `.ds-page-enter`. Every one is a 6–8px translate or a 0.96 scale. That is the entire motion vocabulary of the house.
 
-### 1b. The baseline's OWN system — `/Users/bryanhertzig/Local Models/almanac-pwa/index.html:16-45`
+### 1b. The baseline's OWN system — `~/Local Models/almanac-pwa/index.html:16-45`
 
 The live Almanac **already abandoned the house palette** and wrote its own, with a stated metaphor in the comment:
 ```css
@@ -138,7 +138,7 @@ Null renders as `—`, never `0`. That one line *is* the no-fabrication doctrine
 
 ## 3 — THE CURRENT BEST-LOOKING THING IN THE STACK
 
-**Named: the "Cluster Wakes" hero from `/Users/bryanhertzig/Local Models/bik/mileage-insights/DESIGN-SPEC.md`.** Not the house CSS — the house CSS is a competent Tailwind-shaped token dump. The DESIGN-SPEC is the high-water mark.
+**Named: the "Cluster Wakes" hero from `~/Local Models/bik/mileage-insights/DESIGN-SPEC.md`.** Not the house CSS — the house CSS is a competent Tailwind-shaped token dump. The DESIGN-SPEC is the high-water mark.
 
 What makes it genuinely good, and what you must exceed:
 1. **It states a metaphor before a pixel** — *"The truck's instrument cluster wakes up and tells you the truth"* — and then earns every animation from it: "a gauge sweep isn't decoration, it's the literal instrument-startup ritual."
