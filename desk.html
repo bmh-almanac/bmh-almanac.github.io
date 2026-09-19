@@ -1094,6 +1094,44 @@ body.hot .act .h .n{color:var(--hot)}
 .closer[disabled]{opacity:.45;cursor:default}
 .kc.closed{opacity:.42}
 .kc.closed .t{text-decoration:line-through;text-decoration-color:var(--etch)}
+
+/* ── THE SHIPPED LEDGER (card #283) — finished work, read as a record and
+   not as a board. One column, not four: these are not states any more, they
+   are weeks, and a week is the unit he actually works and QAs in. */
+.shipwrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:9px}
+.shiphead{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;
+  gap:12px;flex-wrap:wrap;font:700 8.5px/1.5 var(--mono);letter-spacing:.16em;color:var(--dim)}
+.shiphead b{color:var(--ink);font-size:11px}
+.shiphead .gaps{color:var(--hot);letter-spacing:.1em}
+.ships{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:3px}
+.ships::-webkit-scrollbar{width:0}
+.swk{display:flex;flex-direction:column;gap:7px}
+.swkh{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid var(--line);padding-bottom:5px;position:sticky;top:0;
+  background:var(--bg);z-index:1}
+.swkh .t{font:700 10px/1 var(--mono);letter-spacing:.19em;color:rgba(var(--key),1)}
+.swkh .n{font:700 8.5px/1 var(--mono);color:var(--etch)}
+.sep{display:flex;flex-direction:column;gap:5px;padding-left:9px;
+  border-left:1px solid var(--line)}
+.seph{font:700 8px/1.4 var(--mono);letter-spacing:.16em;color:var(--dim);margin-top:4px}
+.sc{background:var(--glass2);border:1px solid var(--line);border-radius:5px;padding:8px 11px}
+.sct{font:600 12px/1.35 var(--sans)}
+.sct .sid{font:700 10px var(--mono);color:var(--etch);margin-right:5px}
+.scm-row{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+.sm{font:700 7.5px/1 var(--mono);letter-spacing:.13em;color:var(--dim);
+  border:1px solid var(--line);border-radius:2px;padding:3px 5px}
+.sm.dt{border-color:transparent;padding-left:0;color:var(--etch)}
+.sm.hi{color:var(--hot);border-color:rgba(255,59,24,.3)}
+/* NEVER IN QA is the one mark that is a JUDGEMENT, so it is the one that is
+   loud: it says a card reached done without the column that exists to prove
+   it was finished. */
+.sm.bad{color:var(--amber);border-color:rgba(255,164,25,.35)}
+.scm{font:400 10.5px/1.5 var(--mono);color:var(--dim);margin-top:5px;padding-left:2px}
+.scm code{color:rgba(var(--key),1);margin-right:6px}
+.shipmore{flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:4px;
+  color:var(--dim);cursor:pointer;padding:9px;font:700 8.5px/1 var(--mono);letter-spacing:.19em}
+.shipmore:hover{color:var(--ink);border-color:var(--mid)}
+.wkct{font:700 8.5px/1 var(--mono);letter-spacing:.16em;color:var(--etch)}
 /* ── THE RULING (cards #87/#100): a HOLD wearing the needs-bryan amber — the
    same ring the close uses, the same tokens YOUR HAND and the docket's breath
    already wear. No new colour, no new metaphor: the sheet is the desk's own
@@ -4113,11 +4151,86 @@ function md(t){
   if(ul) out += "</ul>";
   return out.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
 }
+/* ── THE SHIPPED LEDGER (card #283) ───────────────────────────────────
+   The board shows what is OPEN; four columns and no fifth, because a done
+   card leaves the payload after seven days and should. This is the far side
+   of that edge — 219 closed cards that had nowhere to be read. Fetched only
+   when he opens the tab: it is a git read on the spine and the board must
+   never wait on it. */
+const WK = { view:"board", data:null, err:null, loading:false, weeks:8 };
+
+async function loadShipped(){
+  WK.loading = true; WK.err = null;
+  try{ WK.data = await grab(`/api/shipped?weeks=${WK.weeks}`); }
+  catch(e){ WK.err = e.message || String(e); }
+  WK.loading = false;
+}
+
+function shipCard(c){
+  /* Every mark is a FACT the spine served. A card with no commits prints no
+     commit chip rather than a zero — an absence and a measured zero read the
+     same on a page and are not the same thing. */
+  const marks = [];
+  if(!c.through_qa) marks.push(`<span class="sm bad">NEVER IN QA</span>`);
+  if(c.hand) marks.push(`<span class="sm">${c.hand === "his" ? "HIS HAND" : "THE BOX"}</span>`);
+  if(c.days != null) marks.push(`<span class="sm">${c.days}d OPEN</span>`);
+  if(c.entries && c.entries.length)
+    marks.push(`<span class="sm">ENTRY ${c.entries.join(" / ")}</span>`);
+  const com = (c.commits || []).map(x =>
+    `<div class="scm"><code>${esc(x.sha)}</code> ${esc(x.subject)}</div>`).join("");
+  return `<div class="sc">
+    <div class="sct"><span class="sid">#${c.id}</span> ${esc(c.title)}</div>
+    <div class="scm-row"><span class="sm dt">${esc((c.done_at||"").slice(0,10))}</span>
+      ${c.priority === "high" ? '<span class="sm hi">HIGH</span>' : ""}${marks.join("")}</div>
+    ${com}</div>`;
+}
+
+function shippedHTML(){
+  if(WK.err) return `<div class="panel" style="flex:1"><div class="gen">
+    <span class="nodata">the spine did not answer with the shipped ledger — ${esc(WK.err)}</span></div></div>`;
+  const d = WK.data;
+  if(!d) return `<div class="panel" style="flex:1"><div class="gen">
+    <span class="nodata">reading the ledger…</span></div></div>`;
+  const g = d.gaps || {};
+  /* THE HOLES RIDE BESIDE THE ROWS. A ledger that renders only what it has
+     looks complete; these five numbers are the record's own condition. */
+  const holes = [
+    [g.no_epic, "no epic"], [g.never_qa, "never in QA"],
+    [g.unknown_hand, "no hand named"], [g.no_commit, "no commit"],
+    [g.no_page, "no session page"],
+  ].filter(([n]) => n).map(([n,w]) => `${n} ${w}`).join(" · ");
+  return `<div class="shipwrap">
+    <div class="shiphead">
+      <span><b>${d.total}</b> CLOSED · showing <b>${d.shown}</b></span>
+      <span class="gaps">${holes ? "OF ALL " + d.total + ": " + holes : "every closed card is fully accounted for"}</span>
+    </div>
+    ${d.trail !== "read" ? `<div class="why"><span class="tag">TRAIL</span>
+       <span>${esc(d.trail)}</span></div>` : ""}
+    <div class="ships">` + (d.weeks || []).map(w => `
+      <div class="swk"><div class="swkh"><span class="t">${esc(w.label)}</span>
+        <span class="n">${w.count}</span></div>` +
+      (w.epics || []).map(e => `<div class="sep">
+        <div class="seph">${esc(e.title || e.id)}</div>
+        ${e.cards.map(shipCard).join("")}</div>`).join("") + `</div>`).join("")
+    + `</div>
+    ${d.weeks && d.weeks.length && d.shown < d.total
+       ? `<button class="shipmore" id="shipmore">SHOW EVERY WEEK</button>` : ""}
+  </div>`;
+}
+
 function workRoom(){
   const b = State.board;
   if(!b) return whyBar() + `<div class="panel" style="flex:1"><div class="gen">
     <span class="nodata">the spine has not answered with the board</span></div></div>`;
-  return whyBar() + `<div class="board">` + COLS.map(([k,l]) => {
+  /* the room's tab bar — the same seg the money and hotshot rooms wear, so
+     a second tab bar is not a second grammar */
+  const tabs = `<div class="finbar"><div class="seg" id="wkView">` +
+    [["board","the board"],["shipped","shipped"]].map(([k,l]) =>
+      `<button data-v="${k}" class="${WK.view === k ? "on" : ""}">${l}</button>`).join("") +
+    `</div><span class="sp"></span>${WK.view === "shipped" && WK.data
+      ? `<span class="wkct">${WK.data.total} CLOSED</span>` : ""}</div>`;
+  if(WK.view === "shipped") return whyBar() + tabs + shippedHTML();
+  return whyBar() + tabs + `<div class="board">` + COLS.map(([k,l]) => {
     const cards = b.cards.filter(c => c.column_name === k).sort((a,z) => a.sort - z.sort);
     return `<div class="col ${k}"><div class="colhead"><span class="t">${l}</span>
       <span class="n">${cards.length}</span></div><div class="cards">` +
@@ -7526,7 +7639,7 @@ function renderRoom(){
        that would be phantom traffic against markup with no scale */
     else { paintGauge(); wireFigs(); wireActs(); wireSnap(); wireScale(); }
   }
-  if(o.room === "work"){ wireCards(); }
+  if(o.room === "work"){ wireWorkTabs(); if(WK.view === "board") wireCards(); }
   if(o.room === "learn"){ wireLearn(); }
   if(o.room === "planner"){ wirePlanner(); }
   if(o.room === "ledger"){ wireFin();
@@ -7643,6 +7756,32 @@ async function sendSnap(file){
     if(w){ w.classList.remove("busy"); w.textContent = String(err.message||err); }
   }
 }
+/* THE WORK ROOM'S TABS (card #283). The shipped read is a git read on the
+   spine, so it is fetched on FIRST ENTRY and never on the room's own load —
+   the board must not wait on the archive. stopPropagation is law on anything
+   that opens or closes (ruled 08-03). */
+function wireWorkTabs(){
+  const bar = $("wkView"); if(!bar) return;
+  bar.querySelectorAll("button").forEach(b =>
+    b.addEventListener("click", e => {
+      e.stopPropagation();
+      WK.view = b.dataset.v;
+      if(WK.view === "shipped" && !WK.data && !WK.loading){
+        renderRoom();                       // paint "reading the ledger…" first
+        loadShipped().then(renderRoom);
+        return;
+      }
+      renderRoom();
+    }));
+  const more = $("shipmore");
+  if(more) more.addEventListener("click", e => {
+    e.stopPropagation();
+    more.textContent = "READING…"; more.disabled = true;
+    WK.weeks = 0;                            // 0 = every week
+    loadShipped().then(renderRoom);
+  });
+}
+
 function wireCards(){
   document.querySelectorAll(".kc").forEach(el => {
     el.addEventListener("click", e => {

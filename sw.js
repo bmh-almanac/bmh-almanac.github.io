@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v167';   // v167: THE MARKS ARE PRESSED, NOT TYPED — drawn star/check/dash on the year wall; workout became a bar
+const VERSION = 'almanac-shell-v168';   // v168: THE SHIPPED LEDGER — closed cards get a door: the work room's second tab, weeks then epics, with the record's own gaps rendered beside the rows
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded
