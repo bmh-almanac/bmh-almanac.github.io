@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v169';   // v169: THE RECORD — history.html, a door off THE WORK to all 65 sessions, searchable, deep-linkable (#entry=N, #q=…)
+const VERSION = 'almanac-shell-v170';   // v170: THE EPIC AXIS — the shipped ledger toggles BY WEEK / BY EPIC; every epic collapsible with its closed cards underneath
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded

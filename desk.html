@@ -1132,6 +1132,32 @@ body.hot .act .h .n{color:var(--hot)}
   color:var(--dim);cursor:pointer;padding:9px;font:700 8.5px/1 var(--mono);letter-spacing:.19em}
 .shipmore:hover{color:var(--ink);border-color:var(--mid)}
 .wkct{font:700 8.5px/1 var(--mono);letter-spacing:.16em;color:var(--etch)}
+/* ── THE EPIC AXIS (card #288) — collapsed by default, because the header
+   alone has to answer how big the body of work is and how much is done. If
+   it does not, expanding is not a choice, it is the only way to read it. */
+.ep{border:1px solid var(--line);border-radius:6px;background:var(--glass2);
+  margin-bottom:7px;overflow:hidden}
+.ep.on{border-color:rgba(var(--key),.45)}
+.eph{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;
+  flex-wrap:wrap}
+.eph:hover{background:rgba(var(--wash),.03)}
+.eph .cav{font:700 10px/1 var(--mono);color:rgba(var(--key),1);flex:0 0 auto;width:9px}
+.eph .ept{font:600 13.5px/1.3 var(--sans);flex:1 1 200px;min-width:0}
+.eph .epn{font:700 11px/1 var(--mono);color:var(--ink);flex:0 0 auto}
+.eppb{flex:0 0 74px;height:3px;background:rgba(var(--wash),.1);border-radius:2px;
+  overflow:hidden}
+.eppb i{display:block;height:100%;background:rgba(var(--key),.85)}
+.sm.epo{color:var(--amber);border-color:rgba(255,164,25,.35)}
+.sm.epc{color:var(--mid)}
+.epb{padding:2px 13px 12px;display:flex;flex-direction:column;gap:6px;
+  border-top:1px dotted var(--line)}
+.epwhy{font:400 12px/1.6 var(--sans);color:var(--dim);font-style:italic;
+  padding:9px 0 3px}
+.wkall{background:none;border:1px solid var(--line);border-radius:4px;
+  color:var(--dim);cursor:pointer;padding:7px 11px;
+  font:700 8.5px/1 var(--mono);letter-spacing:.17em}
+.wkall:hover{color:var(--ink);border-color:var(--mid)}
+@media (max-width:640px){ .eppb{display:none} }
 /* the door out to the record — a LINK, not a tab, because it leaves */
 .recdoor{text-decoration:none;background:none;border:1px solid rgba(var(--key),.35);
   border-radius:4px;color:rgba(var(--key),1);padding:7px 11px;
@@ -4162,12 +4188,19 @@ function md(t){
    of that edge — 219 closed cards that had nowhere to be read. Fetched only
    when he opens the tab: it is a git read on the spine and the board must
    never wait on it. */
-const WK = { view:"board", data:null, err:null, loading:false, weeks:8 };
+const WK = { view:"board", data:null, err:null, loading:false, weeks:8,
+             /* THE OTHER AXIS (card #288, his ask). A week says what shipped
+                lately; an epic says how much of a body of work is finished.
+                Same cards, and the shipCard component renders both — two
+                renderers of one shape is how they drift apart. */
+             axis:"week", epics:null, open:new Set() };
 
 async function loadShipped(){
   WK.loading = true; WK.err = null;
-  try{ WK.data = await grab(`/api/shipped?weeks=${WK.weeks}`); }
-  catch(e){ WK.err = e.message || String(e); }
+  try{
+    if(WK.axis === "epic") WK.epics = await grab("/api/shipped?by=epic");
+    else WK.data = await grab(`/api/shipped?weeks=${WK.weeks}`);
+  }catch(e){ WK.err = e.message || String(e); }
   WK.loading = false;
 }
 
@@ -4190,27 +4223,75 @@ function shipCard(c){
     ${com}</div>`;
 }
 
-function shippedHTML(){
-  if(WK.err) return `<div class="panel" style="flex:1"><div class="gen">
-    <span class="nodata">the spine did not answer with the shipped ledger — ${esc(WK.err)}</span></div></div>`;
-  const d = WK.data;
+/* AN EPIC, COLLAPSED — his ask: "a high level of all the epics we have".
+   Collapsed is the default and the point: the header alone has to answer how
+   big the body of work is and how much of it is finished, or expanding is
+   not a choice, it is the only way to read the page. */
+function epicRow(e){
+  const on = WK.open.has(e.id);
+  const pct = e.total ? Math.round(100 * e.done / e.total) : 0;
+  const span = e.first_at && e.last_at
+    ? (e.first_at.slice(0,10) === e.last_at.slice(0,10)
+        ? e.first_at.slice(0,10)
+        : `${e.first_at.slice(0,10)} → ${e.last_at.slice(0,10)}`)
+    : "nothing closed yet";
+  return `<div class="ep ${on ? "on" : ""}" data-ep="${esc(e.id)}">
+    <div class="eph">
+      <span class="cav">${on ? "▾" : "▸"}</span>
+      <span class="ept">${esc(e.title || e.id || "no epic — unfiled")}</span>
+      ${e.state && e.state !== "active"
+        ? `<span class="sm">${esc(e.state.toUpperCase())}</span>` : ""}
+      <span class="epn">${e.done}/${e.total}</span>
+      <span class="eppb"><i style="width:${pct}%"></i></span>
+      ${e.open ? `<span class="sm epo">${e.open} OPEN</span>`
+               : `<span class="sm epc">ALL CLOSED</span>`}
+      <span class="sm dt">${esc(span)}</span>
+    </div>
+    ${on ? `<div class="epb">
+      ${e.why ? `<div class="epwhy">${esc(e.why)}</div>` : ""}
+      ${e.cards.length ? e.cards.map(shipCard).join("")
+        : `<p class="nodata" style="font-size:12px">nothing closed under this epic yet</p>`}
+    </div>` : ""}
+  </div>`;
+}
+
+function epicsHTML(){
+  const d = WK.epics;
   if(!d) return `<div class="panel" style="flex:1"><div class="gen">
-    <span class="nodata">reading the ledger…</span></div></div>`;
+    <span class="nodata">reading the epics…</span></div></div>`;
+  return `<div class="shipwrap">
+    ${gapsHead(d, `<b>${d.epics.length}</b> EPICS · <b>${d.total}</b> CLOSED`)}
+    <div class="ships">${d.epics.map(epicRow).join("")}</div>
+  </div>`;
+}
+
+/* One header for both axes — the gap counts are a property of the RECORD,
+   not of the view, and rendering them twice is how they end up disagreeing. */
+function gapsHead(d, left){
   const g = d.gaps || {};
-  /* THE HOLES RIDE BESIDE THE ROWS. A ledger that renders only what it has
-     looks complete; these five numbers are the record's own condition. */
   const holes = [
     [g.no_epic, "no epic"], [g.never_qa, "never in QA"],
     [g.unknown_hand, "no hand named"], [g.no_commit, "no commit"],
     [g.no_page, "no session page"],
   ].filter(([n]) => n).map(([n,w]) => `${n} ${w}`).join(" · ");
-  return `<div class="shipwrap">
-    <div class="shiphead">
-      <span><b>${d.total}</b> CLOSED · showing <b>${d.shown}</b></span>
-      <span class="gaps">${holes ? "OF ALL " + d.total + ": " + holes : "every closed card is fully accounted for"}</span>
-    </div>
+  return `<div class="shiphead"><span>${left}</span>
+    <span class="gaps">${holes ? "OF ALL " + d.total + ": " + holes
+      : "every closed card is fully accounted for"}</span></div>
     ${d.trail !== "read" ? `<div class="why"><span class="tag">TRAIL</span>
-       <span>${esc(d.trail)}</span></div>` : ""}
+       <span>${esc(d.trail)}</span></div>` : ""}`;
+}
+
+function shippedHTML(){
+  if(WK.err) return `<div class="panel" style="flex:1"><div class="gen">
+    <span class="nodata">the spine did not answer with the shipped ledger — ${esc(WK.err)}</span></div></div>`;
+  if(WK.axis === "epic") return epicsHTML();
+  const d = WK.data;
+  if(!d) return `<div class="panel" style="flex:1"><div class="gen">
+    <span class="nodata">reading the ledger…</span></div></div>`;
+  /* THE HOLES RIDE BESIDE THE ROWS. A ledger that renders only what it has
+     looks complete; these five numbers are the record's own condition. */
+  return `<div class="shipwrap">
+    ${gapsHead(d, `<b>${d.total}</b> CLOSED · showing <b>${d.shown}</b>`)}
     <div class="ships">` + (d.weeks || []).map(w => `
       <div class="swk"><div class="swkh"><span class="t">${esc(w.label)}</span>
         <span class="n">${w.count}</span></div>` +
@@ -4233,11 +4314,18 @@ function workRoom(){
      page"). A tab is where you work; this is where you look something up, and
      it wants its own URL so he can keep it open beside the desk and paste a
      link to one session into a note. */
+  const axis = WK.view !== "shipped" ? "" :
+    `<div class="seg" id="wkAxis">` +
+    [["week","by week"],["epic","by epic"]].map(([k,l]) =>
+      `<button data-a="${k}" class="${WK.axis === k ? "on" : ""}">${l}</button>`).join("") +
+    `</div>`;
   const tabs = `<div class="finbar"><div class="seg" id="wkView">` +
     [["board","the board"],["shipped","shipped"]].map(([k,l]) =>
       `<button data-v="${k}" class="${WK.view === k ? "on" : ""}">${l}</button>`).join("") +
-    `</div><span class="sp"></span>${WK.view === "shipped" && WK.data
-      ? `<span class="wkct">${WK.data.total} CLOSED</span>` : ""}
+    `</div>${axis}<span class="sp"></span>
+     ${WK.view === "shipped" && WK.axis === "epic" && WK.epics
+        ? `<button class="wkall" id="wkall">${
+            WK.open.size ? "COLLAPSE ALL" : "EXPAND ALL"}</button>` : ""}
      <a class="recdoor" href="history.html">THE RECORD ▸</a></div>`;
   if(WK.view === "shipped") return whyBar() + tabs + shippedHTML();
   return whyBar() + tabs + `<div class="board">` + COLS.map(([k,l]) => {
@@ -7789,6 +7877,34 @@ function wireWorkTabs(){
     more.textContent = "READING…"; more.disabled = true;
     WK.weeks = 0;                            // 0 = every week
     loadShipped().then(renderRoom);
+  });
+  /* THE AXIS. Each side fetches once and is kept, so switching back and
+     forth is free — they are two readings of a record that only changes
+     when he closes something. */
+  const ax = $("wkAxis");
+  if(ax) ax.querySelectorAll("button").forEach(b =>
+    b.addEventListener("click", e => {
+      e.stopPropagation();
+      if(WK.axis === b.dataset.a) return;
+      WK.axis = b.dataset.a;
+      const have = WK.axis === "epic" ? WK.epics : WK.data;
+      if(have) return renderRoom();
+      renderRoom();                          // paint "reading…" first
+      loadShipped().then(renderRoom);
+    }));
+  document.querySelectorAll(".ep[data-ep]").forEach(el =>
+    el.querySelector(".eph").addEventListener("click", e => {
+      e.stopPropagation();
+      const id = el.dataset.ep;
+      WK.open.has(id) ? WK.open.delete(id) : WK.open.add(id);
+      renderRoom();
+    }));
+  const all = $("wkall");
+  if(all) all.addEventListener("click", e => {
+    e.stopPropagation();
+    if(WK.open.size) WK.open.clear();
+    else (WK.epics?.epics || []).forEach(x => WK.open.add(x.id));
+    renderRoom();
   });
 }
 
