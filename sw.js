@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v168';   // v168: THE SHIPPED LEDGER — closed cards get a door: the work room's second tab, weeks then epics, with the record's own gaps rendered beside the rows
+const VERSION = 'almanac-shell-v169';   // v169: THE RECORD — history.html, a door off THE WORK to all 65 sessions, searchable, deep-linkable (#entry=N, #q=…)
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded
@@ -26,7 +26,7 @@ self.addEventListener('message', e => {
 });
 const SHELL = ['./', './index.html', './manifest.json',
                './detent.html', './detent.webmanifest', './desk.html',
-               './companion.html', './ear.html',
+               './companion.html', './ear.html', './history.html',
                './vendor/leaflet.js', './vendor/leaflet.css',
                './icons/icon-192.png', './icons/icon-512.png',
                './icons/badge-96.png'];

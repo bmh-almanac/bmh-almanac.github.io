@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07080A" id="metaTheme">
+<title>Almanac — the record</title>
+<script>/* PAPER MODE boots before first paint, same as the desk — this page is
+reached FROM the desk, and a flash of the wrong theme on the way in reads as a
+different application rather than another room of the same one. */
+try{ if(localStorage.getItem("almanac_theme")==="paper")
+  document.documentElement.classList.add("paper"); }catch(e){}</script>
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<style>
+/* ══ THE RECORD (card #286) ═══════════════════════════════════════════
+   His ask: "a new page that has the complete history of our work so i can
+   reference."  REFERENCE is the word that sets the design. The desk is an
+   instrument — orbs, gauges, a needle that moves. This is the back of the
+   book: an index. Quiet, typographic, dense, and scannable at arm's length.
+   Nothing here animates, because nothing here is live; every figure on this
+   page already happened. */
+:root{
+  --void:#07080A; --glass:rgba(30,36,44,.86); --glass2:rgba(20,25,31,.9);
+  --line:rgba(150,170,190,.15);
+  --ink:#E9EDF0; --mid:#AEB8C0; --dim:#8B96A0; --etch:#5E6870;
+  --amber:#FFA419; --hot:#FF3B18;
+  --key:255,164,25; --wash:255,255,255;
+  --mono:ui-monospace,"SF Mono","Roboto Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --bg:var(--void);
+}
+:root.paper{
+  --void:#EFE6CE; --glass:rgba(240,232,212,.9); --glass2:rgba(245,238,220,.75);
+  --line:rgba(60,48,26,.18);
+  --ink:#1E160A; --mid:#4A4238; --dim:#6B6258; --etch:#8B8172;
+  --amber:#A67C00; --hot:#B3271A;
+  --key:143,90,0; --wash:34,26,12;
+  --bg:var(--void);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.6 var(--sans);
+  min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+
+/* ── the masthead, the same rule the desk wears ─────────────────────── */
+.mast{position:sticky;top:0;z-index:10;background:var(--bg);
+  border-bottom:1px solid var(--line);padding:13px 20px 11px}
+.mastrow{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  max-width:1180px;margin:0 auto}
+.brand{font:700 13px/1 var(--mono);letter-spacing:.34em}
+.sub{font:700 8.5px/1 var(--mono);letter-spacing:.2em;color:var(--dim)}
+.sp{flex:1}
+.mast button,.mast a.btn{background:none;border:1px solid var(--line);
+  border-radius:4px;color:var(--dim);cursor:pointer;padding:7px 12px;
+  font:700 8.5px/1 var(--mono);letter-spacing:.17em;text-decoration:none}
+.mast button:hover,.mast a.btn:hover{color:var(--ink);border-color:var(--mid)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:18px 20px 60px}
+
+/* ── the search bar. One box, because there is one question: where did we
+   say that. ──────────────────────────────────────────────────────────── */
+.seek{display:flex;gap:9px;margin:4px 0 20px;flex-wrap:wrap}
+.seek input{flex:1 1 280px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+  border-radius:5px;color:var(--ink);padding:12px 14px;font:400 14px var(--sans)}
+:root.paper .seek input{background:rgba(255,255,255,.4)}
+.seek input:focus{outline:none;border-color:rgba(var(--key),.7)}
+.seek button{background:rgba(var(--key),.14);border:1px solid rgba(var(--key),.4);
+  border-radius:5px;color:rgba(var(--key),1);cursor:pointer;padding:0 20px;
+  font:700 9px/1 var(--mono);letter-spacing:.19em}
+.seek .clr{background:none;border-color:var(--line);color:var(--dim)}
+.note{font:700 8.5px/1.6 var(--mono);letter-spacing:.14em;color:var(--dim);
+  margin-bottom:16px}
+.note b{color:var(--ink)}
+.note .warn{color:var(--amber)}
+
+/* ── the shelf of sessions ──────────────────────────────────────────── */
+.yr{font:700 10px/1 var(--mono);letter-spacing:.24em;color:rgba(var(--key),1);
+  border-bottom:1px solid var(--line);padding:16px 0 6px;margin-bottom:9px;
+  position:sticky;top:53px;background:var(--bg);z-index:5}
+.pg{border:1px solid var(--line);border-radius:6px;background:var(--glass2);
+  padding:12px 15px;margin-bottom:8px;cursor:pointer}
+.pg:hover{border-color:var(--mid)}
+.pg.on{border-color:rgba(var(--key),.55);cursor:default}
+.pgh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pgn{font:700 11px var(--mono);color:var(--etch);flex:0 0 auto}
+.pgt{font:600 14.5px/1.35 var(--sans);flex:1 1 260px;min-width:0}
+.pgd{font:700 8px/1 var(--mono);letter-spacing:.13em;color:var(--dim);flex:0 0 auto}
+.pgmeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.chip{font:700 7.5px/1 var(--mono);letter-spacing:.12em;color:var(--dim);
+  border:1px solid var(--line);border-radius:2px;padding:3px 5px}
+.chip.open{color:var(--amber);border-color:rgba(255,164,25,.4)}
+.chip.card{color:rgba(var(--key),1);border-color:rgba(var(--key),.3)}
+.teaser{font:400 12.5px/1.6 var(--sans);color:var(--dim);margin-top:8px}
+
+/* ── one page, opened ───────────────────────────────────────────────── */
+.full{margin-top:14px;padding-top:13px;border-top:1px dotted var(--line)}
+.sect{margin-bottom:18px}
+.sech{font:700 8.5px/1 var(--mono);letter-spacing:.21em;color:rgba(var(--key),1);
+  margin-bottom:7px}
+.body{font:400 13.5px/1.72 var(--sans);white-space:pre-wrap;color:var(--mid)}
+.body b{color:var(--ink)}
+.mv{border-left:2px solid var(--line);padding:2px 0 2px 11px;margin-bottom:10px}
+.mvh{font:700 8px/1.5 var(--mono);letter-spacing:.13em;color:var(--dim)}
+.mvh .k{color:rgba(var(--key),1)}
+.mvh .his{color:var(--amber)}
+.mvb{font:400 12.5px/1.6 var(--sans);color:var(--mid);white-space:pre-wrap}
+.quote{border-left:2px solid var(--amber);padding-left:10px;margin:7px 0;
+  font:400 13px/1.6 var(--sans);color:var(--ink);font-style:italic}
+.cardrow{display:flex;gap:9px;align-items:baseline;padding:5px 0;
+  border-bottom:1px solid var(--line);font:400 13px/1.5 var(--sans)}
+.cardrow .n{font:700 10px var(--mono);color:var(--etch);flex:0 0 auto}
+.cardrow .c{font:700 7.5px/1 var(--mono);letter-spacing:.12em;color:var(--dim);
+  border:1px solid var(--line);border-radius:2px;padding:3px 5px;flex:0 0 auto}
+
+/* ── search results ─────────────────────────────────────────────────── */
+.grp{margin-bottom:22px}
+.grph{font:700 9.5px/1 var(--mono);letter-spacing:.22em;color:rgba(var(--key),1);
+  border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:10px}
+.hit{border:1px solid var(--line);border-radius:5px;background:var(--glass2);
+  padding:10px 13px;margin-bottom:7px}
+.hit.go{cursor:pointer}
+.hit.go:hover{border-color:var(--mid)}
+.hith{font:600 13.5px/1.4 var(--sans);display:flex;gap:8px;align-items:baseline;
+  flex-wrap:wrap}
+.hith .n{font:700 10px var(--mono);color:var(--etch)}
+.hith .d{font:700 8px var(--mono);letter-spacing:.12em;color:var(--dim);
+  margin-left:auto}
+.snip{font:400 12.5px/1.65 var(--sans);color:var(--dim);margin-top:6px}
+mark{background:rgba(var(--key),.24);color:var(--ink);border-radius:2px;
+  padding:0 2px}
+.none{color:var(--dim);font-style:italic;padding:30px 0}
+.err{color:var(--hot);font:400 13px/1.6 var(--sans);padding:24px 0}
+
+@media (max-width:640px){
+  .wrap{padding:14px 16px 50px}
+  .mast{padding:11px 16px 9px}
+  .pgt{font-size:13.5px}
+  .yr{top:49px}
+}
+</style>
+</head>
+<body>
+<div class="mast"><div class="mastrow">
+  <span class="brand">ALMANAC</span>
+  <span class="sub">THE RECORD</span>
+  <span class="sp"></span>
+  <span class="sub" id="stamp"></span>
+  <button id="lamp">☀ PAPER</button>
+  <a class="btn" href="desk.html">◂ THE DESK</a>
+</div></div>
+
+<div class="wrap">
+  <div class="seek">
+    <input id="q" type="search" autocomplete="off" spellcheck="false"
+           placeholder="search every session, card, move, bearing and win…">
+    <button id="go">SEARCH</button>
+    <button class="clr" id="clr">THE SHELF</button>
+  </div>
+  <div class="note" id="note"></div>
+  <div id="out"></div>
+</div>
+
+<script>
+/* THE SAME CONTRACT AS THE DESK. This page is another room of one
+   application, so it reads the same two keys and never mints its own — a
+   second connect flow is a second thing to forget on a new phone. */
+const API = localStorage.getItem("almanac_api") || "";
+const TOK = localStorage.getItem("almanac_token") || "";
+const url = p => (API || "") + p;
+const hdr = () => ({ Authorization: "Bearer " + TOK });
+const esc = s => String(s ?? "").replace(/[&<>"]/g,
+  m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const $ = id => document.getElementById(id);
+
+function setTheme(paper){
+  document.documentElement.classList.toggle("paper", paper);
+  try{ localStorage.setItem("almanac_theme", paper ? "paper" : "night"); }catch(e){}
+  $("lamp").textContent = paper ? "☾ NIGHT" : "☀ PAPER";
+  const m = $("metaTheme"); if(m) m.content = paper ? "#EFE6CE" : "#07080A";
+}
+setTheme(document.documentElement.classList.contains("paper"));
+$("lamp").addEventListener("click", () => setTheme(
+  !document.documentElement.classList.contains("paper")));
+
+async function grab(p){
+  const r = await fetch(url(p), { headers: hdr() });
+  if(!r.ok){
+    let why = "the spine answered " + r.status;
+    try{ const j = await r.json(); if(j.error) why = j.error; }catch(e){}
+    throw new Error(why);
+  }
+  return r.json();
+}
+
+/* Highlight the needle inside a haystack that is ALREADY escaped — the order
+   matters: escape first, then wrap, or a card title containing < eats the
+   rest of the line. */
+function mark(text, q){
+  const safe = esc(text);
+  if(!q) return safe;
+  const needle = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return safe.replace(new RegExp(needle, "gi"), m => "<mark>" + m + "</mark>");
+}
+const day = s => (s || "").slice(0, 10);
+const YEARMON = s => {
+  const d = new Date(s);
+  return isNaN(d) ? (s || "").slice(0, 7)
+    : d.toLocaleDateString("en-US", { month: "long", year: "numeric" }).toUpperCase();
+};
+
+const State = { index:null, open:null, q:"" };
+
+/* ── the shelf ──────────────────────────────────────────────────────── */
+function shelf(){
+  const d = State.index;
+  if(!d) return `<div class="none">reading the record…</div>`;
+  let html = "", month = "";
+  for(const e of d.entries){
+    const m = YEARMON(e.closed_at || e.opened_at);
+    if(m !== month){ month = m; html += `<div class="yr">${esc(m)}</div>`; }
+    const on = State.open && State.open.id === e.id;
+    html += `<div class="pg ${on ? "on" : ""}" data-e="${e.id}">
+      <div class="pgh">
+        <span class="pgn">${e.id}</span>
+        <span class="pgt">${esc(e.title)}</span>
+        <span class="pgd">${day(e.closed_at || e.opened_at)}</span>
+      </div>
+      <div class="pgmeta">
+        ${e.open ? '<span class="chip open">STILL OPEN</span>' : ""}
+        <span class="chip">${e.moves} MOVE${e.moves === 1 ? "" : "S"}</span>
+        ${e.chars ? `<span class="chip">${e.chars.toLocaleString()} CHARS</span>` : ""}
+        ${(e.cards || []).map(c => `<span class="chip card">#${c}</span>`).join("")}
+      </div>
+      ${e.teaser ? `<div class="teaser">${esc(e.teaser)}</div>` : ""}
+      ${on ? full(State.open) : ""}
+    </div>`;
+  }
+  return html;
+}
+
+function full(e){
+  const sect = (label, body) => body
+    ? `<div class="sect"><div class="sech">${label}</div>
+         <div class="body">${esc(body)}</div></div>` : "";
+  const moves = (e.moves || []).map(m => `
+    <div class="mv">
+      <div class="mvh"><span class="k">${esc(m.kind.toUpperCase())}</span>
+        ${m.ref ? " · " + esc(m.ref) : ""}
+        ${m.voice === "his" ? ' · <span class="his">HIS WORDS</span>' : ""}
+        · ${day(m.at)}</div>
+      <div class="mvb">${esc(m.detail || "")}</div>
+      ${m.verbatim ? `<div class="quote">“${esc(m.verbatim)}”</div>` : ""}
+    </div>`).join("");
+  const cards = (e.cards || []).map(c => `
+    <div class="cardrow"><span class="n">#${c.id}</span>
+      <span>${esc(c.title)}</span>
+      <span class="c">${esc((c.column_name || "").toUpperCase())}</span>
+      ${c.epic_id ? `<span class="c">${esc(c.epic_id)}</span>` : ""}</div>`).join("");
+  const bearings = (e.bearings || []).map(b => `
+    <div class="mv"><div class="mvh">BEARING ${b.id} · ${day(b.at)}
+      ${b.source ? " · " + esc(b.source) : ""}</div>
+      <div class="mvb">${esc(b.claim || "")}</div></div>`).join("");
+  const wins = (e.wins || []).map(w => `
+    <div class="mv"><div class="mvh">WIN ${w.id} · ${day(w.at)}
+      ${w.posted ? " · POSTED" : " · WAITING"}</div>
+      <div class="mvb">${esc(w.snippet || "")}</div></div>`).join("");
+  return `<div class="full">
+    ${sect("WHAT HAPPENED", e.narrative)}
+    ${sect("FOUND", e.findings)}
+    ${sect("DECIDED", e.decisions)}
+    ${sect("PICKS UP NEXT", e.next_up)}
+    ${moves ? `<div class="sect"><div class="sech">MOVES (${e.moves.length})</div>${moves}</div>` : ""}
+    ${cards ? `<div class="sect"><div class="sech">CARDS (${e.cards.length})</div>${cards}</div>` : ""}
+    ${bearings ? `<div class="sect"><div class="sech">BEARINGS TAKEN IN THIS WINDOW (${e.bearings.length})</div>${bearings}</div>` : ""}
+    ${wins ? `<div class="sect"><div class="sech">WINS SHELVED IN THIS WINDOW (${e.wins.length})</div>${wins}</div>` : ""}
+  </div>`;
+}
+
+/* ── search ─────────────────────────────────────────────────────────── */
+function results(d){
+  if(!d.total) return `<div class="none">nothing in the record matches “${esc(d.q)}”.</div>`;
+  const snips = hits => (Array.isArray(hits) ? hits : [])
+    .map(h => `<div class="snip">${mark(h, d.q)}</div>`).join("");
+  let html = "";
+  if(d.entries.length) html += `<div class="grp"><div class="grph">SESSIONS (${d.entries.length})</div>` +
+    d.entries.map(e => `<div class="hit go" data-e="${e.id}">
+      <div class="hith"><span class="n">entry ${e.id}</span>
+        <span>${mark(e.title, d.q)}</span><span class="d">${e.at}</span></div>
+      ${Object.entries(e.hits).map(([f, hs]) =>
+        hs.map(h => `<div class="snip"><b>${f.replace("_", " ")}</b> — ${mark(h, d.q)}</div>`).join("")
+      ).join("")}</div>`).join("") + `</div>`;
+  if(d.cards.length) html += `<div class="grp"><div class="grph">CARDS (${d.cards.length})</div>` +
+    d.cards.map(c => `<div class="hit">
+      <div class="hith"><span class="n">#${c.id}</span>
+        <span>${mark(c.title, d.q)}</span><span class="d">${esc(c.column.toUpperCase())} · ${c.at}</span></div>
+      ${snips(c.hits)}</div>`).join("") + `</div>`;
+  if(d.moves.length) html += `<div class="grp"><div class="grph">MOVES (${d.moves.length})</div>` +
+    d.moves.map(m => `<div class="hit go" data-e="${m.entry}">
+      <div class="hith"><span class="n">${esc(m.kind.toUpperCase())}</span>
+        <span>${mark(m.ref || "", d.q)}</span>
+        <span class="d">entry ${m.entry ?? "—"} · ${m.at}</span></div>
+      ${snips(m.hits)}</div>`).join("") + `</div>`;
+  if(d.bearings.length) html += `<div class="grp"><div class="grph">BEARINGS (${d.bearings.length})</div>` +
+    d.bearings.map(b => `<div class="hit">
+      <div class="hith"><span class="n">bearing ${b.id}</span>
+        <span>${esc(b.source)}</span><span class="d">${b.at}</span></div>
+      ${snips(b.hits)}</div>`).join("") + `</div>`;
+  if(d.wins.length) html += `<div class="grp"><div class="grph">WINS (${d.wins.length})</div>` +
+    d.wins.map(w => `<div class="hit">
+      <div class="hith"><span class="n">win ${w.id}</span>
+        <span class="d">${w.posted ? "POSTED" : "WAITING"} · ${w.at}</span></div>
+      ${snips(w.hits)}</div>`).join("") + `</div>`;
+  return html;
+}
+
+/* ── paint ──────────────────────────────────────────────────────────── */
+function wire(){
+  document.querySelectorAll("[data-e]").forEach(el =>
+    el.addEventListener("click", ev => {
+      const id = Number(el.dataset.e);
+      if(!id) return;
+      if(State.open && State.open.id === id && !State.q){
+        State.open = null; location.hash = ""; return paint();   /* a second tap closes it */
+      }
+      ev.stopPropagation();
+      location.hash = "entry=" + id;
+      openEntry(id);
+    }));
+}
+
+async function openEntry(id){
+  try{
+    State.open = await grab("/api/history?entry=" + id);
+    State.q = ""; $("q").value = "";
+    if(!State.index) State.index = await grab("/api/history");
+    paint();
+    const el = document.querySelector(`.pg[data-e="${id}"]`);
+    if(el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }catch(e){ fail(e); }
+}
+
+function fail(e){
+  $("out").innerHTML = `<div class="err">${esc(e.message || String(e))}</div>`;
+  $("note").innerHTML = TOK
+    ? ""
+    : `<span class="warn">THIS DEVICE IS NOT LINKED</span> — open the desk and connect it first; the record reads the same key.`;
+}
+
+function paint(){
+  if(State.q && State.results){
+    const d = State.results;
+    $("note").innerHTML = `<b>${d.total}</b> HIT${d.total === 1 ? "" : "S"} FOR “${esc(d.q)}”`
+      + (d.capped ? ` · <span class="warn">CAPPED — NARROW IT</span>` : "");
+    $("out").innerHTML = results(d);
+  }else{
+    const d = State.index;
+    $("note").innerHTML = d
+      ? `<b>${d.total}</b> SESSION${d.total === 1 ? "" : "S"} ON THE SHELF · TAP ONE TO OPEN IT WHOLE`
+      : "";
+    $("out").innerHTML = shelf();
+  }
+  $("stamp").textContent = new Date().toLocaleTimeString("en-US",
+    { hour: "numeric", minute: "2-digit" });
+  wire();
+}
+
+async function runSearch(){
+  const q = $("q").value.trim();
+  if(!q){ State.q = ""; State.results = null; location.hash = ""; return paint(); }
+  try{
+    State.results = await grab("/api/history?q=" + encodeURIComponent(q));
+    State.q = q; State.open = null;
+    location.hash = "q=" + encodeURIComponent(q);
+    paint();
+  }catch(e){ fail(e); }
+}
+
+$("go").addEventListener("click", runSearch);
+$("q").addEventListener("keydown", e => { if(e.key === "Enter") runSearch(); });
+$("clr").addEventListener("click", () => {
+  $("q").value = ""; State.q = ""; State.results = null; State.open = null;
+  location.hash = ""; paint();
+});
+
+/* The hash is the deep link: #entry=63 and #q=hostname both survive a reload
+   and can be pasted into a note, which is what "so i can reference" needs.
+
+   AND A HASH CHANGE ON AN ALREADY-OPEN PAGE IS A SAME-DOCUMENT NAVIGATION —
+   boot() never re-runs, so a pasted #entry=54 into a tab already showing
+   #q=kqueue silently did nothing. Caught by drilling it, and it is the exact
+   defect entry 63 recorded about the invoice page's #api= link. Reading that
+   lesson did not stop me writing it again; running the page did. */
+function fromHash(){
+  const h = location.hash.slice(1);
+  const e = h.match(/^entry=(\d+)/), q = h.match(/^q=(.+)/);
+  if(e) return openEntry(Number(e[1]));
+  if(q){ $("q").value = decodeURIComponent(q[1]); return runSearch(); }
+  State.open = null; State.q = ""; State.results = null; $("q").value = "";
+  paint();
+}
+window.addEventListener("hashchange", () => {
+  /* Our own writes set the hash too; re-running on those would fight the
+     render that just set it. Only act when the hash and the painted state
+     disagree. */
+  const h = location.hash.slice(1);
+  const e = h.match(/^entry=(\d+)/), q = h.match(/^q=(.+)/);
+  if(e && State.open && State.open.id === Number(e[1])) return;
+  if(q && State.q === decodeURIComponent(q[1])) return;
+  if(!h && !State.open && !State.q) return;
+  fromHash();
+});
+
+(async function boot(){
+  if(!TOK){
+    $("out").innerHTML = `<div class="none">This device is not linked to the spine.
+      Open <a href="desk.html">the desk</a> and connect it — the record reads the same key.</div>`;
+    return;
+  }
+  try{
+    State.index = await grab("/api/history");
+    fromHash();          // one reader of the hash, used by boot and by hashchange
+  }catch(err){ fail(err); }
+})();
+</script>
+</body>
+</html>

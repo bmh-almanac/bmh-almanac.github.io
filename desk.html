@@ -1132,6 +1132,11 @@ body.hot .act .h .n{color:var(--hot)}
   color:var(--dim);cursor:pointer;padding:9px;font:700 8.5px/1 var(--mono);letter-spacing:.19em}
 .shipmore:hover{color:var(--ink);border-color:var(--mid)}
 .wkct{font:700 8.5px/1 var(--mono);letter-spacing:.16em;color:var(--etch)}
+/* the door out to the record — a LINK, not a tab, because it leaves */
+.recdoor{text-decoration:none;background:none;border:1px solid rgba(var(--key),.35);
+  border-radius:4px;color:rgba(var(--key),1);padding:7px 11px;
+  font:700 8.5px/1 var(--mono);letter-spacing:.17em}
+.recdoor:hover{background:rgba(var(--key),.12)}
 /* ── THE RULING (cards #87/#100): a HOLD wearing the needs-bryan amber — the
    same ring the close uses, the same tokens YOUR HAND and the docket's breath
    already wear. No new colour, no new metaphor: the sheet is the desk's own
@@ -4224,11 +4229,16 @@ function workRoom(){
     <span class="nodata">the spine has not answered with the board</span></div></div>`;
   /* the room's tab bar — the same seg the money and hotshot rooms wear, so
      a second tab bar is not a second grammar */
+  /* THE RECORD IS A PAGE, NOT A TAB (card #286, his word: "launches to a new
+     page"). A tab is where you work; this is where you look something up, and
+     it wants its own URL so he can keep it open beside the desk and paste a
+     link to one session into a note. */
   const tabs = `<div class="finbar"><div class="seg" id="wkView">` +
     [["board","the board"],["shipped","shipped"]].map(([k,l]) =>
       `<button data-v="${k}" class="${WK.view === k ? "on" : ""}">${l}</button>`).join("") +
     `</div><span class="sp"></span>${WK.view === "shipped" && WK.data
-      ? `<span class="wkct">${WK.data.total} CLOSED</span>` : ""}</div>`;
+      ? `<span class="wkct">${WK.data.total} CLOSED</span>` : ""}
+     <a class="recdoor" href="history.html">THE RECORD ▸</a></div>`;
   if(WK.view === "shipped") return whyBar() + tabs + shippedHTML();
   return whyBar() + tabs + `<div class="board">` + COLS.map(([k,l]) => {
     const cards = b.cards.filter(c => c.column_name === k).sort((a,z) => a.sort - z.sort);
