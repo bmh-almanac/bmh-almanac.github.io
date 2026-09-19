@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v171';   // v171: THE EPICS ON THE RECORD — the same collapsible epic view on history.html, where he actually reads; a card's session chip jumps to that session
+const VERSION = 'almanac-shell-v172';   // v172: the epic rows stopped being crushed (flex:0 0 auto) and stopped stealing the money room's .ep class
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded

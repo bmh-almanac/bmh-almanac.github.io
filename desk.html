@@ -1105,13 +1105,13 @@ body.hot .act .h .n{color:var(--hot)}
 .shiphead .gaps{color:var(--hot);letter-spacing:.1em}
 .ships{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:3px}
 .ships::-webkit-scrollbar{width:0}
-.swk{display:flex;flex-direction:column;gap:7px}
+.swk{flex:0 0 auto;display:flex;flex-direction:column;gap:7px}
 .swkh{display:flex;justify-content:space-between;align-items:baseline;
   border-bottom:1px solid var(--line);padding-bottom:5px;position:sticky;top:0;
   background:var(--bg);z-index:1}
 .swkh .t{font:700 10px/1 var(--mono);letter-spacing:.19em;color:rgba(var(--key),1)}
 .swkh .n{font:700 8.5px/1 var(--mono);color:var(--etch)}
-.sep{display:flex;flex-direction:column;gap:5px;padding-left:9px;
+.sep{flex:0 0 auto;display:flex;flex-direction:column;gap:5px;padding-left:9px;
   border-left:1px solid var(--line)}
 .seph{font:700 8px/1.4 var(--mono);letter-spacing:.16em;color:var(--dim);margin-top:4px}
 .sc{background:var(--glass2);border:1px solid var(--line);border-radius:5px;padding:8px 11px}
@@ -1135,9 +1135,23 @@ body.hot .act .h .n{color:var(--hot)}
 /* ── THE EPIC AXIS (card #288) — collapsed by default, because the header
    alone has to answer how big the body of work is and how much is done. If
    it does not, expanding is not a choice, it is the only way to read it. */
-.ep{border:1px solid var(--line);border-radius:6px;background:var(--glass2);
-  margin-bottom:7px;overflow:hidden}
-.ep.on{border-color:rgba(var(--key),.45)}
+/* .epk, NOT .ep — the money room has owned `.ep` since card #225 for its
+   transaction annotations ("paid X · monthly", an expired pre-auth, his
+   own note). My rule sat later in the sheet and was handing every one of
+   those a border, a panel background and rounded corners. Caught by
+   grepping my own new class names against the existing sheet, which is a
+   thing worth doing every time a file this size gains a component.
+
+   flex:0 0 auto IS LOAD-BEARING, not tidiness. .ships is a column flex box
+   with overflow-y:auto, so a child left at the default 0 1 auto SHRINKS to
+   fit a tall sibling instead of overflowing. Expand one epic and every
+   other row was crushed from 57px to 26px while scrollHeight collapsed to
+   clientHeight — a list that cannot scroll because it has nowhere to
+   scroll TO. He hit it in one tap. I had seen the thin bars in a
+   screenshot an hour earlier and called them a capture artifact. */
+.epk{flex:0 0 auto;border:1px solid var(--line);border-radius:6px;
+  background:var(--glass2);margin-bottom:7px;overflow:hidden}
+.epk.on{border-color:rgba(var(--key),.45)}
 .eph{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;
   flex-wrap:wrap}
 .eph:hover{background:rgba(var(--wash),.03)}
@@ -4235,7 +4249,7 @@ function epicRow(e){
         ? e.first_at.slice(0,10)
         : `${e.first_at.slice(0,10)} → ${e.last_at.slice(0,10)}`)
     : "nothing closed yet";
-  return `<div class="ep ${on ? "on" : ""}" data-ep="${esc(e.id)}">
+  return `<div class="epk ${on ? "on" : ""}" data-ep="${esc(e.id)}">
     <div class="eph">
       <span class="cav">${on ? "▾" : "▸"}</span>
       <span class="ept">${esc(e.title || e.id || "no epic — unfiled")}</span>
@@ -7892,7 +7906,7 @@ function wireWorkTabs(){
       renderRoom();                          // paint "reading…" first
       loadShipped().then(renderRoom);
     }));
-  document.querySelectorAll(".ep[data-ep]").forEach(el =>
+  document.querySelectorAll(".epk[data-ep]").forEach(el =>
     el.querySelector(".eph").addEventListener("click", e => {
       e.stopPropagation();
       const id = el.dataset.ep;
