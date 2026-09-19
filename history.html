@@ -131,6 +131,33 @@ mark{background:rgba(var(--key),.24);color:var(--ink);border-radius:2px;
 .none{color:var(--dim);font-style:italic;padding:30px 0}
 .err{color:var(--hot);font:400 13px/1.6 var(--sans);padding:24px 0}
 
+
+/* ── THE EPICS on the record (card #288, his ask restated: the same
+   collapsible treatment for CLOSED ITEMS, on the page he actually reads).
+   An epic row wears the session row's chrome on purpose — one page, one
+   kind of card, two things to put in it. */
+.epg .pgh{gap:10px}
+.epn{font:700 11px/1 var(--mono);color:var(--ink);flex:0 0 auto}
+.eppb{flex:0 0 80px;height:3px;background:rgba(var(--wash),.12);border-radius:2px;
+  overflow:hidden}
+.eppb i{display:block;height:100%;background:rgba(var(--key),.9)}
+.chip.openc{color:var(--amber);border-color:rgba(255,164,25,.4)}
+.chip.warnc{color:var(--amber);border-color:rgba(255,164,25,.4)}
+.chip.go{cursor:pointer}
+.chip.go:hover{color:var(--ink);border-color:var(--mid)}
+.epbody{margin-top:12px;padding-top:11px;border-top:1px dotted var(--line)}
+.epwhy{font:400 12.5px/1.65 var(--sans);color:var(--dim);font-style:italic;
+  padding-bottom:10px}
+.ec{display:flex;align-items:baseline;gap:9px;padding:7px 0;
+  border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ec:last-child{border-bottom:0}
+.ecn{font:700 10px/1 var(--mono);color:var(--etch);flex:0 0 auto}
+.ect{font:400 13px/1.45 var(--sans);flex:1 1 220px;min-width:0}
+.ecd{display:flex;align-items:center;gap:5px;flex:0 0 auto;flex-wrap:wrap}
+.ecdate{font:700 8px/1 var(--mono);letter-spacing:.12em;color:var(--etch)}
+.note .warn{color:var(--amber)}
+@media (max-width:640px){ .eppb{display:none} .ecd{width:100%} }
+
 @media (max-width:640px){
   .wrap{padding:14px 16px 50px}
   .mast{padding:11px 16px 9px}
@@ -155,6 +182,7 @@ mark{background:rgba(var(--key),.24);color:var(--ink);border-radius:2px;
            placeholder="search every session, card, move, bearing and win…">
     <button id="go">SEARCH</button>
     <button class="clr" id="clr">THE SHELF</button>
+    <button class="clr" id="eps">THE EPICS</button>
   </div>
   <div class="note" id="note"></div>
   <div id="out"></div>
@@ -208,7 +236,13 @@ const YEARMON = s => {
     : d.toLocaleDateString("en-US", { month: "long", year: "numeric" }).toUpperCase();
 };
 
-const State = { index:null, open:null, q:"" };
+/* mode: 'shelf' = sessions by month · 'epics' = the work by body of work ·
+   a live q overrides both. THE EPICS lives HERE and not only on the desk
+   because this is the page he asked for it on — his words were "love the
+   monthly breakdown" and then "a toggle that give the list of epics",
+   one breath apart, about this surface. */
+const State = { index:null, open:null, q:"", mode:"shelf",
+                epics:null, openEpics:new Set() };
 
 /* ── the shelf ──────────────────────────────────────────────────────── */
 function shelf(){
@@ -276,6 +310,56 @@ function full(e){
   </div>`;
 }
 
+/* ── THE EPICS — the record read by body of work, not by day ────────
+   The shelf answers "what happened on the 14th". This answers "what have
+   we been building, and how much of it is finished", which is the question
+   a body of work is judged by. Collapsed by default: the header alone has
+   to carry the shape, or opening every row is the only way to read it. */
+function epicRow(e){
+  const on = State.openEpics.has(e.id);
+  const pct = e.total ? Math.round(100 * e.done / e.total) : 0;
+  const span = e.first_at && e.last_at
+    ? (day(e.first_at) === day(e.last_at) ? day(e.first_at)
+        : `${day(e.first_at)} → ${day(e.last_at)}`)
+    : "nothing closed yet";
+  const cards = (e.cards || []).map(c => `
+    <div class="ec">
+      <span class="ecn">#${c.id}</span>
+      <span class="ect">${esc(c.title)}</span>
+      <span class="ecd">${!c.through_qa ? '<span class="chip warnc">NEVER IN QA</span>' : ""}
+        ${c.commits && c.commits.length
+          ? `<span class="chip">${c.commits.length} COMMIT${c.commits.length === 1 ? "" : "S"}</span>` : ""}
+        ${c.entries && c.entries.length
+          ? `<span class="chip go" data-e="${c.entries[0]}">ENTRY ${c.entries.join("/")}</span>` : ""}
+        <span class="ecdate">${day(c.done_at)}</span></span>
+    </div>`).join("");
+  return `<div class="pg epg ${on ? "on" : ""}" data-ep="${esc(e.id)}">
+    <div class="pgh">
+      <span class="pgn">${on ? "▾" : "▸"}</span>
+      <span class="pgt">${esc(e.title || e.id || "no epic — unfiled")}</span>
+      <span class="epn">${e.done}/${e.total}</span>
+      <span class="eppb"><i style="width:${pct}%"></i></span>
+      <span class="pgd">${esc(span)}</span>
+    </div>
+    <div class="pgmeta">
+      ${e.open ? `<span class="chip openc">${e.open} STILL OPEN</span>`
+               : `<span class="chip">ALL CLOSED</span>`}
+      ${e.state && e.state !== "active"
+        ? `<span class="chip">${esc(e.state.toUpperCase())}</span>` : ""}
+    </div>
+    ${on ? `<div class="epbody">
+      ${e.why ? `<div class="epwhy">${esc(e.why)}</div>` : ""}
+      ${cards || `<p class="none" style="padding:10px 0">nothing closed under this epic yet</p>`}
+    </div>` : ""}
+  </div>`;
+}
+
+function epicsView(){
+  const d = State.epics;
+  if(!d) return `<div class="none">reading the epics…</div>`;
+  return d.epics.map(epicRow).join("");
+}
+
 /* ── search ─────────────────────────────────────────────────────────── */
 function results(d){
   if(!d.total) return `<div class="none">nothing in the record matches “${esc(d.q)}”.</div>`;
@@ -319,19 +403,39 @@ function wire(){
     el.addEventListener("click", ev => {
       const id = Number(el.dataset.e);
       if(!id) return;
-      if(State.open && State.open.id === id && !State.q){
-        State.open = null; location.hash = ""; return paint();   /* a second tap closes it */
+      /* A SECOND TAP CLOSES IT — but only on the shelf, where the open
+         session is the thing in front of him. From the epics view a chip
+         naming that same session is a JUMP, not a toggle, and without this
+         guard it silently closed the entry and dropped him on the shelf.
+         Found by clicking a session chip inside an epic after having had
+         that session open earlier. */
+      if(State.mode === "shelf" && State.open && State.open.id === id && !State.q){
+        State.open = null; location.hash = ""; return paint();
       }
       ev.stopPropagation();
       location.hash = "entry=" + id;
       openEntry(id);
+    }));
+  /* An epic row toggles; a chip INSIDE it that names a session jumps to
+     that session, so the two axes reach each other rather than being two
+     dead ends. The inner listener runs first and stops the toggle. */
+  document.querySelectorAll(".epg[data-ep]").forEach(el =>
+    el.querySelector(".pgh").addEventListener("click", ev => {
+      ev.stopPropagation();
+      const id = el.dataset.ep;
+      State.openEpics.has(id) ? State.openEpics.delete(id) : State.openEpics.add(id);
+      paint();
     }));
 }
 
 async function openEntry(id){
   try{
     State.open = await grab("/api/history?entry=" + id);
-    State.q = ""; $("q").value = "";
+    // A session opens ON THE SHELF. Without this the entry loaded into
+    // state while paint() kept drawing the epics view — the hash said
+    // #entry=54 and the page showed epics. Found by clicking a session chip
+    // inside an expanded epic, which is the whole point of that chip.
+    State.q = ""; State.mode = "shelf"; $("q").value = "";
     if(!State.index) State.index = await grab("/api/history");
     paint();
     const el = document.querySelector(`.pg[data-e="${id}"]`);
@@ -352,6 +456,17 @@ function paint(){
     $("note").innerHTML = `<b>${d.total}</b> HIT${d.total === 1 ? "" : "S"} FOR “${esc(d.q)}”`
       + (d.capped ? ` · <span class="warn">CAPPED — NARROW IT</span>` : "");
     $("out").innerHTML = results(d);
+  }else if(State.mode === "epics"){
+    const d = State.epics;
+    const g = (d && d.gaps) || {};
+    const holes = [[g.no_epic,"no epic"],[g.never_qa,"never in QA"],
+                   [g.unknown_hand,"no hand named"],[g.no_commit,"no commit"]]
+      .filter(([n]) => n).map(([n,w]) => `${n} ${w}`).join(" · ");
+    $("note").innerHTML = d
+      ? `<b>${d.epics.length}</b> EPICS · <b>${d.total}</b> CLOSED CARDS · TAP ONE TO OPEN IT`
+        + (holes ? ` <span class="warn">· OF ALL ${d.total}: ${holes}</span>` : "")
+      : "";
+    $("out").innerHTML = epicsView();
   }else{
     const d = State.index;
     $("note").innerHTML = d
@@ -379,8 +494,19 @@ $("go").addEventListener("click", runSearch);
 $("q").addEventListener("keydown", e => { if(e.key === "Enter") runSearch(); });
 $("clr").addEventListener("click", () => {
   $("q").value = ""; State.q = ""; State.results = null; State.open = null;
-  location.hash = ""; paint();
+  State.mode = "shelf"; location.hash = ""; paint();
 });
+$("eps").addEventListener("click", showEpics);
+
+async function showEpics(){
+  $("q").value = ""; State.q = ""; State.results = null; State.open = null;
+  State.mode = "epics";
+  location.hash = "epics";
+  if(State.epics) return paint();
+  paint();                                  // "reading the epics…" first
+  try{ State.epics = await grab("/api/shipped?by=epic"); paint(); }
+  catch(e){ fail(e); }
+}
 
 /* The hash is the deep link: #entry=63 and #q=hostname both survive a reload
    and can be pasted into a note, which is what "so i can reference" needs.
@@ -395,7 +521,9 @@ function fromHash(){
   const e = h.match(/^entry=(\d+)/), q = h.match(/^q=(.+)/);
   if(e) return openEntry(Number(e[1]));
   if(q){ $("q").value = decodeURIComponent(q[1]); return runSearch(); }
-  State.open = null; State.q = ""; State.results = null; $("q").value = "";
+  if(h === "epics") return showEpics();
+  State.open = null; State.q = ""; State.results = null; State.mode = "shelf";
+  $("q").value = "";
   paint();
 }
 window.addEventListener("hashchange", () => {
@@ -406,7 +534,8 @@ window.addEventListener("hashchange", () => {
   const e = h.match(/^entry=(\d+)/), q = h.match(/^q=(.+)/);
   if(e && State.open && State.open.id === Number(e[1])) return;
   if(q && State.q === decodeURIComponent(q[1])) return;
-  if(!h && !State.open && !State.q) return;
+  if(h === "epics" && State.mode === "epics") return;
+  if(!h && !State.open && !State.q && State.mode === "shelf") return;
   fromHash();
 });
 
