@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v172';   // v172: the epic rows stopped being crushed (flex:0 0 auto) and stopped stealing the money room's .ep class
+const VERSION = 'almanac-shell-v173';   // v173: the app opens at the desk — index.html is a dark hand-off, start_url is desk.html (card #300)   // v172: the epic rows stopped being crushed (flex:0 0 auto) and stopped stealing the money room's .ep class
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded

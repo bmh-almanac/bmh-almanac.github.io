@@ -2,7 +2,7 @@
   "name": "Almanac",
   "short_name": "Almanac",
   "description": "Where you stand, the work, the soul, and the muscle.",
-  "start_url": "./",
+  "start_url": "./desk.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
