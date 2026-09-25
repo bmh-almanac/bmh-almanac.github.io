@@ -8528,13 +8528,17 @@ async function openAcct(ev, t){
     m.style.top = Math.max(6, Math.min(ev.clientY, innerHeight - h - 6)) + "px";
   };
   place();
-  let loads = [];
+  let loads = [], weekly = false;
   try{
     const r = await fetch(url("/api/fin/move/targets"), {method:"POST",
       headers:{...hdr(), "Content-Type":"application/json"},
       body: JSON.stringify({txn_id: t.id})});
     const d = await r.json().catch(() => ({}));
-    if(r.ok) loads = (d.loads || []).slice(0, 5);
+    /* the spine says how many to offer (card #303): five nearest for a
+       single stop, the last ten for a Pilot weekly draft — one ACH, a
+       week of fuel. The hard 5 that sat here was the cap that made his
+       rule impossible even after the spine returned more. */
+    if(r.ok){ loads = (d.loads || []).slice(0, d.offer || 5); weekly = !!d.weekly_draft; }
   }catch(e){ /* the menu still offers the mark — loads just stay absent */ }
   /* a TERMINAL row is one the 2-day shelf files on its own (filed() above):
      an expired pre-auth, a deposit whose refund paired, a cash draw. Only
@@ -8556,7 +8560,9 @@ async function openAcct(ev, t){
        refused can still be NAMED against a bill — can_ask is the spine's word */
     ((t.monthly_candidate || t.can_ask)
       ? `<button class="mi monthly" data-act="monthly">MONTHLY<i>say which bill this paid</i></button>` : "") +
-    (loads.length ? `<div class="msep">the last loads, nearest this date</div>` +
+    (loads.length ? `<div class="msep">${weekly
+        ? "the last " + loads.length + " loads — this draft covers the week"
+        : "the last loads, nearest this date"}</div>` +
       loads.map(l => `<button class="mi" data-act="load" data-row="${l.sheet_row}">
         <span>${esc(l.pickup_city || "?")} &rarr; ${esc(l.delivery_city || "?")}${
           l.delivery_state ? ", " + esc(l.delivery_state) : ""}</span>
@@ -8856,7 +8862,9 @@ async function openMove(ev, txn_id, from_row){
     `<div class="mh">${esc(t.merchant || "this")} · ${money(t.amount)}
        <span>${esc(t.date)}</span></div>` +
     `<button class="mi monthly" data-to="monthly">MONTHLY<i>a bill, not a load's road cost</i></button>` +
-    `<div class="msep">the loads, nearest first</div>` +
+    `<div class="msep">${d.weekly_draft
+        ? "the last " + (d.loads || []).length + " loads — this draft covers the week"
+        : "the loads, nearest first"}</div>` +
     (d.loads || []).map(l =>
       `<button class="mi" data-to="${l.sheet_row}"${
         l.sheet_row === from_row ? ' disabled' : ''}>
