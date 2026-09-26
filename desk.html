@@ -2351,8 +2351,17 @@ function paintDay(){
   if(ae && ae.id === "fieldLoadSel") return;
   const d = State.day, L = State.loads;
   const act = (L && L.ok && L.active) || [];
-  const todayIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  const dayOk = !!(d && d.ok && d.day === todayIso);   // a prior open's plan never wears today's header
+  const todayIso = deviceIso();
+  /* the plan renders whenever the spine answered it (card #337). The date it
+     is FOR is the spine's to say — plan_day, or day from a spine that predates
+     it — and the head wears THAT date, never the device's, so a prior open's
+     plan still never wears today's header. Late evening west of home the
+     device is on the day that is minutes from over while the spine has planned
+     the morning he'll drive; blanking the plan for that threw away tomorrow's
+     plan at the hour he'd set an alarm by it. When the clocks differ the spine
+     says which it used in clock_note, printed as served under the head. */
+  const dayOk = !!(d && d.ok);
+  const planIso = (dayOk && (d.plan_day || d.day)) || todayIso;
   const stale = d && d.sync_stale_hours != null && d.sync_stale_hours > 24;
   const hasDay = dayOk && !d.quiet && !d.in_flight;
   const haul = (dayOk && d.haul) || [];
@@ -2360,14 +2369,22 @@ function paintDay(){
   if(State.dayErr) errs.push("the day plan did not answer — " + State.dayErr);
   if(State.loadsErr) errs.push("the loads home did not answer — " + State.loadsErr);
   if(d && d.ok === false && d.unavailable) errs.push(d.unavailable);
-  if(d && d.day && d.day !== todayIso && !State.dayErr) errs.push("the plan on hand is for " + d.day + " — replan for today");
+  /* "replan for today" is said only where a replan CAN change the answer: the
+     device's date has turned since this plan was asked (the desk left open
+     past midnight) and is now past the plan's — the spine, on home time east
+     of anywhere he runs, is at least that far along. Behind the spine's date,
+     a replan returns the same plan, so nothing offers it there. */
+  const asked = State.dayAsked;
+  if(dayOk && asked && asked.today_iso && todayIso !== asked.today_iso && todayIso > planIso && !State.dayErr)
+    errs.push("the plan on hand is for " + planIso + " — replan for today");
   const syncErr = (L && L.sync_error) || (d && d.sync_error);
   if(syncErr) errs.push("the log pull failed — " + syncErr);
   const show = act.length > 0 || hasDay || haul.length > 0 || errs.length > 0 || !!(dayOk && d.quiet && stale);
   room.hidden = cue.hidden = !show;
   if(!show){ room.innerHTML = ""; return; }
-  const dayWord = new Date(todayIso + "T12:00").toLocaleDateString("en-US",
+  const dayWord = new Date(planIso + "T12:00").toLocaleDateString("en-US",
     {weekday:"long", month:"short", day:"numeric"}).toUpperCase();
+  const clockNote = dayOk && d.clock_note ? `<div class="readage">${esc(d.clock_note)}</div>` : "";
   let h = "";
   h += errs.map(w => `<div class="warn">⚠ ${esc(w)}</div>`).join("");
 
@@ -2376,6 +2393,7 @@ function paintDay(){
     const stops = d.stops || [], n = stops.length + (d.unplaced || []).length;
     const loads = d.loads || {};
     h += `<div class="cap2">THE DAY · ${esc(dayWord)} · ${n} STOP${n === 1 ? "" : "S"}</div>`;
+    h += clockNote;
     h += `<div class="basis">${esc(d.basis || "")}${
       d.leave_by ? ` · leave by <b>${esc(d.leave_by)}</b>` : ""}</div>`;
     if(d.conflict) h += `<div class="warn">⚠ ${esc(d.conflict)}</div>`;
@@ -2414,7 +2432,7 @@ function paintDay(){
   /* 2 · ON THE HOOK — every load in flight, beside whatever is dated today */
   if(haul.length){
     h += `<div class="cap2"${h ? ' style="margin-top:18px"' : ""}>ON THE HOOK · ${esc(dayWord)}</div>`;
-    if(!hasDay) h += `<div class="basis">${esc(d.basis || "")}</div>`;
+    if(!hasDay) h += clockNote + `<div class="basis">${esc(d.basis || "")}</div>`;
     haul.forEach(hl => {
       const days = hl.days_to_delivery;
       const when = hl.delivery_date_raw || hl.delivery_date || "delivery date unknown";
@@ -2444,7 +2462,9 @@ function paintDay(){
   const subs = [];
   if(dayOk && d.eta_basis) subs.push(d.eta_basis);
   if(dayOk && (hasDay || haul.length) && d.hos_note) subs.push(d.hos_note);
-  if(GEO.why && !GEO.fix) subs.push("no device fix — " + GEO.why);
+  /* keyed to the origin this plan WENT with: an expired fix still sits in GEO
+     after a failed re-ask, and must not hide the reason the plan is from home */
+  if(GEO.why && !(asked && asked.origin)) subs.push("no device fix — " + GEO.why);
   if(L && L.sync_stale_hours != null) subs.push(L.sync_stale_hours < 0.1 ? "log read just now" : `log read ${L.sync_stale_hours}h ago`);
   h += subs.map(s => `<div class="sub">${esc(s)}</div>`).join("");
   h += `<div class="acts"><button class="btn go" id="dreplan">REPLAN FROM HERE</button></div>`;
@@ -2587,7 +2607,10 @@ function markDone(stopId){
   d[String(stopId)] = today;
   try{ localStorage.setItem("almanac_done_stops", JSON.stringify(d)); }catch(_){}
   toast("stop retired from the road — redrawing");
-  loadRoad(GEO.fix).catch(() => {});
+  /* DONE can only fire after he has driven to the stop — the moment the fix
+     held since the page opened is surest to be wrong (card #334). The road is
+     redrawn from a fix under five minutes old, a fresh one, or home, said. */
+  freshFix().then(fix => loadRoad(fix)).catch(() => {});
 }
 
 /* ═══ THE RADAR (card #198, his ask 2026-09-05) ══════════════════════════
@@ -3148,7 +3171,7 @@ function wireRoadMode(scope){
         takeRoadMode(v.mode);
         State.road = null; State.roadErr = null;
         paintRoad();
-        loadRoad(GEO.fix).catch(() => {});
+        freshFix().then(fix => loadRoad(fix)).catch(() => {});     // card #334
       }catch(err){
         toast("the mode did not take — " + (err.message || err));
       }
@@ -3166,7 +3189,7 @@ async function loadRoad(fix){
        says which it used; the seg follows the answer (card #192) */
     const r = await fetch(url("/api/hotshot/route"), { method:"POST",
       headers: hdr({"Content-Type":"application/json"}),
-      body: JSON.stringify({ origin: fix || null, done: Object.keys(doneStops()).map(Number) }) });
+      body: JSON.stringify({ ...originBody(fix), done: Object.keys(doneStops()).map(Number) }) });
     const v = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(v.unavailable || v.error || ("HTTP " + r.status));
     if(seq !== ROAD_SEQ) return;
@@ -9566,6 +9589,36 @@ function grabFix(){
       { enableHighAccuracy:false, timeout:10000, maximumAge:300000 });
   });
 }
+/* a stale fix draws the road from where he WAS (card #334, ported from
+   companion.html's freshFix with its one expiry). Every door but REPLAN comes
+   through here: a fix under five minutes old rides again — his 09-01 ruling
+   stands, no prompt per tap — and an older one is re-asked. The companion
+   goes on with the old fix when the re-ask is slow; the desk does NOT, because
+   an old fix sent as if it were current is the very defect this card closes.
+   It waits the re-ask out (grabFix's own ten-second ceiling), and a re-ask
+   that fails sends no fix at all, so the spine draws from home and says so. */
+const FIX_FRESH_MS = 300000;
+function freshFix(){
+  if(GEO.fix && GEO.at && Date.now() - GEO.at < FIX_FRESH_MS) return Promise.resolve(GEO.fix);
+  return grabFix();
+}
+/* the device's own date — the one sent beside the origin (card #337); the
+   spine answers with the date the plan is FOR and words any disagreement */
+function deviceIso(){
+  return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+/* the origin as it rides a day or route POST: the fix, how old it is, and the
+   device's date. The age is counted from GEO.at, which belongs to the fix GEO
+   holds — a fix some later grab has since replaced is older than GEO.at says,
+   so the newer one goes instead. Home (no fix) sends no age: there is nothing
+   to age. The spine words the basis from these; the page never does. */
+function originBody(fix){
+  if(fix && GEO.fix && fix !== GEO.fix) fix = GEO.fix;
+  const b = { origin: fix || null };
+  if(fix) b.fix_age_s = Math.max(0, Math.round((Date.now() - GEO.at) / 1000));
+  b.today_iso = deviceIso();
+  return b;
+}
 let DAY_SEQ = 0;
 async function loadDay(fresh, force){
   /* the boot fires load() twice and REPLAN re-enters — the LAST call wins,
@@ -9573,8 +9626,11 @@ async function loadDay(fresh, force){
      left as yesterday's answer wearing today's header */
   const seq = ++DAY_SEQ;
   const rp = $("dreplan"); if(rp){ rp.disabled = true; rp.textContent = "REPLANNING…"; }
-  const fix = fresh ? await grabFix()
-                    : (GEO.fix || await grabFix());
+  /* REPLAN re-asks by his tap, exactly as before; every other door (the boot,
+     the READ stamp, a card close, a ruling) takes a fix under five minutes old
+     or re-asks (card #334) */
+  const fix = fresh ? await grabFix() : await freshFix();
+  const asked = originBody(fix);
   await Promise.all([
     /* both payloads carry the book's road_mode (card #192) — whichever
        answers first sets the seg before the card paints */
@@ -9583,10 +9639,12 @@ async function loadDay(fresh, force){
       .catch(e => { if(seq !== DAY_SEQ) return; State.loadsErr = String(e.message || e); }),
     fetch(url("/api/hotshot/day"), { method:"POST",
       headers: hdr({"Content-Type":"application/json"}),
-      body: JSON.stringify({ origin: fix, force: !!(fresh || force) }) })
+      body: JSON.stringify({ ...asked, force: !!(fresh || force) }) })
       .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(v => { if(seq !== DAY_SEQ) return; State.day = v; State.dayErr = null; takeRoadMode(v.road_mode); })
-      .catch(e => { if(seq !== DAY_SEQ) return; State.day = null; State.dayErr = String(e.message || e); })
+      /* State.dayAsked is what THIS plan was asked with — the fine print reads
+         the origin that actually went, not whatever GEO holds by paint time */
+      .then(v => { if(seq !== DAY_SEQ) return; State.day = v; State.dayErr = null; State.dayAsked = asked; takeRoadMode(v.road_mode); })
+      .catch(e => { if(seq !== DAY_SEQ) return; State.day = null; State.dayErr = String(e.message || e); State.dayAsked = asked; })
   ]);
   if(seq !== DAY_SEQ) return;
   paintDay();
