@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v177';   // v177: THE DAY says when a window could not be read (card #333), a trend bucket before the load book is hatched (card #341), a blank to-go names the figure that could not be read (card #346)   // v176: net is blank where the fee is unknown and the nut being fed keeps known and unknown apart (card #343); the covered row is served (card #336); the READ stamp counts what did not answer (card #335)
+const VERSION = 'almanac-shell-v178';   // v178: the destination fills as he types from the shell's own city list (card #355); a fix older than five minutes is never sent and the plan is never blanked over the device's date (cards #334 #337); the budget wall says why a line has no evidence (card #348)   // v177: THE DAY says when a window could not be read (card #333), a trend bucket before the load book is hatched (card #341), a blank to-go names the figure that could not be read (card #346)
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded
