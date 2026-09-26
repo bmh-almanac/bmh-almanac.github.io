@@ -6834,7 +6834,15 @@ function finBudget(){
     if(ev) return ` · <span class="bpay">${ev.rows > 1 ? ev.rows + " bank rows · " : ""}${
       money(ev.covered)} carried this cycle</span>`;
     const p = pays.find(x => x.bill_type === bt && String(x.bill_id) === String(bid));
-    return p && p.state === "settled" ? ` · <span class="bpay">paid — your hand</span>` : "";
+    if(p && p.state === "settled") return ` · <span class="bpay">paid — your hand</span>`;
+    /* no evidence this cycle: the writer's own words for why (card #348) —
+       'no matching charge' is a flag, an unattached row that names the line
+       is a nudge; 'unknown' when the refusals could not be read */
+    const rf = (bd.refused || {})[bt + ":" + bid];
+    if(rf && rf.words) return ` · <span class="bdrift${rf.status === "no matching charge" ? " light" : ""}" title="${
+      esc((rf.would_refuse || []).map(x => x.why || "").filter(Boolean).join("\n"))}">${esc(rf.words)}</span>`;
+    if(bt === "fixed_monthly" && !bd.refused && bd.refused_basis) return ` · <span class="bpay" title="${esc(bd.refused_basis)}">evidence unknown</span>`;
+    return "";
   };
   const due = d => d == null || String(d).trim() === "" ? "" : ` · due ${esc(String(d))}`;
   /* CLAIMED AGAINST CHARGED (card #317): finroom's audit of each typed
