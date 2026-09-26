@@ -1601,6 +1601,11 @@ body.hot .act .h .n{color:var(--hot)}
   border-radius:4px;color:var(--ink);font:400 13px/1.3 var(--sans);padding:11px 13px;min-height:44px;
   user-select:text;-webkit-user-select:text}
 .stopbar input:focus-visible,.handadd input:focus-visible{outline:2px solid rgba(var(--key),.6);outline-offset:1px}
+/* the destination's suggestions (card #355) — rows a thumb can hit, under the bar */
+.stopac{margin:-4px 0 8px;border:1px solid var(--line);border-radius:4px;background:rgba(0,0,0,.55);max-height:264px;overflow:auto}
+.stopac .aci{padding:11px 13px;min-height:44px;font:400 13px/1.3 var(--sans);color:var(--ink);border-bottom:1px solid var(--line);cursor:pointer}
+.stopac .aci:last-child{border-bottom:0}
+.stopac .aci.on,.stopac .aci:hover{background:rgba(var(--key),.16)}
 .sgo{flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:4px;border:1px solid rgba(var(--key),.5);
   background:rgba(var(--key),.14);color:rgba(var(--key),1);font:700 9.5px/1 var(--mono);
   letter-spacing:.16em;cursor:pointer}
@@ -4691,6 +4696,85 @@ async function fetchRouteMap(ref){
   }
 }
 
+/* THE CITY LIST (card #355): LoadCalc's own 29,737 "city,st" names, carried
+   in the shell (vendor/us_cities.txt, derived from theaitrucker's
+   us_cities_geo.json) so the destination fills as he types with no network
+   call per keystroke — a dock with no signal still offers Springfield, MO.
+   Fetched on the first touch of the field, kept in memory and in
+   localStorage the way LoadCalc keeps its geocode list; not precached by the
+   worker, so a version bump never re-pulls it. */
+let CITIES = null, CITIES_LOADING = null;
+function loadCities(){
+  if(CITIES) return Promise.resolve(CITIES);
+  if(CITIES_LOADING) return CITIES_LOADING;
+  const parse = t => t.split("\n").filter(Boolean).map(l => {
+    const i = l.lastIndexOf(","); return [l.slice(0, i), l.slice(i + 1)]; });
+  let cached = null;
+  try{ cached = localStorage.getItem("almanac_cities_v1"); }catch(_){}
+  if(cached){ CITIES = parse(cached); return Promise.resolve(CITIES); }
+  CITIES_LOADING = fetch("vendor/us_cities.txt")
+    .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(t => { try{ localStorage.setItem("almanac_cities_v1", t); }catch(_){}
+                 CITIES = parse(t); return CITIES; })
+    .catch(e => { CITIES_LOADING = null; throw e; });
+  return CITIES_LOADING;
+}
+const cityCase = s => s.replace(/(^|[\s\-'.])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+function citySuggestions(q, n = 8){
+  if(!CITIES) return [];
+  const raw = q.trim().toLowerCase();
+  if(raw.length < 2) return [];
+  /* "spr" · "springfield, m" · "spr oh" — a trailing one- or two-letter
+     word after a comma or space narrows the state */
+  let city = raw, st = "";
+  const m = raw.match(/^(.*?)[,\s]+([a-z]{1,2})$/);
+  if(m && m[1].trim()){ city = m[1].trim(); st = m[2]; }
+  city = city.replace(/,\s*$/, "");
+  const out = [];
+  for(const [c, s] of CITIES){
+    if(!c.startsWith(city)) continue;
+    if(st && !s.startsWith(st)) continue;
+    out.push([c, s]);
+    if(out.length > 400) break;                     // a two-letter query never needs more
+  }
+  out.sort((a, b) => (a[0].length - b[0].length) || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)
+                     || (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0));
+  return out.slice(0, n).map(([c, s]) => cityCase(c) + ", " + s.toUpperCase());
+}
+let AC_IDX = -1;
+function stopSuggest(inp){
+  const box = $("stopac"); if(!box) return;
+  const paint = () => {
+    if(document.activeElement !== inp) return;      // he left the field while the list loaded
+    const items = citySuggestions(inp.value);
+    AC_IDX = -1;
+    if(!items.length){ box.hidden = true; box.innerHTML = ""; return; }
+    box.innerHTML = items.map(t => `<div class="aci">${esc(t)}</div>`).join("");
+    box.hidden = false;
+    /* pointerdown, not click: it fires before the field blurs, on a thumb and a mouse alike */
+    box.querySelectorAll(".aci").forEach(el =>
+      el.addEventListener("pointerdown", e => { e.preventDefault(); stopPick(inp, el.textContent); }));
+  };
+  if(CITIES) paint(); else loadCities().then(paint).catch(() => {});
+}
+function stopPick(inp, label){
+  inp.value = label; HS.dest = label;
+  const box = $("stopac"); if(box){ box.hidden = true; box.innerHTML = ""; }
+  inp.focus();                                       // Enter now runs the route
+}
+function stopAcKey(inp, e){
+  const box = $("stopac"); if(!box || box.hidden) return false;
+  const items = [...box.querySelectorAll(".aci")]; if(!items.length) return false;
+  if(e.key === "ArrowDown") AC_IDX = Math.min(AC_IDX + 1, items.length - 1);
+  else if(e.key === "ArrowUp") AC_IDX = Math.max(AC_IDX - 1, 0);
+  else if(e.key === "Escape"){ box.hidden = true; e.preventDefault(); return true; }
+  else if(e.key === "Tab" || (e.key === "Enter" && AC_IDX >= 0)){
+    stopPick(inp, items[Math.max(AC_IDX, 0)].textContent); e.preventDefault(); return true; }
+  else return false;
+  items.forEach((it, i) => it.classList.toggle("on", i === AC_IDX));
+  e.preventDefault(); return true;
+}
+
 async function doRouteSearch(){
   if(HS.busy) return;
   HS.dest = (HS.dest || "").trim();
@@ -4842,7 +4926,7 @@ function stopsHTML(){
         <input type="search" id="stopdest" enterkeyhint="search"
           placeholder="destination — where the load lands" value="${esc(HS.dest)}">
         <button class="sgo" id="stoprgo"${HS.busy ? " disabled" : ""}>${HS.busy ? "ROUTING…" : "RUN THE ROUTE"}</button>
-      </div>` : `<div class="stopbar">
+      </div><div class="stopac" id="stopac" hidden></div>` : `<div class="stopbar">
         <input type="search" id="stopq" enterkeyhint="search"
           placeholder="where are you landing tonight? — town, exit, ZIP" value="${esc(HS.q)}">
         <button class="sgo" id="stopgo"${HS.busy ? " disabled" : ""}>${HS.busy ? "SEARCHING…" : "SEARCH"}</button>
@@ -5232,8 +5316,17 @@ function wireStops(){
   if(rgo) rgo.addEventListener("click", e => { e.stopPropagation(); doRouteSearch(); });
   const dest = $("stopdest");
   if(dest){
-    dest.addEventListener("input", () => { HS.dest = dest.value; });
+    /* the destination fills as he types (card #355, his ask 2026-09-26:
+       "pre fill based on typing. like we do for loadcalc") — suggestions
+       come from the shell's own city list, never a call per keystroke */
+    dest.addEventListener("input", () => { HS.dest = dest.value; stopSuggest(dest); });
+    dest.addEventListener("focus", () => {
+      loadCities().catch(() => {});                 // warm the list on the first touch
+      if(dest.value.trim().length >= 2) stopSuggest(dest); });
+    dest.addEventListener("blur", () => {
+      const box = $("stopac"); if(box) setTimeout(() => { box.hidden = true; }, 150); });
     dest.addEventListener("keydown", e => {
+      if(stopAcKey(dest, e)) return;                 // arrows, Escape, Enter/Tab on a pick
       if(e.key === "Enter"){ e.preventDefault(); doRouteSearch(); } });
   }
   const go = $("stopgo");
