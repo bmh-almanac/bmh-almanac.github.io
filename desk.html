@@ -153,6 +153,10 @@ canvas.stars{position:fixed;inset:0;z-index:0;width:100%;height:100%}
 .readstamp:hover{color:var(--mid)}
 .readstamp.stale{color:var(--hot)}
 .readstamp:focus-visible{outline:2px solid var(--mid);outline-offset:2px}
+/* a panel's OWN age (card #335) — printed only when the latest read did not
+   bring its payload; the masthead stamp speaks for every panel that rode it */
+.readage{color:var(--hot)}
+div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;margin:4px 0 2px}
 .pill{font:700 9px/1 var(--mono);letter-spacing:.16em;padding:8px 12px;border-radius:20px;
   border:1px solid var(--line);color:var(--dim);transition:all .6s}
 .pill.on{color:var(--hot);border-color:rgba(var(--hot-rgb),.55);box-shadow:0 0 18px -5px rgba(var(--hot-rgb),.65)}
@@ -1877,6 +1881,58 @@ const State = { fieldLoad:null, loads:null, day:null, loadsErr:null, dayErr:null
                       followups:null,
                       summaryErr:null, err:null, stones:[], placed:[] } };
 let ACTIVE = null, HOT = false;
+/* THE READ'S SECONDARIES (card #335). load() stamps State.at on the three
+   primaries, then fans out to these eleven. Before #335 one shared
+   .catch(() => {}) swallowed every miss: a payload that did not answer kept
+   its LAST value on screen under a fresh READ stamp, and nothing said so.
+   Each now keeps loadDay()'s shape — State.<k>Err set in the catch, cleared
+   on the answer — and State.<k>ReadAt holds the READ that brought it.
+   ONE CLOCK: a ReadAt is only ever a value State.at once held, never a
+   second freshness clock; when all eleven answer, every ReadAt IS State.at.
+   (ReadAt, not At: State.radioAt is freshenRadio's own 15s throttle and the
+   read must not move it.) READ_BROUGHT knows which payload objects a READ
+   delivered — a room's own re-fetch or a write's refresh swaps in a payload
+   the stamp never saw, and a missed read must never age THAT one (it may be
+   newer than the stamp). */
+const READ_REST = [
+  ["radio","/api/messages"], ["learn","/api/learning"], ["soul","/api/doctrine"],
+  ["held","/api/push/held"], ["watch","/api/watch"], ["hotshot","/api/hotshot"],
+  ["hand","/api/hand"], ["sidech","/api/threads"],
+  ["diet","/api/listening?days=1"], ["brief","/api/brief"],
+  ["planner","/api/planner"]
+];
+const READ_BROUGHT = new WeakSet();
+let LOAD_SEQ = 0;
+/* which secondaries each room (and its orb) draws from — the hotshot room's
+   pulse and bulletin carry their own lines, so standing is not listed */
+const ROOM_READ = { radio:["radio","sidech"], learn:["learn"], soul:["soul"], planner:["planner"] };
+const readClock = d => d.toLocaleTimeString("en-US", {hour:"numeric", minute:"2-digit"});
+/* the oldest READ still on screen among these payloads: only one the latest
+   read did NOT bring, and only while the payload showing is the one a read
+   delivered. null = every one of them rode the stamp. */
+function readBehind(ks){
+  let at = null;
+  for(const k of ks){
+    if(!State[k + "Err"] || !READ_BROUGHT.has(State[k])) continue;
+    const a = State[k + "ReadAt"];
+    if(a && (!at || a < at)) at = a;
+  }
+  return at;
+}
+/* a panel's OWN age. Silent while its payload rode the stamp — the masthead
+   speaks for it (loud is a budget, bearing 87: eleven lines repeating the
+   stamp would be wallpaper). When the read missed it, the last payload STAYS
+   on screen — never blank a panel — and says which read it is from. */
+function readAge(ks, short){
+  const at = State.at && readBehind(ks);
+  if(!at) return "";
+  return short ? "as of " + readClock(at)
+    : "as of " + readClock(at) + " · the " + readClock(State.at) + " read did not bring it";
+}
+function readLine(ks){
+  const a = readAge(ks);
+  return a ? `<div class="readage">${esc(a)}</div>` : "";
+}
 
 $("toPlate").addEventListener("click", () => {
   localStorage.setItem("almanac_view", "detent");
@@ -2150,11 +2206,16 @@ function deriveTemp(){
 }
 function whyBar(){
   const f = tempFacts();
+  /* card #335: the room says its own age when the read missed what it draws
+     from — its payloads, plus the watch whose down-count turns every room */
+  const o = ACTIVE !== null ? D[ACTIVE] : null;
+  const age = readAge(["watch"].concat((o && ROOM_READ[o.room]) || []));
+  const ageS = age ? `<span class="readage">${esc(age)}</span>` : "";
   if(!f.length) return `<div class="why"><span class="tag">WHY THIS ROOM</span>
-    <span>Nothing served is asking for your hand right now — so the room stays quiet.</span></div>`;
+    <span>Nothing served is asking for your hand right now — so the room stays quiet.</span>${ageS}</div>`;
   return `<div class="why"><span class="tag">WHY THIS ROOM IS RED</span>
     <span>${f.length} served fact${f.length===1?"":"s"} turned it: ${f.join(", ")}.
-    It goes cold when they do.</span></div>`;
+    It goes cold when they do.</span>${ageS}</div>`;
 }
 
 /* HOW MANY THINGS CAN ACTUALLY BE SETTLED — one home, because three sites
@@ -2225,7 +2286,10 @@ function paintField(){
   D.forEach((o,i) => {
     o.el.querySelector(".fig .n").textContent = sig[i][0];
     o.el.querySelector(".fig .u").textContent = sig[i][1];
-    o.el.querySelector(".sig").innerHTML = sig[i][2];
+    /* card #335: an orb the read did not refresh says how old its count is */
+    const age = ROOM_READ[o.room] ? readAge(ROOM_READ[o.room], true) : "";
+    o.el.querySelector(".sig").innerHTML = sig[i][2]
+      + (age ? ` · <span class="readage">${esc(age.toUpperCase())}</span>` : "");
   });
   if(SYS) paintSys();   // the constellation's counts ride every refresh
   /* THE DOCKET wears the masthead (card #84): the count is the docket's
@@ -2251,6 +2315,7 @@ function paintField(){
   $("hand").title = hd == null ? "the spine has not answered with the docket — tap to see"
     : `${hd.count_front} on the front · ${hd.count_total} in all`
       + (unk ? ` · ${unk} producer${unk === 1 ? "" : "s"} unreadable` : "")
+      + (readAge(["hand"]) ? " · " + readAge(["hand"]) : "")
       + " — tap to open the docket";
   /* Consider FIRST, then settle. The signal lines just changed WIDTH
      ("$199.53 TO GO" is wider than the "…" they were seeded with, and wider
@@ -3133,7 +3198,8 @@ function paintConsider(){
     $("clbl").textContent = "FROM THE CANON — " + (w.attribution || "").toUpperCase();
     $("cq").textContent = w.take;
     $("crz").textContent = "· " + slotName + " · " + (w.behavior || "") + " ·"
-      + (w.quote ? `  “${w.quote}”` : "") + `  (${w.cycle || ""})`;
+      + (w.quote ? `  “${w.quote}”` : "") + `  (${w.cycle || ""})`
+      + (readAge(["brief"]) ? "  · " + readAge(["brief"]) : "");
     $("cgo").textContent = "THE PAGE";
     $("cgo").onclick = openPage;
     /* the choice point (his ask 2026-08-15): read or listen, side by side */
@@ -3396,18 +3462,21 @@ function paintSys(){
   const r = State.radio, sc = State.sidech, dt = State.diet, g = State.glasses;
   const un = sc ? (sc.runs||[]).reduce((n,t)=>n+(t.unheard||0),0) : null;
   const kept = dt ? (dt.rows||[]).length : null;
-  const set = (o, n, u, sig) => {
+  const set = (o, n, u, sig, ks) => {
     if(!o.el) return;
     o.el.querySelector(".fig .n").textContent = n;
     o.el.querySelector(".fig .u").textContent = u;
-    o.el.querySelector(".sig").innerHTML = sig;
+    /* card #335: a child the read did not refresh says how old it is */
+    const age = ks ? readAge(ks, true) : "";
+    o.el.querySelector(".sig").innerHTML = sig
+      + (age ? ` · <span class="readage">${esc(age.toUpperCase())}</span>` : "");
   };
   set(RSYS[0], r==null?"—":String(r.unread), "UNREAD",
-    r==null?"spine unavailable":`<b>${r.unread}</b> UNREAD · THE CHANNEL`);
+    r==null?"spine unavailable":`<b>${r.unread}</b> UNREAD · THE CHANNEL`, ["radio"]);
   set(RSYS[1], un==null?"—":String(un), "UNHEARD",
-    sc==null?"spine unavailable":`<b>${(sc.runs||[]).length}</b> RUN${(sc.runs||[]).length===1?"":"S"} · CH 21`);
+    sc==null?"spine unavailable":`<b>${(sc.runs||[]).length}</b> RUN${(sc.runs||[]).length===1?"":"S"} · CH 21`, ["sidech"]);
   set(RSYS[2], kept==null?"—":String(kept), "KEPT",
-    dt==null?"spine unavailable":`<b>${kept}</b> KEPT TODAY · THE DIET`);
+    dt==null?"spine unavailable":`<b>${kept}</b> KEPT TODAY · THE DIET`, ["diet"]);
   set(RSYS[3], g==null?"—":(g.armed?"ON":"OFF"), "AIR",
     g==null?"asking the tower…":(g.armed
       ? `on the air · <b>${g.sessions ?? 0}</b> session${g.sessions===1?"":"s"}`
@@ -3423,7 +3492,7 @@ const DOCK_ROOM = {work:"work", money:"ledger", learn:"learn",
                    soul:"soul", hotshot:"standing", radio:"radio"};
 function docketHTML(h){
   const head = n => `<div class="dhead"><span class="t">THE DOCKET</span>
-    <span class="n">${n}</span><button class="x" id="dockX">CLOSE</button></div>`;
+    <span class="n">${n}</span><button class="x" id="dockX">CLOSE</button></div>` + readLine(["hand"]);
   if(!h) return head("") + `<div class="dempty">the spine has not answered with the docket</div>`;
   const row = o => `<div class="drow t-${esc(o.i.tier)}">
     <span class="dchip">${esc(o.i.kind.replace("_"," "))}</span>
@@ -3528,7 +3597,7 @@ function pageHTML(){
     : `<div class="sv dim2">the navigator is offline${vo.detail ? " — " + esc(vo.detail) : ""} — the facts stand on their own</div>`;
   /* the air button lives on the canon card now (his word 2026-08-15: read or
      listen, chosen side by side) — the page masthead stays print-clean */
-  return `<div class="phead"><div class="pt">THE MORNING PAGE</div><div class="pd">${day}</div></div>`
+  return `<div class="phead"><div class="pt">THE MORNING PAGE</div><div class="pd">${day}</div>${readLine(["brief"])}</div>`
     + `<div class="sect"><div class="sl">THE SKY</div>${wxLine(wx.home)}${wxLine(nl)}</div>`
     + `<div class="sect"><div class="sl">THE MONEY</div>${moneyHTML}</div>`
     + `<div class="sect"><div class="sl">THE ROAD</div>${roadHTML}</div>`
@@ -3771,12 +3840,12 @@ function bulletinHTML(){
     return +m + "/" + +dd + (+y === new Date().getFullYear() ? "" : "/" + y.slice(2)); };
   const tHTML = targets.length
     ? `<div class="cap" style="margin:13px 0 3px">your compliance targets — from your list, soonest first</div>`
-      + targets.slice(0, 8).map(t =>
+      + readLine(["planner"]) + targets.slice(0, 8).map(t =>
         `<div class="hb-tgt">${esc(t.text)}<i>${t.due ? "due " + esc(dueF(t.due)) : esc(t.timeframe)}</i></div>`).join("")
     : "";
   return `<div class="panel" style="grid-column:1 / -1">
     <div class="cap">the bulletin — dot · fmcsa · the register${b && b.fresh ? ` · ${b.fresh} standing` : ""}</div>
-    ${rows}${tHTML}</div>`;
+    ${readLine(["hotshot"])}${rows}${tHTML}</div>`;
 }
 /* THE ROAD PULSE — served whole by /api/hotshot; the page computes nothing.
    rpm renders UNKNOWN with the reason in words until two anchors cover the
@@ -3791,7 +3860,7 @@ function pulseHTML(){
   const ls = h.last_snap;
   return `<div class="panel" style="grid-column:1 / -1;grid-row:2">
     <div class="cap">the road pulse · ${esc(h.month||"")} revenue per mile</div>
-    <div class="pulse">
+    ${readLine(["hotshot"])}<div class="pulse">
       <div class="rpm${h.rpm==null?" unk":""}">${h.rpm==null?"——":money(h.rpm)}<i>/ MILE</i></div>
       <div class="pops">revenue ${h.revenue==null?"——":money(h.revenue)}<br>
         miles ${h.miles==null?"——":h.miles.toLocaleString()}</div>
@@ -7764,7 +7833,8 @@ function paintMorning(){
     const on = (t.checks || []).includes(i.key);
     return `<label class="cmli${on ? " on" : ""}"><input type="checkbox" data-k="${i.key}" ${on ? "checked" : ""}>
       <span>${esc(i.label)}</span></label>`;
-  }).join("") + `<span class="cmls">${t.morning}/3${t.morning === 3 ? " ✓" : ""}</span>`;
+  }).join("") + `<span class="cmls">${t.morning}/3${t.morning === 3 ? " ✓" : ""}${
+    readAge(["planner"]) ? ` · <span class="readage">${esc(readAge(["planner"], true))}</span>` : ""}</span>`;
   box.querySelectorAll("input").forEach(cb =>
     cb.addEventListener("change", async () => {
       cb.disabled = true;
@@ -9475,21 +9545,27 @@ $("daycue").addEventListener("click", e => {
 });
 
 async function load(keep){
+  /* the boot fires load() twice (the Load Log pull re-reads) and a refresh
+     can land on a read in flight — the LAST call wins, never the last to
+     arrive (loadDay's law, card #335): a read another has overtaken neither
+     stamps nor paints, so its late answers can never age the newer stamp */
+  const seq = ++LOAD_SEQ;
   try{
     const [st, sd, bd] = await Promise.all([
       grab("/api/standing"), grab("/api/standings"), grab("/api/board")]);
+    if(seq !== LOAD_SEQ) return;
     State.standing = st; State.standings = sd; State.board = bd; State.err = null;
-    State.at = new Date();
-    /* the rest are not worth failing the desk over */
-    const rest = [
-      ["radio","/api/messages"], ["learn","/api/learning"], ["soul","/api/doctrine"],
-      ["held","/api/push/held"], ["watch","/api/watch"], ["hotshot","/api/hotshot"],
-      ["hand","/api/hand"], ["sidech","/api/threads"],
-      ["diet","/api/listening?days=1"], ["brief","/api/brief"],
-      ["planner","/api/planner"]
-    ];
-    await Promise.all(rest.map(([k,p]) =>
-      grab(p).then(v => { State[k] = v; }).catch(() => {})));
+    const at = State.at = new Date();
+    /* the rest are not worth failing the desk over — but a miss is RECORDED,
+       never swallowed (card #335): each payload stamps the READ that brought
+       it when it lands, and a failure leaves the last payload on screen with
+       State.<k>Err set, so the stamp counts it and its panel says its age */
+    await Promise.all(READ_REST.map(([k,p]) =>
+      grab(p).then(v => { if(seq !== LOAD_SEQ) return;
+          State[k] = v; State[k + "ReadAt"] = at; State[k + "Err"] = null;
+          if(v && typeof v === "object") READ_BROUGHT.add(v); })
+        .catch(e => { if(seq !== LOAD_SEQ) return; State[k + "Err"] = String(e.message || e); })));
+    if(seq !== LOAD_SEQ) return;
     /* the money room's own reads — never allowed to fail the desk */
     await loadFin().catch(() => {});
     /* THE MIRROR rides the same read (card #244) — before paintField, so the
@@ -9514,8 +9590,10 @@ async function load(keep){
        cost the desk its resting frame. THE PAGE button is the only door. */
     if(ACTIVE !== null) renderRoom();
   }catch(e){
+    if(seq !== LOAD_SEQ) return;   /* an overtaken read's failure is not the desk's word */
     State.err = String(e.message || e);
     deriveTemp();
+    stampRead();   /* a failed refresh tap must not leave "PULLING THE LOAD LOG…" standing (card #335) */
     MIRROR = []; paintMirror();   /* no ruling hangs under a dead spine */
     $("cq").textContent = "The spine did not answer.";
     $("crz").textContent = State.err;
@@ -9566,10 +9644,20 @@ function stampRead(){
   const el = $("readstamp"); if(!el) return;
   if(State.err){ el.textContent = "SPINE UNREACHABLE"; el.classList.add("stale"); return; }
   if(!State.at){ el.textContent = ""; return; }
-  const secs = Math.round((Date.now() - State.at.getTime())/1000);
+  /* card #335: the stamp knows what answered. It counts the secondaries the
+     latest read did not bring, names them on hover, and it CANNOT run ahead
+     of what is on screen — the four-minute heat is judged from the oldest
+     read still showing, so a refresh with a route dead cannot cool it past
+     the panel that did not answer. One clock: State.at is the time printed. */
+  const missed = READ_REST.filter(([k]) => State[k + "Err"]);
+  const oldest = readBehind(READ_REST.map(([k]) => k)) || State.at;
+  const secs = Math.round((Date.now() - oldest.getTime())/1000);
   el.classList.toggle("stale", secs > 240);
-  el.textContent = "READ " + State.at.toLocaleTimeString("en-US",
-    {hour:"numeric", minute:"2-digit"});
+  el.textContent = "READ " + readClock(State.at)
+    + (missed.length ? ` · ${missed.length} of ${READ_REST.length} did not answer` : "");
+  el.title = missed.map(([k, p]) => `${p} did not answer — ${State[k + "Err"]}`
+      + (readAge([k]) ? ` (showing ${readAge([k], true)})` : "")).join("\n")
+    + (missed.length ? "\n" : "") + "click to pull the Load Log and re-read the spine";
 }
 setInterval(stampRead, 20000);
 
