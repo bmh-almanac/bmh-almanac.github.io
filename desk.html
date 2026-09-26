@@ -5825,9 +5825,13 @@ function finLane(ld, ro){
   const inside = ids.map(id => txns.find(t => t.id === id)).filter(Boolean);
   /* the verdict first, then its evidence (his 2026-08-11 ruling). Same served
      figure that used to sit in the footer — moved, not copied. */
-  const nutBand = `<div class="lnut${nut != null && nut < 0 ? " dn" : ""}">
+  const nutBand = `<div class="lnut${nut != null && nut < 0 ? " dn" : ""}" title="${esc((row && row.net_basis) || "")}">
       <span>to the nut${row && row.nut_pct != null
-        ? `<i>${row.nut_pct.toFixed(1)}% of the month's</i>` : ""}</span>
+        ? `<i>${row.nut_pct.toFixed(1)}% of the month's</i>`
+        /* fee unknown (card #343): the contribution is blank, and the most
+           it could be is named beside it rather than printed as the truth */
+        : (row && nut == null && row.net_if_no_fee != null
+          ? `<i>fee unknown · ${row.net_if_no_fee < 0 ? "−" : "up to +"}${money(Math.abs(row.net_if_no_fee))} if no fee</i>` : "")}</span>
       <b class="${nut == null ? "" : nut < 0 ? "dn" : ""}">${
         nut == null ? "——" : (nut < 0 ? "−" : "+") + money(Math.abs(nut))}</b></div>`;
   return `<div class="lane" data-row="${ld.sheet_row}">
@@ -6002,7 +6006,8 @@ function finTable(ro){
   const rows = (ro.loads || []).filter(l => l.rate);
   if(!rows.length) return "";
   return `<div class="cap" style="margin:12px 0 4px">every load in the window · net = rate minus
-    what the run cost. fixed cost is fought above, never here</div>
+    what the run cost. fixed cost is fought above, never here · net is blank where the
+    fee is unknown — "if no fee" is the most it could be, never what it was</div>
   <div style="overflow-x:auto"><table class="ltab"><thead><tr>
     <th>load</th><th>delivered</th><th>rate</th><th>road</th><th>fee</th><th>accrual</th><th>net</th>
   </tr></thead><tbody>${rows.map(l => `<tr>
@@ -6020,7 +6025,13 @@ function finTable(ro){
     <td class="${l.fee!=null?"m":"unk"}" title="${esc(l.fee_basis||"")}">${
       l.fee!=null ? money(l.fee) : "——"}</td>
     <td class="${l.trip_accrual?"m":"unk"}">${l.trip_accrual ? money(l.trip_accrual) : "——"}</td>
-    <td class="net">${l.net==null?"——":money(l.net)}</td></tr>`).join("")}
+    <td class="${l.net==null?"unk":"net"}" title="${esc(l.net_basis||"")}">${
+      /* A FEE NOBODY LEARNED IS NOT A $0 FEE (card #343): the spine serves
+         net only where a 1:1 deposit fixed the fee; otherwise —— and the
+         figure with the fee taken as 0 under its own name */
+      l.net==null
+        ? `——${l.net_if_no_fee != null ? `<span style="color:var(--etch);font-size:.85em"> · if no fee ${money(l.net_if_no_fee)}</span>` : ""}`
+        : money(l.net)}</td></tr>`).join("")}
   </tbody></table></div>`;
 }
 
@@ -6426,21 +6437,25 @@ function finBooks(){
               city: id.delivery_city || r.delivery_city,
               date: id.delivery_date || r.delivery_date};
     })
-    .filter(r => r.nut_contribution != null)
     .sort((a,b) => (a.date||"") < (b.date||"") ? -1 : 1);
+  /* KNOWN AND UNKNOWN KEPT APART (card #343): a load whose fee no deposit has
+     fixed carries no contribution — it is listed under what it would feed if
+     no fee was taken, never summed into the known total */
+  const unk = rows.filter(r => r.nut_contribution == null && r.net_if_no_fee != null);
+  const known = rows.filter(r => r.nut_contribution != null);
   const nut = R.nut;
   let feed;
   if(!ro) feed = `<div class="gen" style="min-height:80px"><span class="nodata">${
     esc(State.fin.err || "the spine has not answered with the rollup")}</span></div>`;
   else if(nut == null) feed = `<div class="nodata">the nut is unreadable — nothing to measure against</div>`;
   else {
-    /* presentation sums of SERVED per-load figures — same practice as the
-       bucket header; no financial judgement is derived here */
-    const fed = rows.reduce((s,r) => s + Math.max(0, r.nut_contribution), 0);
-    const gave = rows.reduce((s,r) => s + Math.min(0, r.nut_contribution), 0);
-    const scale = Math.max(nut, fed, 1);
+    /* the totals are SERVED by the rollup (card #343) — one home; the page
+       used to sum every load with the fee taken as $0 */
+    const fed = ro.fed_to_nut_known, gave = ro.given_back_known || 0;
+    const unkN = ro.fed_to_nut_unknown_n || 0, unkUp = ro.fed_to_nut_if_no_fee, unkBack = ro.given_back_if_no_fee || 0;
+    const scale = Math.max(nut, fed || 0, 1);
     let x = 0;
-    const segs = rows.filter(r => r.nut_contribution > 0).map(r => {
+    const segs = known.filter(r => r.nut_contribution > 0).map(r => {
       const w = r.nut_contribution / scale * 100, x0 = x; x += w;
       return `<div class="nutseg" style="left:${x0}%;width:${Math.max(w,.4)}%"
         title="${esc(r.broker || "?")} · ${esc(r.date || "")} · ${money(r.nut_contribution)}${
@@ -6451,17 +6466,25 @@ function finBooks(){
         <div class="nutline" style="left:${Math.min(nut/scale*100, 99.7)}%"></div>
       </div>
       <div class="recline" style="margin-top:6px">
-        <span><b>${money(fed)}</b> fed to the nut</span>
+        <span><b>${fed == null ? "——" : money(fed)}</b> fed to the nut${
+          ro.fed_to_nut_known_n != null ? ` · ${ro.fed_to_nut_known_n} load${ro.fed_to_nut_known_n===1?"":"s"} with a measured fee` : ""}</span>
         ${gave < 0 ? `<span><b class="hot">${money(gave)}</b> given back</span>` : ""}
+        ${unkN ? `<span class="unk" title="${esc(ro.fed_to_nut_basis || "")}">${unkN} load${unkN===1?"":"s"}, fee unknown — up to <b>${
+          money(unkUp || 0)}</b> if no fee${unkBack < 0 ? `, ${money(unkBack)} given back` : ""}</span>` : ""}
         <span>the nut: <b>${money(nut)}</b></span>
       </div>
       <div class="scroll" style="margin-top:9px;max-height:38vh">${
-        rows.slice().sort((a,b) => b.nut_contribution - a.nut_contribution).map(r =>
+        known.slice().sort((a,b) => b.nut_contribution - a.nut_contribution).map(r =>
         `<div class="lrow${r.nut_contribution < 0 ? " short" : ""}">
           <div class="t">${esc(r.broker || "—")}${r.city ? " · " + esc(r.city) : ""}</div>
           <div class="a">${(r.nut_contribution >= 0 ? "+" : "−") + money(Math.abs(r.nut_contribution))}</div>
           <div class="s">${esc(r.date || "")}${
             r.nut_pct != null ? ` · ${r.nut_pct}% of the nut` : ""}</div></div>`).join("")
+        + unk.slice().sort((a,b) => b.net_if_no_fee - a.net_if_no_fee).map(r =>
+        `<div class="lrow unk" title="${esc(r.net_basis || "")}">
+          <div class="t">${esc(r.broker || "—")}${r.city ? " · " + esc(r.city) : ""}</div>
+          <div class="a">——</div>
+          <div class="s">${esc(r.date || "")} · fee unknown · ${r.net_if_no_fee < 0 ? "−" : "up to +"}${money(Math.abs(r.net_if_no_fee))} if no fee</div></div>`).join("")
         || `<p class="nodata">no loads with a contribution in this window</p>`}</div>`;
   }
   /* faults — the spine still names them; since the standings list left this
