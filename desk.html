@@ -5810,7 +5810,35 @@ function finReconcile(){
 function finCharts(){
   const ro = State.fin.rollup;
   if(!ro) return "";
-  const S = ro.series || [], cats = ro.road_by_category || {};
+  const S = ro.series || [], rawCats = ro.road_by_category || {};
+  // THE BARS AND THE CAPTION HAVE TO NAME THE SAME MONEY (card #350). The
+  // spine serves this breakdown unshifted but captions it with road_total,
+  // which is load-shifted — road follows the load, so a fill-up posted this
+  // month rides OUT if its load delivered last month, and an earlier
+  // month's fuel rides IN if its load delivered this month. Walk that same
+  // shift onto the categories before drawing, reading off_by_cat/on_by_cat
+  // straight off the payload rather than re-deriving a shift here, or the
+  // client can disagree with the spine about its own arithmetic. The words
+  // for this shift already live one panel up (finReconcile's "road follows
+  // the load" line) — this panel only has to add up to what that one says.
+  const shift = ro.reconciliation && ro.reconciliation.road_shift;
+  let cats = rawCats, roadCap = ro.road_total || 0;
+  if(shift){
+    const off = shift.off_by_cat || {}, on = shift.on_by_cat || {};
+    const keys = new Set([...Object.keys(rawCats), ...Object.keys(off), ...Object.keys(on)]);
+    cats = {};
+    for(const c of keys){
+      const v = Math.round(((rawCats[c]||0) - (off[c]||0) + (on[c]||0)) * 100) / 100;
+      if(v) cats[c] = v;
+    }
+  } else {
+    // no shift on this payload — an older cache, or the spine couldn't
+    // compute one this time. Draw the unshifted bars under their own
+    // unshifted total instead of pairing them with road_total, so a
+    // missing key can never reproduce the mismatch this card exists to
+    // kill (a half-shifted panel is worse than an honestly unshifted one).
+    roadCap = Object.values(rawCats).reduce((a,b)=>a+b,0);
+  }
   const mx = Math.max(1, ...S.map(s => Math.max(s.revenue||0, s.road||0)));
   const W = 640, H = 132, pad = 22, bw = S.length ? (W-2*pad)/S.length : 0;
   const bars = S.map((s,i) => {
@@ -5829,7 +5857,7 @@ function finCharts(){
       S.length===1?"":"s"} · faded = still running</div>
     <svg class="chart" viewBox="0 0 ${W} ${H}" style="max-height:132px;margin-top:6px">${bars}</svg>
     <div class="cap" style="margin-top:6px">the road, this ${esc(FIN.period)} — ${
-      money(ro.road_total || 0)}</div>
+      money(roadCap)}</div>
     <div class="rows" style="margin-top:5px">${Object.entries(cats).sort((a,b)=>b[1]-a[1])
       .map(([c,v]) => `<div class="rw"><span style="width:74px">${esc(c)}</span>
         <span class="b"><i class="k" style="width:${Math.round(100*v/ct)}%"></i></span>
