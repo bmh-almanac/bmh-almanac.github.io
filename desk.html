@@ -6470,7 +6470,7 @@ function finBooks(){
           ro.fed_to_nut_known_n != null ? ` · ${ro.fed_to_nut_known_n} load${ro.fed_to_nut_known_n===1?"":"s"} with a measured fee` : ""}</span>
         ${gave < 0 ? `<span><b class="hot">${money(gave)}</b> given back</span>` : ""}
         ${unkN ? `<span class="unk" title="${esc(ro.fed_to_nut_basis || "")}">${unkN} load${unkN===1?"":"s"}, fee unknown — up to <b>${
-          money(unkUp || 0)}</b> if no fee${unkBack < 0 ? `, ${money(unkBack)} given back` : ""}</span>` : ""}
+          money(unkUp || 0)}</b> if no fee${unkBack < 0 ? `, −${money(Math.abs(unkBack))} given back` : ""}</span>` : ""}
         <span>the nut: <b>${money(nut)}</b></span>
       </div>
       <div class="scroll" style="margin-top:9px;max-height:38vh">${
