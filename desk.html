@@ -2388,7 +2388,12 @@ function paintDay(){
       h += `<div class="stopline"><span class="seq">${i + 1}.</span>
         <span>${s.kind === "pickup" ? "PICKUP" : "DROP"} · #${esc(ld.load_number) || "——"}${
           place ? ` · ${esc(place)}` : s.company ? ` · ${esc(s.company)}` : ""}${
-          when ? ` · ${esc(when)}` : ""}${esc(ld.broker) ? ` · ${esc(ld.broker)}` : ""}</span>
+          when ? ` · ${esc(when)}` : ""}${
+          /* a window the sheet shows but the spine could not read says so
+             beside the raw cell (card #333) — the same sentence THE ROAD
+             AHEAD prints, served, never a second copy */
+          s.window_assumed ? ` · <i class="readage">${esc(s.window_assumed)}</i>` : ""}${
+          esc(ld.broker) ? ` · ${esc(ld.broker)}` : ""}</span>
         <span>${s.eta ? `eta ${esc(s.eta)}` : ""}${s.leg_mi != null ? ` · ${s.leg_mi} mi` : ""}</span></div>`;
     });
     (d.unplaced || []).forEach(s => {
