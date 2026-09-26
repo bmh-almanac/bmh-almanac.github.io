@@ -3795,9 +3795,14 @@ function standingRoom(){
         <div class="rw"><span style="width:78px">collected</span><span class="b"><i style="width:${
           p.earned ? Math.min(100, Math.round(100*(p.collected||0)/p.earned)) : 0}%"></i></span>
           <span class="v">${p.collected==null?"——":money(p.collected)}</span></div>
-        <div class="rw"><span style="width:78px">covered</span><span class="b"><i class="k" style="width:${
-          p.nut ? Math.min(100, Math.round(100*(p.contribution||0)/p.nut)) : 0}%"></i></span>
-          <span class="v">${p.nut ? Math.round(100*(p.contribution||0)/p.nut)+"%" : "——"}</span></div>
+        <div class="rw" title="${esc(p.covered_basis || "")}"><span style="width:78px">covered</span><span class="b"><i class="k" style="width:${
+          /* SERVED, never derived (card #336): the page used to divide here
+             with contribution coalesced to 0, so a blind month printed a
+             confident "covered 0%" three lines from an honest ——. The spine
+             serves covered_pct only when both halves are known; null paints
+             no bar and prints ——, and the reason rides the row's title. */
+          p.covered_pct == null ? 0 : Math.min(100, Math.max(0, p.covered_pct))}%"></i></span>
+          <span class="v">${p.covered_pct == null ? "——" : p.covered_pct + "%"}</span></div>
         <div class="rw" title="this month's delivered work minus this month's cash in — timing, NOT what brokers owe you; the chase clock holds that"><span style="width:78px">not cashed</span><span class="b"><i style="width:${
           p.earned ? Math.min(100, Math.round(100*(p.still_out||0)/p.earned)) : 0}%"></i></span>
           <span class="v">${p.still_out==null?"——":money(p.still_out)}</span></div>
