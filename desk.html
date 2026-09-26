@@ -5979,18 +5979,34 @@ function finCharts(){
   const bars = S.map((s,i) => {
     const x = pad + i*bw, w = Math.max(3, bw*0.34);
     const hr = ((s.revenue||0)/mx)*(H-40), hc = ((s.road||0)/mx)*(H-40);
-    return `<rect x="${x.toFixed(1)}" y="${(H-22-hr).toFixed(1)}" width="${w.toFixed(1)}"
-        height="${Math.max(1,hr).toFixed(1)}" rx="1.5" fill="rgba(var(--key),${s.partial?".45":".85"})"/>
-      <rect x="${(x+w+2).toFixed(1)}" y="${(H-22-hc).toFixed(1)}" width="${w.toFixed(1)}"
-        height="${Math.max(1,hc).toFixed(1)}" rx="1.5" fill="${hotc(s.partial?.3:.55)}"/>
+    /* BEFORE THE LOAD BOOK (card #341): a bucket the book does not cover has
+       no revenue to draw — unknown, not $0 — so it is hatched, its reason
+       rides the title, and its road bar stays real. A bucket the book
+       begins inside keeps its bars and wears a mark that names the day. */
+    const rev = s.uncovered
+      ? `<rect x="${x.toFixed(1)}" y="${(H-22-(H-40)*.55).toFixed(1)}" width="${w.toFixed(1)}"
+          height="${((H-40)*.55).toFixed(1)}" rx="1.5" fill="url(#bookhatch)"><title>${
+          esc(s.uncovered_basis || "before the load book")}</title></rect>`
+      : `<rect x="${x.toFixed(1)}" y="${(H-22-hr).toFixed(1)}" width="${w.toFixed(1)}"
+          height="${Math.max(1,hr).toFixed(1)}" rx="1.5" fill="rgba(var(--key),${s.partial?".45":".85"})">${
+          s.partial_book ? `<title>${esc(s.partial_book_basis || "")}</title>` : ""}</rect>`;
+    return rev + `<rect x="${(x+w+2).toFixed(1)}" y="${(H-22-hc).toFixed(1)}" width="${w.toFixed(1)}"
+        height="${Math.max(1,hc).toFixed(1)}" rx="1.5" fill="${hotc(s.partial?.3:.55)}"/>${
+      s.partial_book ? `<circle cx="${(x+w/2).toFixed(1)}" cy="${H-30}" r="2.2" fill="var(--etch)"><title>${
+        esc(s.partial_book_basis || "")}</title></circle>` : ""}
       <text x="${(x+w+1).toFixed(1)}" y="${H-8}" fill="var(--etch)" font-size="8"
         font-family="ui-monospace,Menlo,monospace" text-anchor="middle">${esc(s.label)}</text>`;
   }).join("");
+  const unc = S.some(s => s.uncovered), part = S.some(s => s.partial_book);
   const ct = Object.values(cats).reduce((a,b)=>a+b,0) || 1;
   return `<div class="panel" style="flex:0 0 auto">
     <div class="cap">earned vs the road it took · last ${S.length} ${esc(FIN.period)}${
-      S.length===1?"":"s"} · faded = still running</div>
-    <svg class="chart" viewBox="0 0 ${W} ${H}" style="max-height:132px;margin-top:6px">${bars}</svg>
+      S.length===1?"":"s"} · faded = still running${
+      unc ? ` · hatched = before the load book (begins ${esc(ro.book_begins || "?")})` : ""}${
+      part && !unc ? ` · dot = the book begins inside it (${esc(ro.book_begins || "?")})` : ""}</div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" style="max-height:132px;margin-top:6px"><defs>
+      <pattern id="bookhatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="6" stroke="var(--etch)" stroke-width="1.4"/></pattern></defs>${bars}</svg>
     <div class="cap" style="margin-top:6px">the road, this ${esc(FIN.period)} — ${
       money(roadCap)}</div>
     <div class="rows" style="margin-top:5px">${Object.entries(cats).sort((a,b)=>b[1]-a[1])
