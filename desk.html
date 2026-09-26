@@ -5850,11 +5850,14 @@ function finTable(ro){
     <td>${esc(l.broker||"—")}<span style="color:var(--etch)"> · ${esc(l.delivery_city||"")}</span></td>
     <td>${esc(l.delivery_date||"")}</td>
     <td class="m">${money(l.rate)}</td>
-    <td class="${l.assigned_cost?"m":"unk"}" title="${esc(l.held_expired_basis||"")}">${
+    <td class="${l.assigned_cost?"m":"unk"}" title="${esc([l.held_expired_basis, l.held_offroad_basis].filter(Boolean).join("\n"))}">${
       l.assigned_cost ? money(l.assigned_cost) : "——"}${
       /* the hold the bank never charged rides the row by NAME (card #315) — a
          road figure that quietly shrank is the defect, not the fix */
-      l.held_expired ? `<span style="color:var(--etch);font-size:.85em"> · held ${money(l.held_expired)}</span>` : ""}</td>
+      l.held_expired ? `<span style="color:var(--etch);font-size:.85em"> · held ${money(l.held_expired)}</span>` : ""}${
+      /* ...and a placed row that is not road (card #352, his ruling 09-26):
+         held apart so the load reads like its month, named so it is seen */
+      l.held_offroad ? `<span style="color:var(--etch);font-size:.85em"> · off-road ${money(l.held_offroad)}</span>` : ""}</td>
     <td class="${l.fee!=null?"m":"unk"}" title="${esc(l.fee_basis||"")}">${
       l.fee!=null ? money(l.fee) : "——"}</td>
     <td class="${l.trip_accrual?"m":"unk"}">${l.trip_accrual ? money(l.trip_accrual) : "——"}</td>
