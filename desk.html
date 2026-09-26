@@ -5209,7 +5209,16 @@ function finStrip(){
   /* THE ROAD ESTIMATE IS DEAD (2026-08-01). The line is nut + road ACTUALLY
      spent — $0 road on the 1st, growing as CSVs land. Served, never derived,
      and never the projection: if the actuals are unreadable this says "——". */
-  const delta = m.over_under_actual;
+  /* SHORT/OVER READS THE GAUGE'S BASIS (his ruling 2026-09-26 on card #42,
+     carried by #306: "Once it's booked it goes to the MTD Revenue"). The
+     gauge beside this panel is BOOKED; the panel read DELIVERED, so gauge
+     minus BREAK-EVEN and the SHORT here disagreed by exactly the loads still
+     to run. Booked minus the line is SERVED (the rollup's over_under_booked,
+     via monthBooked); when this month's cannot be had, the panel falls back
+     to delivered and its label SAYS delivered — the word over a number always
+     names that number's basis. */
+  const bk = monthBooked(m), onBooked = !!bk && bk.over != null;
+  const delta = onBooked ? bk.over : m.over_under_actual;
   const proj = m.projected_eom, be = m.break_even_actual;
   const dayPct = m.days_in_month ? (m.day_of_month / m.days_in_month * 100) : 0;
   const gcol = bandCol(m.band);
@@ -5218,7 +5227,7 @@ function finStrip(){
     <div class="panel ro">
       <div class="rr"><div class="rl">projected month-end</div>
         <div class="rbig" style="color:${gcol}">${proj == null ? "——" : money(proj)}</div></div>
-      <div class="rr"><div class="rl">delivered vs the line</div>
+      <div class="rr"><div class="rl">${onBooked ? "counting booked" : "delivered basis"} · vs the line</div>
         <div class="rmid" style="color:${delta == null ? "var(--unknown)"
           : delta >= 0 ? C.green : C.red}">${delta == null ? "——"
           : (delta >= 0 ? "▲ " : "▼ ") + money(Math.abs(delta))
@@ -5276,12 +5285,42 @@ const bandCol = b => b === "good" ? C.green : b === "warn" ? C.yellow
 const arcPt = (cx,cy,r,t) => { const a = (180 - t*180)*Math.PI/180;
                                return [cx + r*Math.cos(a), cy - r*Math.sin(a)]; };
 
+/* THE MONTH'S BOOKED SPLIT, for the strip only. The strip is monthly on
+   every toggle, but the rollup is fetched for FIN.period — its
+   reconciliation is THIS month's only while the toggle stands on mo, so it
+   is read then and never on another window (a week's still-to-run under a
+   month's gauge is the other basis wearing this one's name). If fin_summary
+   ever overlays booked_ahead / over_under_booked onto the_month (card #306
+   names the lines — finroom was another card's file that day), those win
+   and the split holds on every toggle. Both figures are served; nothing
+   here is computed. */
+function monthBooked(m){
+  if(m.booked_ahead !== undefined || m.over_under_booked !== undefined)
+    return { ahead: m.booked_ahead, over: m.over_under_booked };
+  const ro = State.fin.rollup;
+  const R = ro && ro.period === "month" ? ro.reconciliation : null;
+  return R ? { ahead: R.booked_ahead, over: R.over_under_booked } : null;
+}
+
 function heroGauge(m){
   const cx = 220, cy = 240, R = 180, nlen = 140;
   /* the line is ACTUAL: nut + road spent so far, growing intramonth. The bare
      nut stands in only when the actuals could not be computed at all. */
   const be = m.break_even_actual != null ? m.break_even_actual : m.monthly_nut;
+  /* THE GAUGE IS BOOKED (his ruling 2026-09-26 on card #42, carried by #306:
+     "Booked loads should accumulate the number... Once it's booked it goes
+     to the MTD Revenue"). m.mtd_revenue is the cockpit's month-end booked
+     figure, and it stays the number, the needle, the arc and the aria. What
+     was wrong was the WORD: it never said which revenue, so the delivered
+     figure four inches away read as a contradiction. The caption names the
+     basis now, and the delivered figure is printed under the number by name
+     so run work never vanishes inside the booked total. Both parts are
+     SERVED (earned_delivered on this payload; still-to-run from the month's
+     reconciliation) — the page subtracts nothing. */
   const mtd = m.mtd_revenue, proj = m.projected_eom;
+  const del = m.earned_delivered, bk = monthBooked(m), ahead = bk ? bk.ahead : null;
+  const split = `${del == null ? "——" : money(del)} delivered` + (ahead == null ? ""
+    : ahead > 0 ? ` · ${money(ahead)} still to run` : " · nothing still to run");
   if(be == null || mtd == null) return `<div class="gen" style="min-height:200px">
     <span class="nodata">not enough is known to draw the month</span></div>`;
   /* Headroom so BREAK-EVEN sits ~2/3 across rather than crammed at the edge —
@@ -5305,7 +5344,7 @@ function heroGauge(m){
      card") — empty sky above the label and bare gutters beside the arc were
      letterboxing the dial to ~60% of its seat */
   return `<svg class="hero" viewBox="20 4 400 254" role="img"
-      aria-label="Month revenue ${money(mtd)} against break-even ${money(be)}">
+      aria-label="MTD revenue, booked, ${money(mtd)} — ${esc(split)} — against break-even ${money(be)}">
     <defs><linearGradient id="dgrad" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="${C.red}"/><stop offset="0.5" stop-color="${C.yellow}"/>
       <stop offset="1" stop-color="${C.green}"/></linearGradient></defs>
@@ -5331,14 +5370,18 @@ function heroGauge(m){
         style="filter:drop-shadow(0 0 5px ${col})"/></g>
     <circle cx="${cx}" cy="${cy}" r="11" fill="${C.chrome}"/>
     <circle cx="${cx}" cy="${cy}" r="5.5" fill="${col}"/>
-    <text x="${cx}" y="150" fill="${C.mid}" font-family="var(--mono)" font-size="15"
+    <text x="${cx}" y="142" fill="${C.mid}" font-family="var(--mono)" font-size="15"
       font-weight="700" letter-spacing="2.4" text-anchor="middle"
       style="paint-order:stroke;stroke:${PAPER()?"#EFE6CE":"#07080A"};stroke-width:5px;stroke-linejoin:round"
-      >MTD REVENUE</text>
-    <text x="${cx}" y="212" fill="${col}" font-family="var(--mono)" font-size="54"
+      >MTD REVENUE · BOOKED</text>
+    <text x="${cx}" y="204" fill="${col}" font-family="var(--mono)" font-size="54"
       font-weight="600" text-anchor="middle"
       style="paint-order:stroke;stroke:${PAPER()?"#EFE6CE":"#07080A"};stroke-width:8px;stroke-linejoin:round"
       >${money(mtd)}</text>
+    <text x="${cx}" y="225" fill="${C.chrome}" font-family="var(--mono)" font-size="12"
+      font-weight="600" text-anchor="middle"
+      style="paint-order:stroke;stroke:${PAPER()?"#EFE6CE":"#07080A"};stroke-width:4px;stroke-linejoin:round"
+      >${esc(split)}</text>
   </svg>`;
 }
 
@@ -5493,7 +5536,14 @@ function finFloor(){
       <div class="panel">
         ${followupStrip()}
         <div class="cap">the loads — ${(l.loads||[]).length} in ${esc(FIN.period)} · ${
-          money(l.revenue || 0)} earned${stale != null && stale > 6
+          /* BOOKED IS THE HEADLINE WORD (his ruling 2026-09-26, card #306).
+             This printed the window's TOTAL — every load on the calendar —
+             under the word "earned". fin_loads serves the split itself:
+             total, earned (delivered on or before today) and booked (still
+             to run); the page names both and adds nothing. */
+          l.earned == null ? `${money(l.revenue || 0)} booked`
+            : `${money(l.total ?? l.revenue)} booked · ${
+                l.booked ? `${money(l.earned)} delivered` : "all delivered"}`}${stale != null && stale > 6
             ? ` · <span style="color:var(--hot)">mirror ${stale}h old</span>` : ""}</div>
         <div class="lanes" id="loadZone" style="margin-top:7px">${finMonthlyBox()}${
           (l.loads||[]).length ? recentFirst(l.loads).map(ld => finLane(ld, ro)).join("")
@@ -5732,11 +5782,16 @@ function finLane(ld, ro){
 }
 
 /* SUMMARY — the month reconciled on real data. Every figure comes from
-   finroom's reconciliation block; the page adds nothing. It also names the
-   basis problem out loud: the gauge above measures ACTUAL revenue against a
-   line built from a road PROJECTION. For a month you are standing in, that
-   mixes bases — so the line on actually-spent road is shown BESIDE the served
-   one, never in place of it. Changing the producer is Bryan's ruling. */
+   finroom's reconciliation block; the page adds nothing. It states BOTH
+   revenue bases against the one actual line (nut + road actually spent):
+   delivered, the work already run, and booked, which adds the loads on the
+   calendar that still owe their own fuel. The gauge above measures BOOKED
+   revenue — his ruling 2026-09-26 on card #42, carried by #306 ("Once it's
+   booked it goes to the MTD Revenue") — so the booked row is the one that
+   matches the dial, and the delivered row stays so run work is never hidden
+   inside the booked figure. This note once said the gauge measured ACTUAL
+   revenue; it never did, and a comment that believes it re-teaches the
+   wrong basis to the next session. */
 function finReconcile(){
   const ro = State.fin.rollup, ex = State.fin.expenses, sm = State.fin.summary;
   const R = ro && ro.reconciliation;
