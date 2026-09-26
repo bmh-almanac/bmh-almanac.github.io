@@ -1554,6 +1554,8 @@ body.hot .act .h .n{color:var(--hot)}
 .brow .bs{grid-column:1/-1;font:400 10.5px/1.5 var(--sans);color:var(--dim)}
 .brow.retired{opacity:.4}
 .bpay{color:var(--amber);font:600 9.5px var(--mono);letter-spacing:.05em}
+.bdrift{color:#e2b45a}.bdrift.light{color:rgba(255,120,90,.95)}.bdrift.never{color:rgba(255,120,90,.95);font-weight:700}
+.bnote{margin:2px 0 8px;font:600 11px/1.45 var(--mono);color:var(--etch)}.bnote.heavy{color:#e2b45a}
 .butil{height:3px;background:rgba(150,170,190,.12);border-radius:2px;margin-top:5px;overflow:hidden}
 .butil i{display:block;height:100%;border-radius:2px;background:rgba(var(--key),.55)}
 .brow[data-bt]{cursor:pointer;transition:background .25s;margin:0 -6px;
@@ -6592,6 +6594,24 @@ function finBudget(){
     return p && p.state === "settled" ? ` · <span class="bpay">paid — your hand</span>` : "";
   };
   const due = d => d == null || String(d).trim() === "" ? "" : ` · due ${esc(String(d))}`;
+  /* CLAIMED AGAINST CHARGED (card #317): finroom's audit of each typed
+     recurring line, served under bd.drift keyed like evidence. The words
+     name the gap; the figure on the row is still his typed amount, and
+     fixing a line is his hand — the flag clears on its own once he does. */
+  const dr = (bt, bid) => {
+    const d = (bd.drift||{})[bt + ":" + bid];
+    if(!d) return "";
+    if(d.charged != null){
+      const quiet = d.quiet_60d ? " · no charge in 60 days" : "";
+      if(d.status === "agrees") return ` · <span class="bpay">ledger agrees${quiet}</span>`;
+      return ` · <span class="bdrift ${d.drift > 0 ? "heavy" : "light"}" title="${esc(d.note || "")}">ledger charged ${
+        money(d.charged)} in ${esc(d.charged_cycle || "")} — this line reads ${money(Math.abs(d.drift))} ${
+        d.drift > 0 ? "heavier" : "lighter"}${quiet}</span>`;
+    }
+    if(d.status === "never charged") return ` · <span class="bdrift never" title="${esc(d.reason || "")}">never charged — the ledger has no row for it</span>`;
+    if(d.status === "disputed") return ` · <span class="bdrift" title="${esc(d.reason || "")}">attached rows disagree — your hand</span>`;
+    return ` · <span class="bpay" title="${esc(d.reason || "")}">not yet measurable</span>`;
+  };
   const loans = (bd.loans||[]).map(l => {
     const done = !l.paid_off && l.original_balance > 0
       ? Math.max(0, Math.min(1, 1 - (l.balance||0)/l.original_balance)) : null;
@@ -6622,8 +6642,12 @@ function finBudget(){
       data-bdue="${esc(String(f.due_date ?? ""))}" title="tap to edit this line">
       <div class="bn">${esc(f.name)}</div>
       <div class="bm">${money(f.amount)}<em>/mo</em></div>
-      <div class="bs">${esc(f.category || "")}${due(f.due_date)}${st("fixed_monthly", f.id)}</div>
+      <div class="bs">${esc(f.category || "")}${due(f.due_date)}${st("fixed_monthly", f.id)}${dr("fixed_monthly", f.id)}</div>
     </div>`).join("") || `<p class="nodata">nothing recurring on record</p>`;
+  /* the audit's one sentence over the wall — the same words the brief
+     carries (inventory serves them from the same producer) */
+  const driftNote = bd.recurring_drift_basis
+    ? `<p class="bnote${bd.recurring_drift != null && Math.abs(bd.recurring_drift) >= 0.01 ? " heavy" : ""}">${esc(bd.recurring_drift_basis)}</p>` : "";
   return `<div class="finscroll">
     <div class="panel" style="margin-bottom:10px">
       <div class="bhero">
@@ -6639,7 +6663,7 @@ function finBudget(){
       <div class="panel"><div class="cap">loans — ${money(T.loans_monthly)}/mo · ${money(T.loans_balance)} owed</div>${loans}</div>
       <div class="panel"><div class="cap">credit cards — your kill order · ${money(T.cards_balance)} carried</div>${cards}</div>
       <div class="panel"><div class="cap">fixed monthly — ${money(T.fixed_monthly)}/mo
-        <button class="badd" id="bgtAdd" title="add a recurring line">+ add a line</button></div>${fixed}</div>
+        <button class="badd" id="bgtAdd" title="add a recurring line">+ add a line</button></div>${driftNote}${fixed}</div>
     </div></div>`;
 }
 /* HIS HAND ON THE BUDGET WALL (2026-08-04: "not able to edit or add to the
