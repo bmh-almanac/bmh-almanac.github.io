@@ -1933,6 +1933,15 @@ function readLine(ks){
   const a = readAge(ks);
   return a ? `<div class="readage">${esc(a)}</div>` : "";
 }
+/* WHY A MONEY FIGURE IS BLANK (card #346): the judgement serves
+   parts.unreadable — each figure that went None with the exception's own
+   words. The page names the first, never guesses one. */
+function unreadWhy(p){
+  const u = p && p.unreadable;
+  if(!u) return "";
+  const k = Object.keys(u)[0];
+  return k ? `${k} could not be read — ${String(u[k]).slice(0, 120)}` : "";
+}
 
 $("toPlate").addEventListener("click", () => {
   localStorage.setItem("almanac_view", "detent");
@@ -2245,7 +2254,7 @@ function paintField(){
   const open = b ? b.cards.filter(c => c.column_name !== "done").length : null;
   const needs = settleableCount(s);
   const sig = [
-    p.to_go == null ? ["——","",'<span style="color:var(--unknown)">not enough is known</span>']
+    p.to_go == null ? ["——","",`<span style="color:var(--unknown)">${esc(unreadWhy(p) || "not enough is known")}</span>`]
       : p.to_go > 0 ? [short(p.to_go),"TO GO",`<b class="h">${money(p.to_go)}</b> TO GO`]
                     : [short(-p.to_go),"CLEAR",`<b>${money(-p.to_go)}</b> CLEAR`],
     [qa==null?"—":String(qa),"IN QA", qa==null?"spine unavailable":`<b>${qa}</b> IN QA · ${open} OPEN`],
@@ -3765,7 +3774,7 @@ function standingRoom(){
     ["contribution","contribution",p.contribution], ["nut","the nut",p.nut],
     ["uncovered","uncovered",p.uncovered]
   ];
-  const reading = p.to_go == null ? `<span class="big unk">——</span>`
+  const reading = p.to_go == null ? `<span class="big unk" title="${esc(unreadWhy(p) || "not enough is known")}">——</span>`
     : p.to_go > 0 ? money(p.to_go) : money(-p.to_go);
   /* the room's tab bar — the money room's seg, worn by the hotshot orb.
      A room-level tab is not a new domain (the orb constitution governs
