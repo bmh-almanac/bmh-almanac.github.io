@@ -189,6 +189,15 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
 .orb .sig b.h{color:var(--hot)}
 .stage.entered .orb .sig,.stage.entered .orb .fig{opacity:0;pointer-events:none}
 .stage.entered .orb .name{font-size:8.5px}
+/* THE RAIL ON A PHONE (card #360): eight names in ~62% of a 412px screen is
+   ~32px a slot, and 'PLANNING' is ~54px — the names ran together. Under 560px
+   the rail names only the room you are in; the balls keep their hues, and a
+   tap still goes where it always went. */
+@media (max-width:560px){ .stage.entered .orb:not(.active) .name{opacity:0} }
+/* on the field a name is one line: an orb pushed near the right edge got a
+   shrink-to-fit box too narrow for its own name, and "THE WORK" broke in two
+   (seen measuring the eighth orb, card #360). The rail keeps its wrap. */
+.stage:not(.entered) .orb .name{white-space:nowrap}
 .orb.active .name{color:#fff}
 /* THE RADIO SYSTEM (card #93): falling in dims the rest of the sky; the
    children fly out from the parent star. Compositor-friendly, honest. */
@@ -1700,6 +1709,442 @@ body.hot .act .h .n{color:var(--hot)}
   font:400 14px/1.3 var(--mono);padding:11px;user-select:text;-webkit-user-select:text}
 .panelbox .msg{font:400 11.5px/1.5 var(--mono);color:var(--dim)}
 .panelbox .msg.bad{color:var(--hot)}
+/* ══ THE GLASS — FIRST LIGHT (card #360; spec GLASS-BUILD-SPEC.md) ═════════
+   A night drive to first light on his own windshield: the days cross the
+   glass as dash-blue receipts that roll an odometer that can only climb; his
+   own words come up warm like dawn; the sky brightens only from what he gives
+   away. THREE LIGHTS, one rule: dash-blue = what he BUILT, lamp = what he
+   SAID, given = what he GAVE. Hot red touches only the characters that could
+   hurt him; no green anywhere — a pass is a blue decal.
+   SCOPED: every selector starts with #cm, every property/keyframe/highlight
+   is --cm-*/cm-* (.lane .card .strip .hero .hold .chip .seg are taken). No
+   backdrop-filter in this room, no glow ever animates, nothing loops. */
+@property --cm-v     { syntax:"<number>";  inherits:true;  initial-value:0; }
+@property --cm-d     { syntax:"<integer>"; inherits:true;  initial-value:0; }
+@property --cm-sweep { syntax:"<angle>";   inherits:true;  initial-value:0deg; }
+@property --cm-g     { syntax:"<number>";  inherits:true;  initial-value:0; }
+@property --cm-gi    { syntax:"<number>";  inherits:true;  initial-value:0; }
+@property --cm-ghost { syntax:"<angle>";   inherits:true;  initial-value:0deg; }
+@property --cm-bx    { syntax:"<length>";  inherits:false; initial-value:-200px; }
+@property --cm-shade { syntax:"<color>";   inherits:false; initial-value:transparent; }
+#cm{
+  --cm-key:30,144,255;  --cm-bloom:58,160,255;  --cm-core:234,244,255;
+  --cm-lamp:255,221,168; --cm-given:255,243,212;
+  --cm-night:#03060B; --cm-pane:#05070B; --cm-paper:#EFE6D2; --cm-ink:#1D1710;
+  --cm-tape:rgba(236,226,200,.78); --cm-marker:#1D3F73;
+  --cm-thermal:#ECEBE6; --cm-thermal-ink:#1B2A3F;
+  --cm-plate:#0A0F15; --cm-engrave:198,212,228;
+  --cm-text:var(--ink);
+  --cm-settle:cubic-bezier(.34,1.3,.64,1); --cm-arrive:cubic-bezier(.16,1,.3,1);
+  container:cm / inline-size;
+  flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:clip; overscroll-behavior:contain;
+  font-size:18px; color:var(--cm-text); scroll-padding-bottom:60px; scrollbar-width:none;
+  user-select:none; -webkit-user-select:none; position:relative }
+#cm::-webkit-scrollbar{display:none}
+@supports (color: oklch(0 0 0)){ #cm{ --cm-paper:oklch(.93 .03 85) } }
+@supports (transition-timing-function: linear(0,1)){ #cm{
+  --cm-settle:linear(0,.008 1.1%,.078 3.9%,.323 9.9%,.642 17%,.877 24.3%,1.021 32%,1.062 38.9%,
+                     1.049 46.4%,1.008 59%,.996 69.8%,1 100%); } }   /* TALLY lineage. NEVER on a number. */
+@media (max-width:399px){ .room:has(> #cm){ padding:0 16px 16px } }
+#cm .cm-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding-bottom:18px}
+#cm .cm-left,#cm .cm-right{display:flex;flex-direction:column;gap:12px;min-width:0}
+#cm .cm-strip4{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@container cm (min-width:640px){
+  #cm .cm-grid{grid-template-columns:minmax(300px,1fr) 1.2fr;align-items:start}
+  #cm .cm-left{position:sticky;top:0}
+  #cm .cm-strip4{grid-column:1 / -1;grid-template-columns:repeat(4,minmax(0,1fr))}
+  #cm .cm-repeater{display:none !important}
+}
+#cm .cm-cap{font:700 9px/1 var(--mono);letter-spacing:.2em;color:var(--etch);text-transform:uppercase}
+#cm .cm-sans{font:400 14px/1.45 var(--sans);color:var(--mid);letter-spacing:0;text-transform:none}
+#cm .cm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#cm button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#cm button:focus-visible,#cm [tabindex]:focus-visible{outline:2px solid rgba(var(--cm-key),.9);outline-offset:2px}
+#cm .cm-btn{min-height:44px;padding:0 16px;border-radius:3px;border:1px solid rgba(var(--cm-key),.55);
+  background:rgba(var(--cm-key),.12);color:rgb(var(--cm-core));font:700 11px/1 var(--mono);letter-spacing:.14em;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px}
+#cm .cm-btn:disabled{opacity:.45;cursor:default}
+#cm .cm-say{font:500 14px/1.5 var(--sans);color:var(--mid);min-height:0}
+
+/* ── the windshield: night, headliner, A-pillars, one static streak, frit ── */
+#cm .cm-shield{position:relative;border-radius:12px;overflow:hidden;isolation:isolate;
+  padding:14px 12px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  background:
+    linear-gradient(104deg,transparent 34%,rgba(255,255,255,.035) 41%,transparent 47%),
+    radial-gradient(60% 90% at -8% 50%,rgba(0,0,0,.6),transparent 70%),
+    radial-gradient(60% 90% at 108% 50%,rgba(0,0,0,.6),transparent 70%),
+    linear-gradient(180deg,rgba(0,0,0,.55),transparent 14%),
+    linear-gradient(180deg,#02040A 0%,var(--cm-night) 55%,#060A12 100%);
+  box-shadow:0 0 0 1px rgba(var(--cm-engrave),.08), 0 30px 60px -30px rgba(0,0,0,.9)}
+#cm .cm-shield::before{content:"";position:absolute;inset:0 0 auto;height:22px;pointer-events:none;z-index:3;
+  background:radial-gradient(circle,rgba(0,0,0,.9) 1.1px,transparent 1.4px) 0 0/5px 5px;
+  mask:linear-gradient(180deg,#000 0 10px,transparent 22px)}
+#cm .cm-top{display:flex;gap:8px;width:100%;align-items:stretch;justify-content:space-between;position:relative;z-index:2}
+#cm .cm-decal{flex:1 1 0;min-width:0;min-height:40px;padding:8px 10px;border-radius:6px;corner-shape:notch;
+  font:700 9px/1.35 var(--mono);letter-spacing:.14em;color:rgb(var(--cm-core));
+  background:rgba(var(--cm-key),.22);border:1px solid rgba(var(--cm-key),.6)}
+#cm .cm-decal b{display:block;font-weight:700}
+#cm .cm-decal.met{mask:radial-gradient(circle 5px at 88% 22%,#0000 98%,#000);background:rgba(var(--cm-key),.34)}
+#cm .cm-decal.open{background:rgba(var(--cm-key),.12);border-color:rgba(var(--cm-key),.33);color:rgba(var(--cm-core),.7)}
+#cm .cm-decal .cm-sans{display:block;margin-top:3px;font-size:12px}
+#cm .cm-mirror{flex:1.2 1 0;min-width:0;min-height:40px;padding:7px 10px;border-radius:10px;text-align:left;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%),#0b1119;
+  border:1px solid rgba(var(--cm-engrave),.25);display:flex;flex-direction:column;gap:3px}
+#cm .cm-mirror .cm-mcap{font:700 9px/1 var(--mono);letter-spacing:.14em;color:rgba(var(--cm-given),.9)}
+#cm .cm-mirror .cm-mline{font:400 12.5px/1.35 var(--sans);color:var(--mid);overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#cm .cm-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:0;position:relative;z-index:3}
+#cm .cm-chip{font:700 11px/1 var(--mono);letter-spacing:.12em;color:rgb(var(--cm-core));padding:8px 11px;
+  border-radius:7px;corner-shape:bevel;background:rgba(6,10,16,.72);border:1px solid rgba(var(--cm-key),.6);
+  box-shadow:0 0 14px -4px rgba(var(--cm-key),.8)}
+#cm .cm-chip.cm-land{transition:opacity .4s var(--cm-arrive),translate .6s var(--cm-settle)}
+@starting-style{ #cm .cm-chip.cm-land{opacity:0;translate:0 8px} }
+#cm .cm-below{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;position:relative;z-index:2}
+#cm .cm-seal{font:700 9px/1.25 var(--mono);letter-spacing:.14em;color:rgba(var(--cm-engrave),.9);
+  padding:6px 9px;border-radius:50px;border:1px dashed rgba(var(--cm-engrave),.45);background:rgba(6,10,16,.8)}
+#cm .cm-seal.ruled{border-style:solid;color:rgb(var(--cm-core));border-color:rgba(var(--cm-key),.8)}
+#cm .cm-now{min-height:40px;min-width:64px;border-radius:40px;border:1px solid rgba(var(--cm-key),.7);
+  font:700 10px/1 var(--mono);letter-spacing:.16em;color:rgb(var(--cm-core));background:rgba(var(--cm-key),.14)}
+#cm .cm-darkline{font:700 12px/1.5 var(--mono);letter-spacing:.16em;color:rgba(var(--cm-core),.85);text-align:center;padding:40px 12px 8px}
+
+/* ── the hero: S = min(86cqi,340px,52svh); the Fold open takes 420 ──────── */
+#cm .cm-herowrap{position:relative;width:100%;display:grid;place-items:center;z-index:1}
+#cm .cm-hero{position:relative;width:min(86cqi,340px,52svh);aspect-ratio:1;margin:8px auto;
+  container:cmhero / size}
+@container cm (min-width:640px){ #cm .cm-hero{width:min(100%,420px,62svh)} }
+@media (max-height:560px){ #cm .cm-hero{width:min(86cqi,340px,60svh)} }
+#cm .cm-ghost{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:.08;z-index:0;
+  mask:radial-gradient(closest-side,#000 35%,#0000 72%)}
+#cm .cm-ghost>div{position:absolute;left:6%;right:6%;top:50%;font:400 10.5px/1.75 var(--mono);color:#fff;
+  white-space:nowrap;translate:0 calc(var(--cm-gi) * -1.75em)}
+#cm .cm-ghost>div>div{overflow:hidden;text-overflow:clip}
+#cm .cm-dial{position:absolute;inset:-8%;width:116%;height:116%;pointer-events:none;
+  mask:conic-gradient(#000 var(--cm-sweep),#0000 0)}
+#cm .cm-frame{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  box-shadow:0 0 0 1.5px rgba(var(--cm-key),.95),0 0 24px -4px rgba(var(--cm-bloom),.75),
+             inset 0 0 18px rgba(var(--cm-key),.22)}
+#cm .cm-shield.pre .cm-frame{opacity:.3}
+#cm .cm-year{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(rgba(var(--cm-key),.32) 0 .5deg,transparent 0 calc(1turn/52.1429));
+  mask:radial-gradient(closest-side,#0000 93%,#000 93.5% 96%,#0000 96.5%)}
+#cm .cm-mo{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;text-align:center;
+  font:700 7px/10px var(--mono);color:rgba(var(--cm-key),.8);pointer-events:none;
+  transform:rotate(calc(var(--d) / 365 * 1turn)) translateY(-40cqw) rotate(calc(var(--d) / -365 * 1turn))}
+/* marks ride full-size arms, so a flare's scale grows the dot in place
+   instead of flinging it outward along its own radius */
+#cm .cm-msarm{position:absolute;inset:0;pointer-events:none;rotate:calc(var(--d) / 365 * 1turn)}
+#cm .cm-ms{position:absolute;left:50%;top:4.6%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;
+  background:rgb(var(--cm-core));box-shadow:0 0 8px 1px rgba(var(--cm-key),.9)}
+#cm .cm-flare{position:absolute;left:50%;top:11%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;opacity:0;
+  background:radial-gradient(circle,rgba(var(--cm-lamp),1),rgba(var(--cm-lamp),0) 70%)}
+#cm .cm-arm{position:absolute;inset:0;pointer-events:none;rotate:var(--cm-sweep);z-index:1}
+#cm .cm-head{position:absolute;left:50%;top:3.5%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;
+  background:rgb(var(--cm-core));box-shadow:0 0 12px 3px rgba(var(--cm-key),.9)}
+#cm .cm-ghostarm{rotate:var(--cm-ghost);opacity:0}
+#cm .cm-ghosthead{position:absolute;left:50%;top:3.5%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;
+  border:1.5px solid rgb(var(--cm-core));box-shadow:0 0 10px rgba(var(--cm-key),.8)}
+#cm .cm-shield.reading .cm-ghostarm{opacity:1}
+#cm .cm-bezel{position:absolute;inset:-4%;border-radius:50%;touch-action:pan-y;z-index:1;cursor:grab;
+  -webkit-touch-callout:none}
+#cm .cm-shield.reading .cm-bezel{cursor:grabbing}
+#cm .cm-flip{position:absolute;inset:0;z-index:2;transform-style:preserve-3d;pointer-events:none;
+  transition:transform .8s var(--cm-settle)}
+#cm .cm-flip.turned{transform:rotateY(180deg)}
+#cm .cm-face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#cm .cm-back{transform:rotateY(180deg)}
+#cm .cm-flip.turned .cm-back{pointer-events:auto}
+#cm .cm-turn{position:absolute;inset:14%;border-radius:50%;pointer-events:auto;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:7px;touch-action:pan-y;overflow:hidden}
+#cm .cm-flip.turned .cm-turn{pointer-events:none}
+#cm .cm-mark{position:absolute;inset:18%;color:rgb(var(--cm-engrave));opacity:.06;pointer-events:none}
+#cm .cm-mark svg{width:100%;height:100%}
+
+/* the drums: mechanical carry in pure CSS, driven by one number */
+#cm .cm-odo{position:relative;display:flex;gap:2px;padding:.06em .1em;border-radius:.1em;background:#04070b;
+  font:700 clamp(40px,13vw,64px)/1 var(--mono);color:#fff;
+  text-shadow:0 0 .3em rgba(var(--cm-key),.9),0 0 1.1em rgba(var(--cm-key),.45);
+  box-shadow:inset 0 0 0 1px rgba(var(--cm-key),.35),0 0 0 3px #0a1018,0 0 22px -6px rgba(var(--cm-key),.6)}
+@container cmhero (max-width:330px){ #cm .cm-odo{font-size:clamp(32px,12cqw,52px)} }
+#cm .cm-odo[data-n="6"],#cm .cm-odo[data-n="7"]{font-size:clamp(28px,11cqw,48px)}
+#cm .cm-dr{--pl:pow(10, var(--p));position:relative;width:.62em;height:1em;overflow:clip;background:#070b11;
+  opacity:clamp(.28, var(--cm-v) + 1 - var(--pl), 1)}
+#cm .cm-dr.cm-u{opacity:1}
+#cm .cm-strip{display:flex;flex-direction:column;align-items:center;
+  transform:translateY(calc(-1em * ( mod(round(down, var(--cm-v) / var(--pl)), 10)
+                                     + max(0, mod(var(--cm-v), var(--pl)) - (var(--pl) - 1)) )))}
+#cm .cm-strip b{display:block;height:1em;font-weight:700}
+#cm .cm-flat{display:none;padding:0 .08em}
+#cm .cm-none{font-size:.5em;letter-spacing:.12em;padding:.3em .2em;color:rgba(var(--cm-core),.7);text-shadow:none}
+#cm .cm-odo::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.62),transparent 30%,transparent 70%,rgba(0,0,0,.62)),
+             linear-gradient(104deg,transparent 34%,rgba(255,255,255,.07) 41%,transparent 47%)}
+#cm .cm-badge.replaying .cm-strip{will-change:transform}
+#cm .cm-odo.blank .cm-strip{visibility:hidden}
+@supports not (width: calc(mod(5px, 3px))){
+  #cm .cm-strip{display:none} #cm .cm-dr{display:none} #cm .cm-flat{display:block} }
+#cm .cm-dayline{font:700 11px/1 var(--mono);letter-spacing:.2em;color:rgba(var(--cm-core),.92);min-height:11px}
+#cm .cm-dayline::after{counter-reset:d var(--cm-d);content:"DAY " counter(d) " ↺"}
+#cm .cm-shield.pre .cm-dayline::after{content:""}
+#cm .cm-shield.reading .cm-dayline::after{content:"READING THE LOG"}
+#cm .cm-msg{position:relative;width:88%;height:3em;overflow:hidden;text-align:center;
+  font:600 10px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--cm-core),.8)}
+#cm .cm-msg i{display:block;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cm .cm-msg i+i{opacity:.55}
+#cm .cm-msg .cm-cap2{position:absolute;left:0;right:0;top:0;opacity:0}
+#cm .cm-badge.replaying .cm-msg .cm-rest{visibility:hidden}
+#cm .cm-shield.reading .cm-msg i{color:transparent;-webkit-text-stroke:.5px rgb(var(--cm-key));opacity:1}
+
+/* the turnover: the data plate */
+#cm .cm-plate{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:grid;place-items:center;
+  background:
+    radial-gradient(circle at 50% 5%,#dfe8f2 0 1.4px,#6b7a8c 2.2px,transparent 2.8px),
+    radial-gradient(circle at 50% 95%,#dfe8f2 0 1.4px,#6b7a8c 2.2px,transparent 2.8px),
+    radial-gradient(circle at 5% 50%,#dfe8f2 0 1.4px,#6b7a8c 2.2px,transparent 2.8px),
+    radial-gradient(circle at 95% 50%,#dfe8f2 0 1.4px,#6b7a8c 2.2px,transparent 2.8px),
+    repeating-conic-gradient(rgba(198,212,228,.035) 0 .7deg,rgba(0,0,0,.06) .7deg 1.4deg),
+    radial-gradient(circle,#121a24,var(--cm-plate) 70%,#06090d);
+  box-shadow:0 0 0 1.5px rgba(var(--cm-engrave),.5),0 0 24px -6px rgba(var(--cm-bloom),.6)}
+#cm .cm-rim{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#cm .cm-rim text{font:700 7.2px var(--mono);letter-spacing:.18em;fill:rgb(var(--cm-engrave));
+  stroke:rgba(0,0,0,.65);stroke-width:.6px;paint-order:stroke}
+#cm .cm-comp{position:absolute;inset:9%;border-radius:50%;pointer-events:none;
+  mask:radial-gradient(closest-side,#0000 93%,#000 94% 99%,#0000 100%)}
+#cm .cm-pcen{position:relative;width:72%;display:flex;flex-direction:column;align-items:center;gap:3px}
+#cm .cm-ptitle{min-height:32px;padding:0 10px;font:700 9px/1 var(--mono);letter-spacing:.2em;color:rgb(var(--cm-engrave));
+  border-radius:3px;pointer-events:auto}
+#cm .cm-terms2{display:grid;grid-template-columns:1fr 1fr;gap:2px 4px;width:100%}
+#cm .cm-trow{min-height:34px;padding:3px 4px;border-radius:3px;text-align:left;display:flex;flex-direction:column;
+  justify-content:center;gap:2px;background:rgba(0,0,0,.25);border:1px solid rgba(var(--cm-engrave),.14)}
+#cm .cm-trow b{font:700 9px/1.1 var(--mono);letter-spacing:.06em;color:rgb(var(--cm-core));white-space:nowrap}
+#cm .cm-trow i{display:none;font:400 8px/1.1 var(--mono);font-style:normal;color:var(--etch);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cm .cm-stamp .cm-long{display:none}
+/* the plate is a disc: on a small ring the rows keep their words and drop
+   their source line (the thermal slips carry it); on a big one, both */
+@container cmhero (min-width:330px){ #cm .cm-trow{min-height:40px} #cm .cm-trow i{display:block} }
+@container cmhero (min-width:380px){ #cm .cm-stamp .cm-long{display:inline} }
+#cm .cm-trow.voice b{color:rgb(var(--cm-lamp))}
+#cm .cm-trow.given b{color:rgb(var(--cm-given))}
+#cm .cm-stamp{font:600 7.5px/1.4 var(--mono);letter-spacing:.1em;color:var(--etch);text-align:center;text-transform:uppercase}
+
+/* the dawn: brightens only from what he gives away; never reaches full */
+#cm .cm-dawn{position:absolute;inset:auto 0 0;height:48%;pointer-events:none;z-index:0;
+  --o:calc(1 - 1 / (1 + var(--cm-g) / 8));opacity:var(--o);
+  background:radial-gradient(120% 62% at 50% 100%,rgba(var(--cm-lamp),.5),rgba(var(--cm-lamp),.12) 46%,transparent 72%)}
+#cm .cm-horizon{position:absolute;left:6%;right:6%;bottom:33%;height:1px;pointer-events:none;z-index:0;
+  --o:calc(1 - 1 / (1 + var(--cm-g) / 8));transform:scaleX(var(--o));
+  background:linear-gradient(90deg,transparent,rgb(var(--cm-given)),transparent);
+  box-shadow:0 0 14px 1px rgba(var(--cm-lamp),.55)}
+
+/* the repeater and the dash lip: the payoff click always within reach */
+#cm .cm-repeater{position:sticky;top:0;z-index:6;height:0;display:flex;justify-content:flex-end;pointer-events:none}
+#cm .cm-repeater button{pointer-events:auto;min-height:40px;margin-top:6px;padding:6px 10px;border-radius:8px;
+  background:rgba(4,7,11,.94);border:1px solid rgba(var(--cm-key),.5);display:flex;gap:8px;align-items:center;
+  opacity:0;translate:0 -8px;transition:opacity .3s var(--cm-arrive),translate .3s var(--cm-arrive)}
+#cm.cm-away .cm-repeater button{opacity:1;translate:0 0}
+#cm:not(.cm-away) .cm-repeater button{visibility:hidden}
+#cm .cm-repeater .cm-odo{font-size:18px;box-shadow:inset 0 0 0 1px rgba(var(--cm-key),.35)}
+#cm .cm-repeater .cm-rday{font:700 9px/1 var(--mono);letter-spacing:.16em;color:rgba(var(--cm-core),.8)}
+#cm .cm-lip{position:sticky;bottom:0;z-index:6;display:none;margin-top:-48px}
+#cm.cm-lipon .cm-lip{display:block}
+#cm .cm-lip button{width:100%;min-height:48px;border-radius:10px 10px 0 0;background:rgba(4,7,11,.96);
+  border:1px solid rgba(var(--cm-lamp),.4);border-bottom:0;font:700 11px/1 var(--mono);letter-spacing:.16em;
+  color:rgb(var(--cm-lamp))}
+
+/* ── the receipts: thermal paper, perforated ──────────────────────────── */
+#cm .cm-receipts{display:flex;flex-direction:column;gap:6px}
+#cm details.cm-term{background:var(--cm-thermal);color:var(--cm-thermal-ink);border-radius:2px;
+  mask:radial-gradient(circle 3px at 6px 0,#0000 98%,#000) 0 0/12px 100% repeat-x;padding-top:3px;
+  interpolate-size:allow-keywords}
+#cm details.cm-term::details-content{block-size:0;overflow:clip;transition:block-size .35s var(--cm-settle),content-visibility .35s allow-discrete}
+#cm details.cm-term[open]::details-content{block-size:auto}
+#cm details.cm-term summary{list-style:none;min-height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;
+  font:700 11px/1 var(--mono);letter-spacing:.12em;cursor:pointer}
+#cm details.cm-term summary::-webkit-details-marker{display:none}
+#cm details.cm-term summary .cm-src{margin-left:auto;font:400 9px/1 var(--mono);letter-spacing:.04em;opacity:.7;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+#cm .cm-rrows{padding:0 12px 10px;font:400 11px/1.55 var(--mono);user-select:text;-webkit-user-select:text}
+#cm .cm-rrow{padding:3px 0;border-top:1px dotted rgba(27,42,63,.25);overflow-wrap:anywhere}
+#cm .cm-rrow i{font-style:normal;opacity:.55}
+#cm .cm-more{min-height:40px;margin-top:6px;padding:0 12px;border:1px solid rgba(27,42,63,.4);border-radius:3px;
+  font:700 10px/1 var(--mono);letter-spacing:.14em;color:var(--cm-thermal-ink)}
+
+/* ── the glass pane, the note, the headlights, the tape ────────────────── */
+#cm .cm-pane{position:relative;border-radius:12px;background:var(--cm-pane);padding:26px 14px 18px;min-height:150px;
+  border:1px solid rgba(var(--cm-engrave),.1);display:flex;flex-direction:column;gap:12px;overflow:hidden}
+#cm .cm-pane::before{content:"";position:absolute;inset:0 0 auto;height:22px;pointer-events:none;
+  background:radial-gradient(circle,rgba(0,0,0,.95) 1.1px,transparent 1.4px) 0 0/5px 5px;
+  mask:linear-gradient(180deg,#000 0 10px,transparent 22px)}
+#cm .cm-clear{font:700 11px/1 var(--mono);letter-spacing:.2em;color:rgba(var(--cm-core),.7)}
+#cm .cm-residue{display:flex;gap:10px;align-items:center;font:700 9px/1 var(--mono);letter-spacing:.14em;color:var(--etch)}
+#cm .cm-residue i{width:48px;height:16px;border-radius:2px;background:rgba(236,226,200,.07);rotate:-7deg}
+#cm .cm-hud{font:700 9px/1.4 var(--mono);letter-spacing:.14em;color:rgba(var(--cm-core),.75)}
+#cm .cm-notewrap{position:relative;padding:14px 6px 8px;perspective:900px}
+#cm .cm-card{position:relative;padding:18px 18px 16px;border-radius:2px;color:var(--cm-ink);
+  font:400 17px/1.5 var(--sans);rotate:-2.4deg;box-shadow:0 26px 40px -18px rgba(0,0,0,.9);
+  background:linear-gradient(105deg,var(--cm-shade) calc(var(--cm-bx) - 90px),transparent calc(var(--cm-bx) - 28px)
+                             calc(var(--cm-bx) + 28px),var(--cm-shade) calc(var(--cm-bx) + 90px)),var(--cm-paper);
+  --cm-shade:rgba(5,9,15,.78);transition:--cm-shade .6s var(--cm-arrive);
+  user-select:text;-webkit-user-select:text}
+#cm .cm-card:is([data-state="reading"],[data-state="stopped"],[data-state="unread"],[data-state="testing"]){--cm-shade:rgba(5,9,15,.78)}
+#cm .cm-card:is([data-state="taped"],[data-state="held"]){--cm-shade:rgba(5,9,15,0);--cm-bx:-200px}
+#cm .cm-card[data-state="taped"]{rotate:-.4deg;box-shadow:0 14px 22px -14px rgba(0,0,0,.85)}
+#cm .cm-card[data-state="held"]{rotate:-.9deg}
+#cm .cm-card[data-state="testing"] .cm-words{opacity:.0}
+#cm .cm-words{white-space:pre-wrap;overflow-wrap:anywhere;text-wrap:pretty;position:relative;z-index:1}
+#cm .cm-testing{position:absolute;inset:0;display:grid;place-items:center;font:700 10px/1 var(--mono);
+  letter-spacing:.16em;color:rgba(234,244,255,.6)}
+#cm ::highlight(cm-hit){color:#fff;background-color:rgba(var(--hot-rgb),.72);
+  text-decoration:underline wavy rgb(var(--hot-rgb)) 1.5px}
+#cm .cm-lock{position:absolute;pointer-events:none;z-index:5;
+  background:
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 0 0/6px 1.5px no-repeat,
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 0 0/1.5px 6px no-repeat,
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 100% 0/6px 1.5px no-repeat,
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 100% 0/1.5px 6px no-repeat,
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 0 100%/6px 1.5px no-repeat,
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 0 100%/1.5px 6px no-repeat,
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 100% 100%/6px 1.5px no-repeat,
+    linear-gradient(rgb(var(--hot-rgb)),rgb(var(--hot-rgb))) 100% 100%/1.5px 6px no-repeat}
+#cm .cm-tape{position:absolute;top:-10px;width:78px;height:24px;z-index:2;opacity:0;pointer-events:none;
+  background:oklch(.93 .035 88 / .78);
+  clip-path:polygon(0 8%,6% 0,14% 10%,22% 2%,30% 9%,40% 1%,52% 8%,62% 0,72% 9%,82% 2%,92% 8%,100% 0,100% 92%,
+                    94% 100%,84% 90%,74% 99%,64% 91%,52% 100%,42% 92%,30% 99%,20% 90%,10% 100%,0 92%)}
+#cm .cm-tape.l{left:8px;rotate:-7deg}
+#cm .cm-tape.r{right:8px;rotate:6deg}
+#cm .cm-card:is([data-state="taped"],[data-state="held"]) .cm-tape{opacity:1}
+@media (prefers-reduced-transparency:reduce){ #cm .cm-tape{background:oklch(.93 .035 88)} }
+#cm .cm-marker{position:absolute;top:-4px;right:18px;z-index:3;rotate:-3deg;
+  font:italic 600 11px/1 var(--sans);color:var(--cm-marker);pointer-events:none}
+#cm .cm-pass{position:absolute;right:10px;bottom:-12px;z-index:3;padding:6px 8px;border-radius:6px;corner-shape:notch;
+  font:700 9px/1.25 var(--mono);letter-spacing:.14em;color:rgb(var(--cm-core));background:rgba(var(--cm-key),.88);
+  box-shadow:0 0 14px -4px rgba(var(--cm-key),.8);rotate:2deg}
+#cm .cm-verdict{font:500 14px/1.5 var(--sans);color:var(--mid)}
+#cm .cm-verdict b{font:700 10px/1 var(--mono);letter-spacing:.16em;color:rgb(var(--cm-core));display:block;margin-bottom:5px}
+#cm .cm-verdict.stopped b{color:var(--mid)}
+#cm .cm-hitlist{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+#cm .cm-hitlist li{font:400 14px/1.45 var(--sans);color:var(--mid)}
+#cm .cm-hitlist q{color:var(--ink);quotes:"\201C" "\201D"}
+#cm .cm-acts{display:flex;gap:8px}
+#cm .cm-acts .cm-btn{flex:1}
+#cm .cm-acts.cm-land{transition:opacity .4s var(--cm-arrive),translate .5s var(--cm-settle)}
+@starting-style{ #cm .cm-acts.cm-land{opacity:0;translate:0 10px} }
+#cm .cm-out{display:flex;flex-direction:column;gap:8px;padding-top:4px;border-top:1px dotted var(--line)}
+#cm .cm-out .cm-q{font:700 11px/1 var(--mono);letter-spacing:.2em;color:rgb(var(--cm-core));padding-top:8px}
+#cm .cm-out .cm-row{display:flex;gap:8px}
+#cm .cm-held{position:relative;overflow:hidden;flex:1;min-height:44px;border-radius:3px;touch-action:none;
+  border:1px solid rgba(var(--cm-given),.55);background:rgba(var(--cm-given),.08);color:rgb(var(--cm-given));
+  font:700 11px/1 var(--mono);letter-spacing:.16em}
+#cm .cm-held .r2{position:absolute;inset:0;background:rgba(var(--cm-given),.3);transform:scaleX(0);transform-origin:left}
+#cm .cm-held .cc{position:relative;z-index:1}
+#cm .cm-link{flex:1;min-width:0;min-height:44px;padding:0 12px;border-radius:3px;border:1px solid var(--line);
+  background:rgba(0,0,0,.4);color:var(--ink);font:400 14px/1.3 var(--sans);user-select:text;-webkit-user-select:text}
+/* when the note turns to face the world its words read reversed on their
+   own (a turned sheet shows its back); this is the dawn lighting it from behind */
+#cm .cm-card .cm-backface{position:absolute;inset:0;border-radius:2px;pointer-events:none;opacity:0;z-index:2;
+  background:linear-gradient(0deg,rgba(var(--cm-lamp),.35),transparent 60%)}
+
+/* ── the dash: his words, the one warm strip in a blue room ────────────── */
+#cm .cm-dash{border-radius:12px;background:linear-gradient(180deg,#0a0e14,#06080c);padding:12px 0 12px;
+  border:1px solid rgba(var(--cm-engrave),.08);display:flex;flex-direction:column;gap:10px}
+#cm .cm-dash .cm-cap{padding:0 14px}
+#cm .cm-spines{display:flex;align-items:flex-end;gap:4px;overflow-x:auto;overflow-y:hidden;padding:18px 40% 4px;
+  scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;min-height:150px;touch-action:pan-x pan-y}
+#cm .cm-spines::-webkit-scrollbar{display:none}
+#cm .cm-spine{flex:0 0 34px;height:calc(70px + var(--h) * 60px);scroll-snap-align:center;container-type:scroll-state;
+  border-radius:2px 2px 0 0;padding:0}
+#cm .cm-spine>span{display:flex;align-items:flex-start;justify-content:center;height:100%;padding:8px 0;
+  writing-mode:vertical-rl;font:700 9px/1 var(--mono);letter-spacing:.14em;color:rgb(var(--cm-lamp));
+  background:linear-gradient(90deg,#2a2418,#3b3222 45%,#2a2418);border-radius:2px 2px 0 0;
+  transition:translate .25s var(--cm-settle),rotate .25s var(--cm-settle),box-shadow .25s}
+#cm .cm-spine.posted>span{box-shadow:inset 0 -10px 0 rgba(var(--cm-given),.85)}
+#cm .cm-spine.sel>span{translate:0 -14px;rotate:-5deg;box-shadow:0 0 16px -4px rgba(var(--cm-lamp),.8)}
+@container scroll-state(snapped: inline){ #cm .cm-spine>span{translate:0 -14px;rotate:-5deg;
+  box-shadow:0 0 16px -4px rgba(var(--cm-lamp),.8)} }
+#cm .cm-peek{padding:0 14px;min-height:42px}
+#cm .cm-peek .cm-p1{font:400 14px/1.45 var(--sans);color:var(--mid)}
+#cm .cm-peek .cm-p2{font:700 9px/1.4 var(--mono);letter-spacing:.14em;color:rgba(var(--cm-core),.7);margin-top:3px}
+#cm .cm-pull{margin:0 14px;min-height:44px;border-radius:3px;border:1px solid rgba(var(--cm-lamp),.55);
+  background:rgba(var(--cm-lamp),.1);color:rgb(var(--cm-lamp));font:700 12px/1 var(--mono);letter-spacing:.2em}
+
+/* ── the lane: .cm-road (the radio owns .lane) ─────────────────────────── */
+#cm .cm-road{border-radius:12px;background:#050608;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+#cm .cm-lanes{display:grid;grid-template-columns:1fr 2px 1fr;gap:0 10px;min-height:90px}
+#cm .cm-lanes .cm-center{background:repeating-linear-gradient(180deg,rgba(var(--cm-key),.5) 0 14px,transparent 0 26px)}
+#cm .cm-lanes h4{font:700 9px/1 var(--mono);letter-spacing:.2em;color:var(--etch);margin-bottom:8px}
+#cm .cm-refl{display:block;padding:8px 10px;margin-bottom:6px;border-radius:3px;border:1px solid rgba(var(--cm-given),.45);
+  background:rgba(var(--cm-given),.06);font:700 9px/1.4 var(--mono);letter-spacing:.1em;color:rgb(var(--cm-given));
+  text-decoration:none;opacity:.8}
+#cm .cm-refl span{display:block;font:400 12px/1.35 var(--sans);letter-spacing:0;color:var(--mid);margin-top:3px}
+@supports (animation-timeline: view()){
+  #cm .cm-refl{animation:cm-glint linear both;animation-timeline:view();animation-range:entry 15% cover 45%} }
+@keyframes cm-glint{50%{opacity:1;box-shadow:0 0 14px 3px rgba(var(--cm-given),.9)}to{opacity:.8}}
+@media (prefers-reduced-motion:reduce){ #cm .cm-refl{animation:none;opacity:.8} }
+#cm .cm-nothing{font:400 13px/1.45 var(--sans);color:var(--dim);font-style:italic}
+
+/* ── coins · mile markers · riders · the door ──────────────────────────── */
+#cm .cm-panel{border-radius:12px;background:rgba(10,14,20,.8);border:1px solid rgba(var(--cm-engrave),.08);
+  padding:12px 15px;display:flex;flex-direction:column;gap:10px;min-width:0}
+#cm .cm-coins{display:flex;flex-wrap:wrap;gap:10px}
+#cm .cm-coin{width:64px;height:64px;border-radius:50%;position:relative;display:grid;place-items:center;padding:8px;
+  background:conic-gradient(#9fb6d6,#e8f0ff,#6d86a8,#cfdcf0,#7a93b5,#9fb6d6);color:#0b1624;
+  font:700 8px/1.15 var(--mono);letter-spacing:.1em;text-align:center}
+#cm .cm-coin::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(#8aa0bf 0 2deg,#5d7394 2deg 4deg);
+  mask:radial-gradient(closest-side,#0000 calc(100% - 4px),#000 calc(100% - 4px))}
+#cm .cm-coin.voice::after,#cm .cm-coin.given::after{content:"";position:absolute;inset:34%;border-radius:50%;
+  background:radial-gradient(circle,rgb(var(--cm-lamp)),rgba(var(--cm-lamp),.4));opacity:.55;z-index:0}
+#cm .cm-coin span{position:relative;z-index:1}
+#cm .cm-coin.cm-strike{transition:scale .5s var(--cm-settle),rotate .5s var(--cm-settle),opacity .3s;
+  transition-delay:calc(sibling-index() * 50ms)}
+@starting-style{ #cm .cm-coin.cm-strike{scale:1.5;rotate:-20deg;opacity:0} }
+#cm .cm-coin.next,#cm .cm-coin.wait{background:none;border:1.5px dashed rgba(var(--cm-engrave),.45);color:var(--dim)}
+#cm .cm-coin.next::before,#cm .cm-coin.wait::before{display:none}
+#cm .cm-coinline{font:400 13px/1.45 var(--sans);color:var(--mid);min-height:1.45em}
+#cm .cm-marks{display:flex;flex-direction:column}
+#cm .cm-mk{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:10px 0;border-bottom:1px dotted var(--line)}
+#cm .cm-mk .cm-post{align-self:start;min-height:40px;min-width:56px;padding:0 8px;border-radius:3px;border:1px solid rgba(var(--cm-key),.5);
+  background:linear-gradient(180deg,rgba(var(--cm-key),.24),rgba(var(--cm-key),.08));
+  font:700 9px/1 var(--mono);letter-spacing:.14em;color:rgb(var(--cm-core))}
+#cm .cm-mk p{font:400 13.5px/1.6 var(--sans);color:var(--ink)}
+#cm .cm-mk .cm-stamp2{grid-column:2;font:700 8.5px/1 var(--mono);letter-spacing:.16em;color:var(--etch)}
+#cm .cm-riders{display:flex;flex-wrap:wrap;gap:8px 14px}
+#cm .cm-rider{display:flex;flex-direction:column;gap:3px;min-width:70px}
+#cm .cm-rider b{font:700 10px/1 var(--mono);letter-spacing:.16em;color:var(--mid);display:flex;align-items:center;gap:6px}
+#cm .cm-rider b i{width:7px;height:7px;border-radius:50%;background:rgb(var(--cm-lamp));box-shadow:0 0 8px rgba(var(--cm-lamp),.8)}
+#cm .cm-rider span{font:400 11px/1.3 var(--mono);color:var(--etch)}
+#cm .cm-door{min-height:120px;border-radius:12px;border:1.5px dashed var(--etch);display:grid;place-items:center;
+  padding:14px;text-align:center;font:700 9px/1.6 var(--mono);letter-spacing:.16em;color:var(--etch)}
+#cm .cm-door span{display:block;font:400 13px/1.45 var(--sans);letter-spacing:0;margin-top:6px}
+
+/* the pull: the spine lifts off the dash and becomes the note (paper: mass) */
+::view-transition-group(cm-win){animation-duration:.55s;animation-timing-function:cubic-bezier(.34,1.3,.64,1)}
+/* the reduced-motion story line: the three chapters as one still line */
+#cm .cm-chapters{display:none;font:600 9px/1.5 var(--mono);letter-spacing:.12em;color:rgba(var(--cm-core),.7);text-align:center}
+@media (prefers-reduced-motion:reduce){ #cm .cm-chapters{display:block} }
+@media (prefers-reduced-transparency:reduce){ #cm .cm-ghost{display:none} }
+
+/* ── the field orb: the only hollow orb, lit as far round the year as he has come ── */
+.orb.ringorb .ball{background:
+    radial-gradient(circle closest-side,rgba(6,8,12,.97) 72%,transparent 73%),
+    repeating-conic-gradient(#0000 0 calc(1turn/52.14 - .6deg),rgba(6,8,12,.9) 0 calc(1turn/52.14)),
+    conic-gradient(rgba(var(--h),.95) var(--yr,0turn),rgba(var(--h),.16) 0);
+  box-shadow:0 0 36px -6px rgba(var(--h),.7)}
+.orb.ringorb .ball::after{display:none}
+.orb.ringorb.fresh .ball{animation:cm-orbbreathe 3.8s ease-in-out infinite}   /* only while unseen truth exists */
+@keyframes cm-orbbreathe{50%{box-shadow:0 0 46px -2px rgba(var(--h),.95)}}
+@media (prefers-reduced-motion:reduce){ .orb.ringorb.fresh .ball{animation:none;box-shadow:0 0 44px -4px rgba(var(--h),.9)} }
+
+/* ── paper: the windshield becomes a cyanotype sheet ───────────────────── */
+:root.paper #cm{--cm-key:29,78,137;--cm-lamp:143,90,0;--cm-given:143,90,0;--cm-text:rgb(29,78,137)}
+:root.paper #cm .cm-shield{--cm-key:243,238,223;--cm-core:243,238,223;--cm-lamp:240,196,120;--cm-given:255,236,196;
+  background:linear-gradient(104deg,transparent 34%,rgba(255,255,255,.06) 41%,transparent 47%),
+             radial-gradient(circle at 50% 38%,#1f4f8c,#163c6e 70%,#0f2d55)}
+:root.paper #cm .cm-odo{text-shadow:none;color:#F3EEDF}
+:root.paper #cm .cm-plate{background:#F3EEDF;--cm-engrave:29,78,137}
+:root.paper #cm .cm-dash,:root.paper #cm .cm-road,:root.paper #cm .cm-panel,:root.paper #cm .cm-pane{
+  background:rgba(247,240,224,.9);border-color:rgba(70,56,32,.24)}
+:root.paper #cm .cm-spine>span{color:#F3EEDF}
+
 @media (prefers-reduced-motion:reduce){*{transition:none !important}}
 
 /* ══ PAPER MODE — the structural grounds ══════════════════════════════
@@ -1904,13 +2349,13 @@ const READ_REST = [
   ["held","/api/push/held"], ["watch","/api/watch"], ["hotshot","/api/hotshot"],
   ["hand","/api/hand"], ["sidech","/api/threads"],
   ["diet","/api/listening?days=1"], ["brief","/api/brief"],
-  ["planner","/api/planner"]
+  ["planner","/api/planner"], ["glass","/api/glass"]
 ];
 const READ_BROUGHT = new WeakSet();
 let LOAD_SEQ = 0;
 /* which secondaries each room (and its orb) draws from — the hotshot room's
    pulse and bulletin carry their own lines, so standing is not listed */
-const ROOM_READ = { radio:["radio","sidech"], learn:["learn"], soul:["soul"], planner:["planner"] };
+const ROOM_READ = { radio:["radio","sidech"], learn:["learn"], soul:["soul"], planner:["planner"], glass:["glass"] };
 const readClock = d => d.toLocaleTimeString("en-US", {hour:"numeric", minute:"2-digit"});
 /* the oldest READ still on screen among these payloads: only one the latest
    read did NOT bring, and only while the payload showing is the one a read
@@ -1999,6 +2444,15 @@ const D = [
   {k:"SOUL",    hue:"120,200,120", fx:73, fy:80, r:72,  room:"soul"},
   {k:"PLANNING",hue:"90,160,255",  fx:34, fy:14, r:76,  room:"planner"}
 ];
+/* THE GLASS (card #360, his words 09-26: "social media is going to be a big
+   part going forward as I build my community"). APPENDED, never inserted —
+   D[2] is hard-wired as RADIO. It takes the empty seat on the left arc, and
+   FORM, not hue, tells it from PLANNING: the only hollow orb on the field. */
+/* SEATED ON THE TOP ARC, mirroring PLANNING across RADIO (34,14 · 50,16 · 66,14).
+   The spec seated it at the empty left-arc seat (27,80), but on a phone the
+   left pocket is walled by the screen edge, the core and the card, and GLASS
+   settled 61px into LEARN at 375x812 — measured, not guessed. */
+D.push({k:"GLASS", hue:"30,144,255", fx:66, fy:14, r:78, room:"glass", ring:true});
 /* THE RADIO SYSTEM (card #93, his framing): the radio grew into a DOMAIN —
    tap its orb and the field falls into the radio's own constellation. Every
    child is a DOOR with one job (the one-verb law holds per surface); the
@@ -2033,13 +2487,16 @@ function sysRadius(){ return Math.max(140, Math.min(250, Math.min(innerWidth, fi
 const field = $("field"), host = $("orbs");
 D.forEach((o,i) => {
   const el = document.createElement("div");
-  el.className = "orb"; el.dataset.i = i;
-  el.innerHTML =
-    `<div class="ball" style="background:radial-gradient(circle at 36% 30%,
+  el.className = "orb" + (o.ring ? " ringorb" : ""); el.dataset.i = i;
+  /* a ring orb takes its paint from .ringorb (its hue rides --h): an inline
+     background here would outrank the class and fill the hollow */
+  el.innerHTML = (o.ring
+    ? `<div class="ball" style="--h:${o.hue}">`
+    : `<div class="ball" style="background:radial-gradient(circle at 36% 30%,
        rgba(${o.hue},.96), rgba(${o.hue},.62) 46%, rgba(${o.hue},.16) 78%, rgba(6,8,12,.98));
        box-shadow:0 0 40px -8px rgba(${o.hue},.6), inset 0 -14px 26px rgba(0,0,0,.55),
-       inset 0 5px 12px rgba(255,255,255,.12)">
-       <div class="fig"><div><span class="n">—</span><span class="u"></span></div></div>
+       inset 0 5px 12px rgba(255,255,255,.12)">`) +
+    `  <div class="fig"><div><span class="n">—</span><span class="u"></span></div></div>
      </div><div class="name">${o.k}</div><div class="sig">&#8230;</div>`;
   el.addEventListener("click", () => enter(i));
   host.appendChild(el);
@@ -2049,7 +2506,13 @@ D.forEach((o,i) => {
    navigation once he is working, not the view. Every pixel here is a pixel of
    ledger. */
 function fieldH(){
-  if(!stage.classList.contains("entered")) return Math.round(innerHeight*0.72);
+  /* the field carries EIGHT orbs since the GLASS (card #360). Above the
+     consider card, 72% of a phone (360-412px) or the unfolded Fold (~750px)
+     left room for two labelled orbs on the left arc, not three — measured,
+     the eighth either buried under the card or sitting on LEARN. The field
+     is the header and the fieldwrap scrolls (card #171), so a screen under
+     800px buys the room in height; THE DAY simply starts a little lower. */
+  if(!stage.classList.contains("entered")) return Math.round(innerHeight*(innerWidth < 800 ? 0.84 : 0.72));
   return innerHeight <= 620 ? 56 : innerHeight <= 820 ? 64 : 72;
 }
 function layout(){
@@ -2098,21 +2561,11 @@ function separate(){
      radio's wide caption was stealing its neighbors' clicks in the rail), so
      the collision law measures it back in: the FOOTPRINT includes the caption
      even though the hit box does not. */
-  const box = D.map(o => { const sg = o.el.querySelector(".sig");
+  const foot = o => { const sg = o.el.querySelector(".sig");
     return { w: Math.max(o.el.offsetWidth, sg ? sg.offsetWidth : 0),
-             h: o.el.offsetHeight + (sg ? sg.offsetHeight + 7 : 0) }; });
+             h: o.el.offsetHeight + (sg ? sg.offsetHeight + 7 : 0) }; };
+  const box = D.map(foot);
   if(box.some(b => !b.w || !b.h)) return;   // not laid out yet; paintField re-runs this
-
-  // If the footprints cannot fit the field, shrink the BALLS until they can.
-  // Labels never shrink — a number you cannot read is the whole defect.
-  const need = box.reduce((a,b) => a + (b.w+GAP)*(b.h+GAP), 0);
-  const room = Math.max(1, W*H) * 0.62;          // packing is never perfect
-  if(need > room){
-    const k = Math.max(0.45, Math.sqrt(room/need));
-    D.forEach(o => { const b = o.el.querySelector(".ball");
-      b.style.width = b.style.height = Math.round(o.r*k) + "px"; });
-    D.forEach((o,i) => { box[i] = { w: o.el.offsetWidth, h: o.el.offsetHeight }; });
-  }
 
   /* ORBS ARE NOT THE ONLY THING ON THE FIELD. The consider card — the one
      thing the spine puts in front of him — is opaque and sits over the same
@@ -2125,43 +2578,113 @@ function separate(){
   for(const sel of [".consider", ".core"]){
     const el = document.querySelector(sel);
     if(!el || el.hidden) continue;
-    const r = el.getBoundingClientRect();
+    /* THE CORE'S WORDS ARE THE OBSTACLE, NOT ITS MOON. The moon is translucent
+       (the clamp below says so: "an orb may cross" it); what an orb must never
+       cover is the spine's own line. Walling off the whole 230px disc left a
+       360px phone two thin gutters for eight orbs, and the GLASS (card #360)
+       settled on LEARN, MONEY on SOUL — measured at 360x780 and 375x812. So
+       the core yields its text block (THE SPINE + the two lines under it),
+       padded a little; the disc around it is shared sky. */
+    let r = el.getBoundingClientRect();
+    if(sel === ".core"){
+      const words = [el.querySelector(".t"), el.querySelector(".s")].filter(Boolean)
+        .map(w => w.getBoundingClientRect()).filter(q => q.width && q.height);
+      if(words.length){
+        const PAD = 8, L = Math.min(...words.map(q => q.left)) - PAD, R = Math.max(...words.map(q => q.right)) + PAD,
+              T = Math.min(...words.map(q => q.top)) - PAD, B = Math.max(...words.map(q => q.bottom)) + PAD;
+        r = { left: L, top: T, width: R - L, height: B - T };
+      }
+    }
     if(!r.width || !r.height) continue;
-    obstacles.push({ x: r.left - fr.left + r.width/2, y: r.top - fr.top + r.height/2,
+    obstacles.push({ sel, x: r.left - fr.left + r.width/2, y: r.top - fr.top + r.height/2,
                      w: r.width, h: r.height });
   }
 
-  const pos = D.map(o => ({ x: parseFloat(o.el.style.left) || 0,
-                            y: parseFloat(o.el.style.top)  || 0 }));
+  // If the footprints cannot fit the field, shrink the BALLS until they can.
+  // Labels never shrink — a number you cannot read is the whole defect.
+  /* the room is the field LESS the opaque consider card: with eight orbs
+     (card #360) the card's share of a phone's field is the difference
+     between a seat and a burial — measured at 360/384/412 */
+  const cons = obstacles.find(o => o.sel === ".consider");
+  const under = cons ? Math.max(0, Math.min(W, cons.x + cons.w/2) - Math.max(0, cons.x - cons.w/2))
+                     * Math.max(0, Math.min(H, cons.y + cons.h/2) - Math.max(0, cons.y - cons.h/2)) : 0;
+  const need = box.reduce((a,b) => a + (b.w+GAP)*(b.h+GAP), 0);
+  const room = Math.max(1, W*H - under) * 0.62;  // packing is never perfect
+  let k = need > room ? Math.max(0.45, Math.sqrt(room/need)) : 1;
+  const kFloor = Math.max(0.45, k * 0.72);
+
+  const seed = D.map(o => ({ x: parseFloat(o.el.style.left) || 0,
+                             y: parseFloat(o.el.style.top)  || 0 }));
+  let pos = seed;
+  /* THE CARD IS A FLOOR. The core is a translucent moon an orb may cross;
+     the consider card is opaque. Pushed between the two, an orb below the
+     core was shoved back under the card every pass and settled buried (the
+     eighth orb, card #360, at 360/384/412) — so the clamp, which runs last,
+     keeps every orb that shares the card's columns above its top edge. */
   const clamp = i => {
     pos[i].x = Math.min(W - box[i].w/2 - EDGE, Math.max(box[i].w/2 + EDGE, pos[i].x));
-    pos[i].y = Math.min(H - box[i].h/2 - EDGE, Math.max(box[i].h/2 + EDGE, pos[i].y));
+    const overCard = cons && Math.abs(pos[i].x - cons.x) < (box[i].w + cons.w)/2;
+    const floor = overCard ? Math.min(H - EDGE, cons.y - cons.h/2 - GAP) : H - EDGE;
+    pos[i].y = Math.min(floor - box[i].h/2, Math.max(box[i].h/2 + EDGE, pos[i].y));
   };
-  for(let pass = 0; pass < 200; pass++){
-    let moved = false;
-    for(let i = 0; i < D.length; i++){
-      for(let j = i+1; j < D.length; j++){
-        const dx = pos[j].x - pos[i].x, dy = pos[j].y - pos[i].y;
-        const mw = (box[i].w + box[j].w)/2 + GAP, mh = (box[i].h + box[j].h)/2 + GAP;
-        const ox = mw - Math.abs(dx), oy = mh - Math.abs(dy);
-        if(ox <= 0 || oy <= 0) continue;          // already clear on one axis
-        moved = true;
-        if(ox < oy){ const s = (dx < 0 ? -1 : 1) * ox/2; pos[i].x -= s; pos[j].x += s; }
-        else       { const s = (dy < 0 ? -1 : 1) * oy/2; pos[i].y -= s; pos[j].y += s; }
-      }
-      // obstacles do not move; the orb yields entirely
-      for(const ob of obstacles){
-        const dx = pos[i].x - ob.x, dy = pos[i].y - ob.y;
-        const mw = (box[i].w + ob.w)/2 + GAP, mh = (box[i].h + ob.h)/2 + GAP;
-        const ox = mw - Math.abs(dx), oy = mh - Math.abs(dy);
-        if(ox <= 0 || oy <= 0) continue;
-        moved = true;
-        if(ox < oy) pos[i].x += (dx < 0 ? -1 : 1) * ox;
-        else        pos[i].y += (dy < 0 ? -1 : 1) * oy;
-      }
+  const clashes = () => { let n = 0; for(let i = 0; i < D.length; i++) for(let j = i+1; j < D.length; j++)
+    if(Math.abs(pos[j].x - pos[i].x) < (box[i].w + box[j].w)/2 && Math.abs(pos[j].y - pos[i].y) < (box[i].h + box[j].h)/2) n++;
+    return n; };
+  let best = null;
+  /* area is only an estimate of fit: a field that still clashes after the
+     push settles tries again from the seats with the balls a size smaller —
+     a few rounds, and never below 72% of this round's start, because an orb
+     too small to read as an orb is its own kind of unreadable */
+  for(let round = 0; round < 5; round++){
+    if(k < 1 || round){
+      D.forEach(o => { const b = o.el.querySelector(".ball");
+        b.style.width = b.style.height = Math.round(o.r*k) + "px"; });
+      /* re-measure the FOOTPRINT, caption included. This line used to take
+         the bare element box, so the first field crowded enough to shrink
+         (the 8th orb, card #360) settled with every caption left out of the
+         collision law — labels ran into neighbors and off the edge */
+      D.forEach((o,i) => { box[i] = foot(o); });
     }
-    for(let i = 0; i < D.length; i++) clamp(i);
-    if(!moved) break;
+    pos = seed.map(p => ({ x: p.x, y: p.y }));
+    for(let pass = 0; pass < 200; pass++){
+      let moved = false;
+      for(let i = 0; i < D.length; i++){
+        for(let j = i+1; j < D.length; j++){
+          const dx = pos[j].x - pos[i].x, dy = pos[j].y - pos[i].y;
+          const mw = (box[i].w + box[j].w)/2 + GAP, mh = (box[i].h + box[j].h)/2 + GAP;
+          const ox = mw - Math.abs(dx), oy = mh - Math.abs(dy);
+          if(ox <= 0 || oy <= 0) continue;          // already clear on one axis
+          moved = true;
+          if(ox < oy){ const s = (dx < 0 ? -1 : 1) * ox/2; pos[i].x -= s; pos[j].x += s; }
+          else       { const s = (dy < 0 ? -1 : 1) * oy/2; pos[i].y -= s; pos[j].y += s; }
+        }
+        // obstacles do not move; the orb yields entirely
+        for(const ob of obstacles){
+          const dx = pos[i].x - ob.x, dy = pos[i].y - ob.y;
+          const mw = (box[i].w + ob.w)/2 + GAP, mh = (box[i].h + ob.h)/2 + GAP;
+          const ox = mw - Math.abs(dx), oy = mh - Math.abs(dy);
+          if(ox <= 0 || oy <= 0) continue;
+          moved = true;
+          /* the card spans the field's foot: a sideways shove only ran an
+             orb off the edge for the clamp to put back under it — an orb
+             yields to the card by rising, always */
+          if(ox < oy && ob.sel !== ".consider") pos[i].x += (dx < 0 ? -1 : 1) * ox;
+          else pos[i].y += (dy < 0 ? -1 : 1) * oy;
+        }
+      }
+      for(let i = 0; i < D.length; i++) clamp(i);
+      if(!moved) break;
+    }
+    const n = clashes();
+    if(!best || n < best.n) best = { n, k, pos: pos.map(p => ({ x: p.x, y: p.y })) };
+    if(!n || k <= kFloor) break;
+    k = Math.max(kFloor, k * 0.9);
+  }
+  /* no smaller than it had to be: the round with the fewest clashes stands */
+  if(best && best.k !== k){
+    pos = best.pos;
+    D.forEach(o => { const b = o.el.querySelector(".ball");
+      b.style.width = b.style.height = Math.round(o.r*best.k) + "px"; });
   }
   D.forEach((o,i) => { o.el.style.left = pos[i].x + "px"; o.el.style.top = pos[i].y + "px"; });
 }
@@ -2282,7 +2805,28 @@ function paintField(){
         all7 ? `⭐ ALL SEVEN WORKED${t.workout ? " · WORKOUT" : ""}`
              : `PRACTICE <b>${t.morning}</b>/3 · ${t.daily}/4${t.workout ? " · WORKOUT" : ""}`];
     })(),
+    (()=>{ /* THE GLASS (card #360): the build total, served; —— when a term
+              could not be read, because a smaller number is never the score */
+      const g = State.glass;
+      if(!g) return ["—","BUILD","spine unavailable"];
+      const tot = g.score ? g.score.total : null;
+      /* under 400px the caption drops the day — the ring already shows how
+         far round the year he has come, and eight captions share a phone */
+      return [tot == null ? "——" : String(tot), "BUILD",
+        (innerWidth < 400 ? "" : `DAY <b>${g.day}</b> · `)
+        + `${g.ready == null ? "—" : `<b>${g.ready}</b>`} ON THE DASH`];
+    })(),
   ];
+  /* the ring orb is lit exactly as far round the year as he has come, and it
+     breathes only while there is truth he has not seen: served points today,
+     and a last look (his device's high-water mark) that is not today's */
+  (() => { const o = D.find(x => x.ring), g = State.glass; if(!o || !o.el) return;
+    const b = o.el.querySelector(".ball");
+    if(g) b.style.setProperty("--yr", ((g.day % 365) / 365) + "turn");
+    const seen = cmStore.get("seen");
+    o.el.classList.toggle("fresh", !!(g && g.today && g.today.points > 0
+      && (!seen || seen.date !== String(g.as_of || "").slice(0, 10))));
+  })();
   /* the RADIO orb is the parent star now — its signal is the ROLLUP of the
      whole system: the channel's unread + the side channel's unheard */
   (() => { const sc = State.sidech, r = State.radio;
@@ -2295,7 +2839,10 @@ function paintField(){
     if(r == null || sc == null) return;
     const tot = (r ? r.unread : 0) + (un ?? 0);
     sig[2] = [String(tot), "TO HEAR",
-      `<b>${r ? r.unread : "—"}</b> CH 19 · <b>${un ?? "—"}</b> CH 21 · THE RADIO SYSTEM`];
+      `<b>${r ? r.unread : "—"}</b> CH 19 · <b>${un ?? "—"}</b> CH 21`
+      /* the field's widest caption: on a phone its tail ran behind the GLASS
+         ring (card #360, measured at 375x812) — the counts stay, the name goes */
+      + (innerWidth < 400 ? "" : " · THE RADIO SYSTEM")];
   })();
   D.forEach((o,i) => {
     o.el.querySelector(".fig .n").textContent = sig[i][0];
@@ -3344,6 +3891,7 @@ function enter(i, direct){
   if(SYS) closeSys(true);
   ACTIVE = i;
   if(D[i].room === "learn") LR.entryPending = true;   // the landing keys off ENTRY, never render
+  if(D[i].room === "glass") CM.entryPending = true;   // so does the drive (card #360)
   document.documentElement.style.setProperty("--key", D[i].hue);
   D.forEach(x => x.el.classList.remove("active"));
   D[i].el.classList.add("active");
@@ -3352,6 +3900,7 @@ function enter(i, direct){
   layout(); renderRoom();
 }
 $("home").addEventListener("click", () => {
+  cmTeardown();   // the glass's animations, timers, listeners and fetches die with the room (#360)
   if(SYS) closeSys(true);
   stage.classList.remove("entered");
   $("home").hidden = true;
@@ -3774,6 +4323,14 @@ $("hand").addEventListener("keydown", e => {   /* the handle answers the keyboar
    the end of load()). Refetch FIRST: the drawer a push opens must show the
    docket the push was about, not the morning's (review of #84). */
 addEventListener("hashchange", async () => {
+  if(location.hash === "#glass"){
+    /* the glass by its ROOM, never its position — D is appended to, and an
+       index that drifts would open the wrong door (card #360) */
+    history.replaceState(null, "", location.pathname + location.search);
+    const gi = D.findIndex(o => o.room === "glass");
+    if(gi >= 0) enter(gi);
+    return;
+  }
   if(location.hash === "#hand"){
     history.replaceState(null, "", location.pathname + location.search);
     try{ State.hand = await grab("/api/hand"); paintField(); }catch(_){}
@@ -8061,6 +8618,1092 @@ function soulRoom(){
     <div class="scroll">${html}</div></div>`;
 }
 
+/* ═══ THE GLASS — FIRST LIGHT (card #360; spec GLASS-BUILD-SPEC.md) ═══════
+   His words 2026-09-26: "social media is going to be a big part going
+   forward as I build my community." A night drive to first light on his own
+   windshield: the real days cross the glass as dash-blue receipts that roll
+   an odometer that can only climb; his words come up warm like dawn; the sky
+   brightens only from what he gives away; nothing is taped to the glass until
+   it passes his window test.
+   THE THREE LAWS, the acceptance test for every pixel below:
+     it reads and never performs — every figure is SERVED by glass.py; this
+       page formats and draws, it never adds a number up;
+     it only climbs — no number is ever rolled backward, and a blank is a
+       blank (—), never a smaller total;
+     nothing leaves the glass untested — COPY closes over the exact bytes
+       the spine tested, and the page never posts: he pastes, he posts.
+   MOTION IS A RECEIPT OF A REAL EVENT: entry, his thumb, a pull, a verdict,
+   a post (the 200), the book changing while he was away. Nothing loops.
+   glassRoom() renders every state AT REST from CM; animations key off
+   events, never off a render, because resize and load() re-render under him.
+   ONE OWNER, CM: every listener and fetch takes CM.ac's signal, every
+   animation sits in CM.anims, every timeout in CM.timers — cmTeardown()
+   ends all of it (renderRoom, the field button, pagehide, and a partial pass
+   when the page is hidden). No AudioContext lives in this room. */
+const CM = { anims:[], raf:0, rafDial:0, rafTilt:0, timers:new Set(), ac:null, ro:null, io:null, vt:null,
+             entryPending:false, room:null, G:null, tested:null, onGlass:null, reading:false, skipping:false,
+             phase:"rest", inflight:null, testing:null, err:"", readDay:null, pulled:null, driving:null,
+             chipsLanded:false, rc:{}, open:new Set(), coin:null, say:"", postSay:"", link:"",
+             paying:false, payState:null, payLand:null, fetchedAt:0, turned:false, sel:null, strike:[] };
+const cmRM   = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const cmRT   = () => matchMedia("(prefers-reduced-transparency: reduce)").matches;
+const cmLite = () => (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+const cmBuzz = p => { if(!cmRM()) try{ navigator.vibrate?.(p); }catch(_){} };   // the house gate
+/* per-viewer conveniences only (his last look, the note on the glass) — the
+   page renders correctly without them, so every touch is wrapped */
+const cmStore = {
+  get(k){ try{ return JSON.parse(localStorage.getItem("glass." + k) || "null"); }catch(_){ return null; } },
+  set(k, v){ try{ localStorage.setItem("glass." + k, JSON.stringify(v)); }catch(_){} },
+  del(k){ try{ localStorage.removeItem("glass." + k); }catch(_){} }
+};
+const CM_SETTLE = (() => { try{ return CSS.supports("transition-timing-function", "linear(0,1)")
+  ? "linear(0,.008 1.1%,.078 3.9%,.323 9.9%,.642 17%,.877 24.3%,1.021 32%,1.062 38.9%,1.049 46.4%,1.008 59%,.996 69.8%,1 100%)"
+  : "cubic-bezier(.34,1.3,.64,1)"; }catch(_){ return "cubic-bezier(.34,1.3,.64,1)"; } })();
+const CM_ARRIVE = "cubic-bezier(.16,1,.3,1)";
+const cmG = () => CM.G || State.glass;
+const cmToday = G => String((G && G.as_of) || "").slice(0, 10);   // the SPINE's date, never the device's
+const cmA = (el, kf, o) => { if(!el || !el.animate) return null;
+  try{ const a = el.animate(kf, o); CM.anims.push(a); return a; }catch(_){ return null; } };
+const cmT = (fn, ms) => { const t = setTimeout(() => { CM.timers.delete(t); fn(); }, ms); CM.timers.add(t); return t; };
+const CM_MON = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+/* printing a served date, never computing one */
+function cmDate(iso){ const s = String(iso || ""), m = +s.slice(5, 7), d = +s.slice(8, 10);
+  return m && d ? CM_MON[m - 1] + " " + d : "—"; }
+function cmLongDate(iso){ const t = new Date(String(iso || "").slice(0, 10) + "T12:00");
+  return isNaN(t) ? "" : t.toLocaleDateString("en-US", {month:"long", day:"numeric"}); }
+function cmClock(iso){ const t = new Date(iso);
+  return isNaN(t) ? "" : t.toLocaleTimeString("en-US", {hour:"2-digit", minute:"2-digit", hour12:false}); }
+function cmWeekday(iso){ const t = new Date(String(iso || "").slice(0, 10) + "T12:00");
+  return isNaN(t) ? "" : t.toLocaleDateString("en-US", {weekday:"short"}).toUpperCase(); }
+function cmHeard(at, asOf){ return (String(at).slice(0, 10) === String(asOf).slice(0, 10) ? "" : cmDate(at) + " · ") + cmClock(at); }
+/* his mark, not theirs: the Sentinel silhouette from docs/brand/almanac-mark.svg, inlined */
+const CM_MARK = `<svg viewBox="120 120 310 310"><path fill="currentColor" d="M221.98 149.3 L402.02 136.7 Q412 136 412 146 L412 368 Q412 378 402.18 379.87 L221.82 414.13 Q212 416 212 406 L212 160 Q212 150 221.98 149.3 Z"/><path fill="currentColor" opacity=".6" d="M212 158 Q176 133 141 134 Q132 251 141 369 Q177 405 212 407 Z"/><path fill="#000" opacity=".5" transform="translate(312 272)" d="M-66 0 C-52 -32 -26 -46 0 -46 C26 -46 52 -32 66 0 C52 31 26 44 0 44 C-26 44 -52 31 -66 0 Z"/></svg>`;
+const CM_LOCK = `<svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true"><rect x=".5" y="4.5" width="8" height="6" rx="1" fill="none" stroke="currentColor"/><path d="M2 4.5V3a2.5 2.5 0 0 1 5 0v1.5" fill="none" stroke="currentColor"/></svg>`;
+
+function cmTeardown(){
+  /* a drive cut short still happened: the truth is already on the glass, so
+     the high-water mark and the chips are written as if it had landed */
+  if(CM.driving){ const G = CM.driving; CM.driving = null; cmLandQuiet(G); }
+  if(CM.paying && CM.payState) CM.payState();          // a post that landed is kept, animation or not
+  CM.anims.forEach(a => { try{ a.cancel(); }catch(_){} }); CM.anims = [];
+  [CM.raf, CM.rafDial, CM.rafTilt].forEach(id => { if(id) cancelAnimationFrame(id); });
+  CM.raf = CM.rafDial = CM.rafTilt = 0;
+  CM.timers.forEach(clearTimeout); CM.timers.clear();
+  try{ CM.vt && CM.vt.skipTransition(); }catch(_){} CM.vt = null;
+  try{ navigator.vibrate?.(0); }catch(_){}           // a vibration pattern is a timer too
+  if(CM.ac){ CM.ac.abort(); CM.ac = null; }
+  if(CM.ro){ CM.ro.disconnect(); CM.ro = null; }
+  if(CM.io){ CM.io.disconnect(); CM.io = null; }
+  CM.inflight = null; CM.testing = null;              // their fetches just died with the signal
+  try{ CSS.highlights?.delete("cm-hit"); }catch(_){}
+  CM.reading = CM.skipping = false; CM.readDay = null;
+  if(CM.pulled && CM.pulled.phase === "beam") CM.pulled.phase = "landed";   // a cut beam rests on its verdict
+}
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){
+    /* the truth is already the base value; finishing only skips to it */
+    CM.anims.forEach(a => { try{ a.finish(); }catch(_){} });
+    if(CM.raf){ cancelAnimationFrame(CM.raf); CM.raf = 0; }
+    try{ navigator.vibrate?.(0); }catch(_){}
+  } else if(ACTIVE !== null && D[ACTIVE].room === "glass") cmOnReturn();
+});
+addEventListener("pagehide", cmTeardown);
+
+/* ── the drums: one number drives every wheel (CSS mod/round/pow carry) ── */
+function cmDrums(total, pre){
+  if(pre) return Array.from({length:5}, () => `<span class="cm-dr"><span class="cm-strip"></span></span>`).join("");
+  if(total == null) return `<span class="cm-none">— — — — —</span>`;   // partial: a blank, never a smaller number
+  const s = String(Math.round(total)), n = Math.max(5, s.length); let h = "";
+  for(let p = n - 1; p >= 0; p--) h += `<span class="cm-dr${p ? "" : " cm-u"}" style="--p:${p}"><span class="cm-strip">`
+    + "01234567890".split("").map(c => `<b>${c}</b>`).join("") + `</span></span>`;   // 11 cells: 9 rolls into 0
+  return h + `<span class="cm-flat">${esc(s)}</span>`;   // no separator — a real odometer has none
+}
+function cmOdo(G, pre){
+  const t = G && G.score ? G.score.total : null;
+  const n = t == null ? 5 : Math.max(5, String(Math.round(t)).length);
+  return `<span class="cm-odo${pre ? " blank" : ""}" data-n="${n}" aria-hidden="true">${cmDrums(t, pre)}</span>`;
+}
+function cmRestLines(G){
+  if(!G) return ["THE GLASS IS DARK", "THE BOOK DID NOT ANSWER"];
+  if(G.score.total == null){
+    const u = G.unavailable || {};
+    const which = u.git ? "GIT" : String(Object.keys(u).find(k => k !== "window_test") || "A SOURCE").toUpperCase();
+    return [`PARTIAL · ${which} UNREADABLE`, `DAY ${G.day} · NO SMALLER NUMBER IS THE SCORE`];
+  }
+  return [`DAY ${G.day} · AS OF ${cmClock(G.as_of)}`, "EVERY NUMBER FROM THE BOOK · TAP THE RING"];
+}
+function cmChipsHTML(G, land){
+  /* each only when it is more than nothing — there is never a +0 */
+  const c = "cm-chip" + (land ? " cm-land" : ""), out = [];
+  if(G.since && G.since.points > 0) out.push(`<span class="${c}">+${G.since.points} SINCE ${cmWeekday(G.since.at)}</span>`);
+  if(G.today && G.today.points > 0) out.push(`<span class="${c}">+${G.today.points} TODAY</span>`);
+  return out.join("");
+}
+
+/* ── the data plate: the honest answer to "10,000+" ──────────────────── */
+function cmPlateHTML(G){
+  const S = G.score, terms = S.terms || [];
+  const cmt = terms.find(t => t.key === "commits");
+  const repos = cmt ? String(cmt.source).split(" · ")[0].toUpperCase() : "THE REPOS";
+  const ruled = S.ruled_at ? "RULED " + cmDate(S.ruled_at) : "NOT YET RULED";
+  const rim = `BUILD ODOMETER · 1 RECEIPT = 1 POINT · READS ALMANAC.DB + ${repos} · FORMULA ${String(S.formula).toUpperCase()} · ${ruled} · ONLY CLIMBS · NOTHING HERE CAN BE LOST TO A MISSED DAY ·`;
+  /* the composition ring is DRAWN from the served shares (geometry, not
+     arithmetic): mostly blue with a thin warm arc — where the light can grow */
+  let a = 0, bi = 0; const stops = [];
+  for(const t of terms){
+    if(!t.share) continue;
+    const span = t.share * 360, e = a + Math.max(.1, span - 1.5);
+    const col = t.kind === "build" ? `oklch(${(.9 - bi++ * .09).toFixed(2)} .17 252)`
+      : t.kind === "voice" ? "rgb(var(--cm-lamp))" : "rgb(var(--cm-given))";
+    stops.push(`${col} ${a.toFixed(2)}deg ${e.toFixed(2)}deg`, `transparent ${e.toFixed(2)}deg ${(a + span).toFixed(2)}deg`);
+    a += span;
+  }
+  const rows = terms.map(t => `<button class="cm-trow ${esc(t.kind)}" data-term="${esc(t.key)}"
+      aria-label="${esc(t.label)} ${t.count ?? "unreadable"} times ${t.weight} equals ${t.points ?? "unreadable"}, from ${esc(t.source)} — open its receipts">
+      <b>${esc(t.label)} ${t.count == null ? "—" : t.count}</b><b>× ${t.weight} = ${t.points == null ? "—" : t.points}</b>
+      <i>${esc(t.source)}${t.undated ? ` · ${t.undated} undated` : ""}</i></button>`).join("");
+  return `<span class="cm-plate">
+    <svg class="cm-rim" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="cmRimPath"
+      d="M100,100 m-93,0 a93,93 0 1,1 186,0 a93,93 0 1,1 -186,0"/></defs>
+      <text textLength="584" lengthAdjust="spacing"><textPath href="#cmRimPath">${esc(rim)}</textPath></text></svg>
+    ${stops.length ? `<span class="cm-comp" aria-hidden="true" style="background:conic-gradient(${stops.join(",")})"></span>` : ""}
+    <span class="cm-pcen">
+      <button class="cm-ptitle" id="cmPlateH">THE PLATE · TURN BACK</button>
+      <span class="cm-terms2">${rows}</span>
+      <span class="cm-stamp"><span class="cm-long">a session and the commits it made both count — said out loud<br></span>FORMULA ${esc(String(S.formula).toUpperCase())} · ${ruled} · AS OF ${esc(cmClock(G.as_of))} · CALIBRATED BY THE BOOK</span>
+    </span></span>`;
+}
+
+/* a post's title is book words like any other: the spine sends null (held)
+   when it fails the gate, and the glass says so instead of printing it */
+const cmPostTitle = p => p && p.title != null ? esc(p.title) : "<i>words held back from the glass</i>";
+
+/* ── the windshield ───────────────────────────────────────────────────── */
+function cmShieldHTML(G, pre){
+  const S = G && G.score, f = G && G.floor, lp = G && (G.lane || [])[0];
+  /* the floor decal has no memory: this week only, never red, never a streak */
+  const decal = !G ? `<div class="cm-decal open"><b>THIS WEEK</b></div>`
+    : !f ? `<div class="cm-decal open"><b>THIS WEEK</b><span class="cm-sans">the lane could not be read</span></div>`
+    : f.week_done && f.week_post
+      ? `<div class="cm-decal met" id="cmDecal"><b>THIS WEEK · ON THE LANE</b>${esc(String(f.week_post.surface).toUpperCase())} · ${cmWeekday(f.week_post.at)}</div>`
+      : `<div class="cm-decal open" id="cmDecal"><b>THIS WEEK · OPEN</b>ANY WIN WILL DO${f.days_since != null
+          ? `<span class="cm-sans">last post ${f.days_since} day${f.days_since === 1 ? "" : "s"} ago</span>` : ""}</div>`;
+  const mirror = lp
+    ? `<button class="cm-mirror" id="cmMirror" aria-label="the last post — tap for the lane"><span class="cm-mcap">${esc(String(lp.surface).toUpperCase())} · ${cmDate(lp.at)}</span><span class="cm-mline">${cmPostTitle(lp)}</span></button>`
+    : `<div class="cm-mirror"><span class="cm-mcap">THE MIRROR</span><span class="cm-mline">nothing behind you yet</span></div>`;
+  const lines = pre ? ["READING THE BOOK", ""] : cmRestLines(G);
+  const ghost = G && !pre && !cmLite() && !cmRT() && (G.log || []).length
+    ? `<div class="cm-ghost" aria-hidden="true"><div id="cmGhost">${G.log.map(l => `<div>${esc(l.subject)}</div>`).join("")}</div></div>` : "";
+  const day = G ? G.day : 0, live = G && !pre;
+  const fv = live && G.chapters.find(c => c.kind === "first_voice");
+  const seal = S && !pre ? `<span class="cm-seal${S.ruled_at ? " ruled" : ""}">${S.ruled_at
+      ? `SEALED · FORMULA ${esc(String(S.formula).toUpperCase())}`
+      : `FORMULA ${esc(String(S.formula).toUpperCase())} · NOT YET RULED`}</span>` : "";
+  /* reduced motion reads the three chapters as one still line */
+  const story = live ? G.milestones.filter(m => m.d === 0).map(m => `DAY 0 ${m.label}`)
+      .concat(G.chapters.filter(c => c.kind !== "first_receipt").map(c => `DAY ${c.d} ${c.label}`)).join(" · ") : "";
+  return `<section class="cm-shield${pre ? " pre" : ""}${CM.reading ? " reading" : ""}" id="cmShield" aria-label="the build odometer">
+    <div class="cm-top">${decal}${mirror}</div>
+    <div class="cm-chips" id="cmChips">${live && CM.chipsLanded ? cmChipsHTML(G, false) : ""}</div>
+    <div class="cm-herowrap"><div class="cm-hero" id="cmHero">
+      ${ghost}
+      <canvas class="cm-dial" id="cmDial" aria-hidden="true"></canvas>
+      <span class="cm-frame" aria-hidden="true"></span>
+      <span class="cm-year" aria-hidden="true"></span>
+      ${G ? G.months.map(m => `<b class="cm-mo" aria-hidden="true" style="--d:${m.d % 365}">${esc(m.label)}</b>`).join("") : ""}
+      ${live ? G.milestones.map(m => `<span class="cm-msarm" aria-hidden="true" style="--d:${m.d % 365}"><i class="cm-ms" data-d="${m.d}"></i></span>`).join("") : ""}
+      ${fv ? `<span class="cm-msarm" aria-hidden="true" style="--d:${fv.d % 365}"><i class="cm-flare" data-d="${fv.d}"></i></span>` : ""}
+      <span class="cm-arm" aria-hidden="true"><i class="cm-head"></i></span>
+      <span class="cm-arm cm-ghostarm" aria-hidden="true"><i class="cm-ghosthead"></i></span>
+      <div class="cm-bezel" id="cmBezel" role="slider" tabindex="0" aria-label="read any day — hold the ring; the odometer does not go back"
+           aria-valuemin="0" aria-valuemax="${day}" aria-valuenow="${day}"></div>
+      <div class="cm-badge" id="cmBadge">
+        <span class="cm-flip${CM.turned && live ? " turned" : ""}" id="cmFlip">
+          <span class="cm-face cm-front"${CM.turned && live ? " inert" : ""}>
+            <button class="cm-turn" id="cmTurn" aria-pressed="${CM.turned && live ? "true" : "false"}" aria-describedby="cmScoreSr"${live ? "" : " disabled"}>
+              <span class="cm-mark" aria-hidden="true">${CM_MARK}</span>
+              ${cmOdo(G, !live)}
+              <span class="cm-dayline" id="cmDay" aria-hidden="true"></span>
+              <span class="cm-msg" id="cmMsg" aria-hidden="true"><i class="cm-rest">${esc(lines[0])}</i><i class="cm-rest">${esc(lines[1])}</i></span>
+              <span class="cm-sr">turn it over for the data plate</span>
+            </button>
+          </span>
+          <span class="cm-face cm-back"${CM.turned && live ? "" : " inert"}>${live ? cmPlateHTML(G) : ""}</span>
+        </span>
+      </div>
+      <p class="cm-sr" id="cmScoreSr" aria-live="polite"></p>
+    </div></div>
+    <div class="cm-below">${seal}<button class="cm-now" id="cmNow"${CM.reading ? "" : " hidden"}>NOW</button></div>
+    ${story ? `<div class="cm-chapters">${esc(story)}</div>` : ""}
+    <div class="cm-dawn" aria-hidden="true"></div><div class="cm-horizon" aria-hidden="true"></div>
+  </section>`;
+}
+
+/* ── the receipts: every point within two taps of its thermal slip ───── */
+function cmRowsHTML(key){
+  const rc = CM.rc[key];
+  if(!rc) return `<div class="cm-rrow"><i>reading the receipts…</i></div>`;
+  const rows = (rc.rows || []).map(r => `<div class="cm-rrow">${esc(r.ref)} · ${esc(String(r.at).slice(5, 10))}`
+    + (r.repo ? ` · ${esc(r.repo)}` : "")
+    + ` · ${r.withheld ? "<i>words held back from the glass</i>" : esc(r.text || "")}</div>`).join("");
+  return (rows || (rc.err ? "" : `<div class="cm-rrow"><i>no receipts in this term yet</i></div>`))
+    + (rc.err ? `<div class="cm-rrow">${esc(rc.err)}</div>` : "")
+    + (rc.more ? `<button class="cm-more" data-more="${esc(key)}">40 MORE</button>` : "");
+}
+function cmReceiptsHTML(G){
+  return `<div class="cm-receipts" id="cmReceipts" aria-label="the receipts">` + (G.score.terms || []).map(t =>
+    `<details class="cm-term" data-term="${esc(t.key)}" id="cmT-${esc(t.key)}"${CM.open.has(t.key) ? " open" : ""}>
+      <summary>${esc(t.label)} ${t.count == null ? "—" : t.count}<span class="cm-src">${esc(t.source)}</span></summary>
+      <div class="cm-rrows">${cmRowsHTML(t.key)}</div></details>`).join("") + `</div>`;
+}
+
+/* ── the glass pane: the note, the headlights, the tape ──────────────── */
+function cmFits(w){
+  return w.fits.x ? "FITS X AND LINKEDIN" : w.fits.linkedin ? "FITS LINKEDIN · X NEEDS PREMIUM" : "LONGER THAN LINKEDIN TAKES";
+}
+function cmPaneHTML(G){
+  const P = CM.pulled, T = CM.tested, lp = G && (G.lane || [])[0];
+  if(!P){
+    return `<section class="cm-pane" id="cmPane" aria-label="the glass">
+      <div class="cm-clear">THE GLASS IS CLEAR</div>
+      <div class="cm-sans">pull one off the dash</div>
+      ${lp ? `<div class="cm-residue"><i></i>LAST TAPED ${cmDate(lp.at)}<i></i></div>` : ""}
+    </section>`;
+  }
+  const w = G && (G.shelf || []).find(s => s.id === P.id);
+  const state = !T ? "testing" : P.phase === "beam" ? "reading" : T.verdict;
+  const rest = state !== "testing" && state !== "reading";
+  const hud = w ? `WIN ${w.id} · ${cmDate(w.at)} · ${w.len} CHARS · ${cmFits(w)}` : `WIN ${P.id}`;
+  let verdict = "", acts = "", out = "";
+  if(rest && state === "taped"){
+    /* THE TWO LANES (his rulings 09-26): LinkedIn stays strictly professional;
+       X carries the whole story. The spine says when a taped draft is X-only. */
+    const xOnly = !!(T.lanes && T.lanes.linkedin === "held");
+    verdict = `<div class="cm-verdict"><b>TAPED${xOnly ? " · X ONLY" : ""}</b>It passed the window test. COPY takes exactly these words — you post it.`
+      + (xOnly ? `<br><span class="cm-sans">${esc(T.lanes.linkedin_why || "LinkedIn stays strictly professional — this one belongs on X")}</span>` : "")
+      + `</div>`;
+    acts = `<div class="cm-acts${P.fresh ? " cm-land" : ""}"><button class="cm-btn" id="cmCopy">COPY</button>`
+      + (navigator.share ? `<button class="cm-btn" id="cmShare">SHARE</button>` : "") + `</div>`
+      + `<div class="cm-say" id="cmSay" role="status">${esc(CM.say)}</div>`;
+    if(CM.onGlass && CM.onGlass.id === P.id) out = `<div class="cm-out" id="cmOut">
+        <div class="cm-q">DID IT GO OUT?</div>
+        <div class="cm-row"><input class="cm-link" id="cmLink" inputmode="url" autocomplete="off"
+          placeholder="the permalink — or leave it empty" aria-label="the permalink" value="${esc(CM.link)}">
+          <button class="cm-btn" id="cmPaste">PASTE LINK</button></div>
+        <div class="cm-row">
+          <button class="cm-held" data-surface="linkedin"><span class="r2"></span><span class="cc">HOLD · LINKEDIN</span></button>
+          <button class="cm-held" data-surface="x"><span class="r2"></span><span class="cc">HOLD · X</span></button></div>
+        <div class="cm-say" id="cmPostSay" role="status">${esc(CM.postSay)}</div></div>`;
+  } else if(rest && state === "held"){
+    verdict = `<div class="cm-verdict"><b>HELD · TAPE IT ${esc(cmDate(T.hold_until))}</b>truck facts ride 14 days behind — your rule, 07-17.</div>`;
+  } else if(rest && state === "stopped"){
+    verdict = `<div class="cm-verdict stopped"><b>STOPPED</b><ul class="cm-hitlist">${(T.hits || []).map(h =>
+      `<li><q>${esc(h.token)}</q> — ${esc(h.why)}.</li>`).join("")}</ul>It stays on the dash. Edit it in the book, then test it again.</div>`;
+  } else if(rest){
+    verdict = `<div class="cm-verdict"><b>UNREAD</b>Not tested — the spine didn't answer. Nothing leaves the glass untested.`
+      + (T.why ? `<br><span class="cm-sans">${esc(T.why)}</span>` : "") + `</div>`;
+  }
+  return `<section class="cm-pane" id="cmPane" aria-label="the glass">
+    <div class="cm-hud">${esc(hud)}</div>
+    <div class="cm-notewrap"><div class="cm-card" id="cmCard" data-state="${state}">
+      ${state === "testing" ? `<span class="cm-testing">THE WINDOW TEST IS READING IT</span>` : ""}
+      <span class="cm-tape l" aria-hidden="true"></span><span class="cm-tape r" aria-hidden="true"></span>
+      ${rest && state === "held" ? `<span class="cm-marker">TAPE IT ${esc(cmDate(T.hold_until))}</span>` : ""}
+      <div class="cm-words" id="cmWords"></div>
+      ${rest && state === "taped" ? `<span class="cm-pass">WINDOW TEST · PASSED · ${esc(cmClock(T.tested_at))} · POLICY ${esc(T.policy_rev || "")}</span>` : ""}
+      <span class="cm-backface" aria-hidden="true"></span>
+    </div></div>
+    ${verdict}${acts}${out}
+    <button class="cm-btn" id="cmPutBack" style="align-self:flex-start">PUT IT BACK ON THE DASH</button>
+  </section>`;
+}
+
+/* ── the dash: every win a spine, newest at the right ────────────────── */
+function cmPeekHTML(G){
+  const sel = CM.sel != null && (G.shelf || []).find(s => s.id === CM.sel);
+  if(!sel) return `<div class="cm-p1">scroll the dash — tap a spine to pull it, or let PULL ONE pick</div>`;
+  return `<div class="cm-p1">${esc(sel.first || "held back from the index — pull it to see why")}</div>
+    <div class="cm-p2">WIN ${sel.id} · ${cmFits(sel)}${sel.posted ? " · ON THE LANE" : ""}</div>`;
+}
+function cmDashHTML(G){
+  const shelf = G.shelf || [];
+  let mx = 1; for(const s of shelf) if(s.len > mx) mx = s.len;
+  const lg = Math.log1p(mx), snapQ = (() => { try{ return CSS.supports("container-type", "scroll-state"); }catch(_){ return false; } })();
+  const sp = shelf.map(s => `<span role="listitem"><button class="cm-spine${s.posted ? " posted" : ""}${!snapQ && CM.sel === s.id ? " sel" : ""}"
+      data-id="${s.id}" style="--h:${(Math.log1p(s.len) / lg).toFixed(3)}"
+      aria-label="Win ${s.id}, ${esc(cmLongDate(s.at))}: ${esc(s.first || "held back from the index")}${s.posted ? " — on the lane" : ""}"><span>${cmDate(s.at)}</span></button></span>`).join("");
+  return `<section class="cm-dash" id="cmDash" aria-label="the dash">
+    <div class="cm-cap">ON THE DASH · ${G.ready == null ? "—" : G.ready}</div>
+    <div class="cm-spines" id="cmSpines" role="list">${sp || `<p class="cm-nothing" style="padding:0 14px">the shelf is empty</p>`}</div>
+    <div class="cm-peek" id="cmPeek">${cmPeekHTML(G)}</div>
+    <button class="cm-pull" id="cmPullOne"${G.ready ? "" : " disabled"}>PULL ONE</button>
+  </section>`;
+}
+
+/* ── the lane, the coins, the mile markers, the riders, the door ─────── */
+function cmRoadHTML(G){
+  const lane = G.lane || [];
+  const refl = p => { const ok = /^https:\/\//i.test(p.url || "");
+    return `<a class="cm-refl"${ok ? ` href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"` : ""}>${cmDate(p.at)} · ${p.win_id ? "WIN " + p.win_id : "POST " + p.id} · ${ok ? "LINK" : "LINK NOT CAPTURED — SAID SO"}<span>${cmPostTitle(p)}</span></a>`; };
+  const col = s => lane.filter(p => p.surface === s).map(refl).join("") || `<p class="cm-nothing">nothing logged here yet</p>`;
+  return `<section class="cm-road" id="cmRoad" aria-label="the lane">
+    <div class="cm-cap">THE LANE · WHAT WENT OUT, AND WHERE</div>
+    <div class="cm-lanes"><div><h4>LINKEDIN</h4>${col("linkedin")}</div><div class="cm-center" aria-hidden="true"></div><div><h4>X</h4>${col("x")}</div></div>
+  </section>`;
+}
+function cmCoinsHTML(G, strike){
+  const st = new Set(strike || []);
+  const coins = (G.chips || []).map(c => `<button class="cm-coin ${esc(c.kind)}${st.has(c.key) ? " cm-strike" : ""}" data-coin="${esc(c.key)}"
+      aria-label="${esc(c.label)}, struck ${esc(cmLongDate(c.earned_at))}"><span>${esc(c.label)}<br>${cmDate(c.earned_at)}</span></button>`).join("");
+  const nx = G.next_chip ? `<div class="cm-coin next" aria-label="next: ${esc(G.next_chip.label)}"><span>NEXT<br>${esc(G.next_chip.label)}</span></div>` : "";
+  const wait = (G.chips_waiting || []).map(x => `<div class="cm-coin wait"><span>${esc(x.label)}</span></div>`).join("");
+  const sel = (G.chips || []).find(c => c.key === CM.coin);
+  return `<section class="cm-panel" id="cmCoins" aria-label="coins"><div class="cm-cap">COINS · STRUCK ONLY BY REAL ROWS</div>
+    <div class="cm-coins">${coins}${nx}${wait}</div>
+    <div class="cm-coinline" id="cmCoinLine" role="status">${sel ? `${esc(sel.label)} — ${esc(sel.rule)} · receipt ${esc(sel.receipt)}`
+      : G.next_chip ? `next: ${esc(G.next_chip.label)} — ${esc(G.next_chip.rule)}` : ""}</div>
+    ${(G.chips_waiting || []).map(x => `<div class="cm-sans">${esc(x.label)} waits: ${esc(x.why)}</div>`).join("")}
+  </section>`;
+}
+function cmMarksHTML(G){
+  const b = G.beats || [];
+  return `<section class="cm-panel" aria-label="mile markers"><div class="cm-cap">MILE MARKERS · THE BREADCRUMBS</div>
+    <div class="cm-marks">${b.length ? b.map(x => `<div class="cm-mk">
+      <button class="cm-post" data-day="${x.d == null ? "" : x.d}">DAY ${x.d == null ? "—" : x.d}</button>
+      <p>${x.home ? `${CM_LOCK} STAYS HOME` : x.beat ? esc(x.beat) : "words held back until they pass the window test"}</p>
+      ${x.tag === "sanitize" && !x.home ? `<span class="cm-stamp2">TEST FIRST</span>` : ""}</div>`).join("")
+      : `<p class="cm-nothing">no breadcrumbs yet</p>`}</div></section>`;
+}
+function cmRidersHTML(G){
+  /* a lamp only where the spine served a last_at: an absent signal is an
+     absent lamp — liveness is not health, so nothing here says ONLINE */
+  return `<section class="cm-panel" aria-label="the riders"><div class="cm-cap">THE RIDERS</div><div class="cm-riders">`
+    + (G.crew || []).map(c => `<div class="cm-rider"><b>${c.last_at ? "<i></i>" : ""}${esc(c.name)}</b>
+        <span>${esc(c.role)}</span>${c.last_at ? `<span>last heard ${esc(cmHeard(c.last_at, G.as_of))}</span>` : ""}</div>`).join("")
+    + `</div></section>`;
+}
+
+function glassRoom(){
+  if(CM.entryPending){
+    /* ENTRY is the event the drive keys off — consumed here so a re-render
+       never counts as a second entry */
+    CM.entryPending = false; CM.phase = "reading"; CM.chipsLanded = false;
+    CM.turned = false; CM.reading = false; CM.readDay = null; CM.err = "";
+  }
+  const pre = CM.phase === "reading", G = cmG();
+  if(!G && !pre) return `<div class="cm-scroll" id="cm"><section class="cm-shield" id="cmShield">
+      <div class="cm-darkline">THE GLASS IS DARK — THE BOOK DID NOT ANSWER</div>
+      ${CM.err ? `<div class="cm-sans" style="text-align:center">${esc(CM.err)}</div>` : ""}</section></div>`;
+  /* a last-known payload keeps its place with its age said; never a zero */
+  const age = G && !pre && CM.err
+    ? `<div class="readage">as of ${esc(cmClock(G.as_of))} · the last read did not answer — ${esc(CM.err)}</div>`
+    : G ? readLine(["glass"]) : "";
+  return `<div class="cm-scroll" id="cm">
+    <div class="cm-repeater">${G && !pre ? `<button id="cmRepBtn" aria-label="back to the odometer"><span id="cmRep">${cmOdo(G, false)}</span><span class="cm-rday">DAY ${G.day}</span></button>` : ""}</div>
+    ${age}
+    <div class="cm-grid">
+      <div class="cm-left">${cmShieldHTML(G, pre)}${G && !pre ? cmReceiptsHTML(G) : ""}</div>
+      <div class="cm-right">${G ? cmPaneHTML(G) + cmDashHTML(G) + cmRoadHTML(G) : ""}</div>
+      ${G ? `<div class="cm-strip4">${cmCoinsHTML(G, CM.strike)}${cmMarksHTML(G)}${cmRidersHTML(G)}
+        <div class="cm-door" aria-disabled="true">THE PASSENGER DOOR<span>who rides along is yours to say.</span></div></div>` : ""}
+    </div>
+    ${G && G.ready ? `<div class="cm-lip"><button id="cmLipPull">PULL ONE · ${G.ready} ON THE DASH</button></div>` : ""}
+  </div>`;
+}
+
+/* THE TRUTH, before any frame: the resting values ARE the served figures */
+function cmSetRest(G){
+  const s = $("cmShield"); if(!s || !G) return;
+  const L = G.series[G.series.length - 1], v = L.pts == null ? 0 : L.pts;
+  const rd = CM.reading && CM.readDay != null ? CM.readDay : G.day;
+  s.style.setProperty("--cm-v", v); s.style.setProperty("--cm-d", G.day);
+  s.style.setProperty("--cm-sweep", (G.day % 365) / 365 * 360 + "deg");
+  s.style.setProperty("--cm-g", L.gc);
+  s.style.setProperty("--cm-gi", (G.series[rd] || L).gi);
+  s.style.setProperty("--cm-ghost", (rd % 365) / 365 * 360 + "deg");
+  const rp = $("cmRep"); if(rp){ rp.style.setProperty("--cm-v", v); rp.style.setProperty("--cm-d", G.day); }
+  const sr = $("cmScoreSr");
+  if(sr) sr.textContent = G.score.total == null
+    ? `Build score unavailable: ${(G.unavailable && (G.unavailable.git || Object.values(G.unavailable)[0])) || "a source is unreadable"}. Day ${G.day}.`
+    : `Build score ${G.score.total.toLocaleString("en-US")}, day ${G.day}.`;
+}
+
+/* the dial: painted ONCE per data or size change, revealed by a conic mask */
+function cmPaintDial(cv, G){
+  const CW = cv.clientWidth; if(!CW || !G || !G.series.length) return;
+  const dpr = Math.min(2, devicePixelRatio || 1); cv.width = cv.height = Math.round(CW * dpr);
+  const cs = getComputedStyle(cv), K = cs.getPropertyValue("--cm-key").trim(), C = cs.getPropertyValue("--cm-core").trim(),
+        LMP = cs.getPropertyValue("--cm-lamp").trim(), GV = cs.getPropertyValue("--cm-given").trim();
+  /* the canvas overhangs the ring by 8% a side so the given notches can sit
+     OUTSIDE the frame — inside is what he built, outside is what he gave */
+  const S = CW / 1.16, c = CW / 2, R = S * .43, L = S * .075;
+  let mx = 1; for(const s of G.series) if(s.n > mx) mx = s.n;
+  const lg = Math.log1p(mx), ms = new Set(G.milestones.map(m => m.d));
+  const off = typeof OffscreenCanvas === "function" ? new OffscreenCanvas(cv.width, cv.height)
+    : Object.assign(document.createElement("canvas"), { width: cv.width, height: cv.height });
+  const o = off.getContext("2d"); o.setTransform(dpr, 0, 0, dpr, 0, 0); o.lineCap = "round";
+  for(const s of G.series){
+    /* year two laps INSIDE year one: rings, never a reset */
+    const lap = Math.floor(s.d / 365), r0 = R - lap * (L + 6), a = -Math.PI / 2 + (s.d % 365) / 365 * 2 * Math.PI;
+    const len = s.n ? 2 + L * Math.log1p(s.n) / lg : 1, cx = Math.cos(a), sy = Math.sin(a);   // a quiet day is a dot, never a gap
+    o.strokeStyle = ms.has(s.d) ? `rgba(${C},.95)` : `rgba(${K},${s.n ? .5 + .5 * Math.log1p(s.n) / lg : .22})`;
+    o.lineWidth = ms.has(s.d) ? 2 : 1.25;
+    o.beginPath(); o.moveTo(c + cx * r0, c + sy * r0); o.lineTo(c + cx * (r0 - len), c + sy * (r0 - len)); o.stroke();
+    if(s.v){ o.fillStyle = `rgba(${LMP},.95)`; o.beginPath(); o.arc(c + cx * (r0 - len - 3), c + sy * (r0 - len - 3), 1.6, 0, 7); o.fill(); }
+    if(s.g && !lap){ o.strokeStyle = `rgba(${GV},.95)`; o.lineWidth = 2;
+      o.beginPath(); o.moveTo(c + cx * S * .505, c + sy * S * .505); o.lineTo(c + cx * S * .53, c + sy * S * .53); o.stroke(); }
+  }
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, CW, CW);
+  if(!cmLite() && !PAPER()){                           // ONE bloom, at paint time, never per frame
+    g.filter = "blur(5px)"; g.globalCompositeOperation = "lighter"; g.drawImage(off, 0, 0, CW, CW);
+    g.filter = "none"; g.globalCompositeOperation = "source-over"; }
+  g.drawImage(off, 0, 0, CW, CW);
+}
+
+/* ── ENTRY: the preflight, then the truth, then (maybe) the drive ─────── */
+async function cmEnter(){
+  const tok = CM.inflight = {};
+  const seen = cmStore.get("seen");
+  let G = null, err = "";
+  try{
+    G = await grab("/api/glass" + (seen && seen.date ? "?since=" + encodeURIComponent(seen.date) : ""),
+                   CM.ac && CM.ac.signal);
+  }catch(e){
+    if(e && e.name === "AbortError") return;           // the room was re-rendered; the next wire asks again
+    err = String((e && e.message) || e);
+  }
+  if(CM.inflight !== tok) return;
+  CM.inflight = null;
+  if(ACTIVE === null || D[ACTIVE].room !== "glass"){ CM.phase = "rest"; return; }
+  if(!G){ CM.err = err; CM.phase = "rest"; renderRoom(); return; }
+  State.glass = G; State.glassErr = null; CM.G = G; CM.err = ""; CM.phase = "rest"; CM.fetchedAt = Date.now();
+  paintField();
+  renderRoom();                                        // truth first: the resting frame is the served total
+  cmArrive(G, seen);
+}
+function cmArrive(G, seen){
+  const L = G.series[G.series.length - 1], total = G.score.total;
+  if(total == null || L.pts !== total || cmRM() || document.hidden) return cmLanded(G, false);
+  if(!seen || seen.date !== cmToday(G)) return cmDrive(G, 0);           // the first open of the day
+  if(seen.pts != null && total > seen.pts) return cmDelta(G, seen.pts, total);   // only what is new
+  cmLanded(G, false);                                                   // nothing new: no motion
+}
+function cmLandQuiet(G){
+  CM.chipsLanded = true;
+  const L = G.series[G.series.length - 1];
+  cmStore.set("seen", { date: cmToday(G), day: G.day, pts: L.pts });
+  const o = D.find(x => x.ring); o && o.el && o.el.classList.remove("fresh");
+}
+function cmLanded(G, drove){
+  CM.driving = null;
+  const b = $("cmBadge"); b && b.classList.remove("replaying");
+  cmLandQuiet(G);
+  /* the chips land 200ms after the wheels stop — each only if more than 0 */
+  const put = () => { const ch = $("cmChips"); if(ch) ch.innerHTML = cmChipsHTML(G, !cmRM()); };
+  drove && !cmRM() ? cmT(put, 200) : put();
+}
+
+/* THE DRIVE — one linear WAAPI animation on the shield, five registered
+   properties, zero rAF. Linear in days: the drums' speed at every moment is
+   the book's own slope. The camera may HOLD on a real day (a duplicated
+   keyframe); it may never speed a number up. */
+function cmDrive(G, fromDay){
+  const L = G.series[G.series.length - 1];
+  if(G.score.total == null || L.pts !== G.score.total) return cmLanded(G, false);   // the sum guard
+  const run = G.series.slice(fromDay); if(run.length < 2) return cmLanded(G, false);
+  const k = cmLite() ? .6 : 1, MS = 14 * k, HOLD = 420 * k;
+  const holds = new Set(G.chapters.filter(c => c.d >= run[0].d).map(c => c.d));
+  const vals = s => ({ "--cm-v": String(s.pts), "--cm-d": String(s.d), "--cm-sweep": (s.d % 365) / 365 * 360 + "deg",
+                       "--cm-g": String(s.gc), "--cm-gi": String(s.gi) });
+  const kf = [], at = new Map(); let t = 0;
+  const cold = fromDay === 0;
+  if(cold){ kf.push([0, vals(run[0])]); t = HOLD; }   // the cold open: the sensors report on Day 0
+  run.forEach((s, i) => {
+    if(i) t += MS;
+    at.set(s.d, t); kf.push([t, vals(s)]);
+    if(holds.has(s.d)){ t += HOLD; kf.push([t, vals(s)]); }
+  });
+  const T0 = t, T = Math.min(T0, 4800), sc = T / T0;
+  at.forEach((v, d) => at.set(d, v * sc));
+  const shield = $("cmShield"), badge = $("cmBadge"), rep = $("cmRep");
+  if(!shield || !badge) return cmLanded(G, false);
+  badge.classList.add("replaying");
+  CM.driving = G;
+  const a = cmA(shield, kf.map(([ti, v]) => ({ ...v, offset: ti / T0 })), { duration: T, easing: "linear", fill: "none" });
+  if(rep) cmA(rep, kf.map(([ti, v]) => ({ "--cm-v": v["--cm-v"], "--cm-d": v["--cm-d"], offset: ti / T0 })),
+              { duration: T, easing: "linear", fill: "none" });
+  cmFlares(G, at); cmStack(G, at, T, cold);
+  /* ONE pre-built pattern for the whole drive: a vibrate list starts with a
+     pulse, so it opens on 0 and alternates pause, pulse */
+  const beats = G.milestones.filter(m => at.has(m.d)).map(m => [at.get(m.d), 6]);
+  const given = G.chapters.find(c => c.kind === "first_given" && at.has(c.d));
+  if(given){ const i = beats.findIndex(b => Math.abs(b[0] - at.get(given.d)) < 1);
+    i >= 0 ? (beats[i][1] = 30) : beats.push([at.get(given.d), 30]); }
+  beats.sort((x, y) => x[0] - y[0]);
+  const pat = [0]; let last = 0;
+  beats.forEach(([ti, ms]) => { pat.push(Math.max(0, Math.round(ti - last)), ms); last = ti + ms; });
+  if(pat.length > 1) cmBuzz(pat.slice(0, 99));
+  if(!a) return cmLanded(G, false);
+  a.finished.then(() => { if(CM.driving === G) cmLanded(G, true); }).catch(() => {});
+}
+function cmFlares(G, at){
+  document.querySelectorAll("#cm .cm-ms[data-d]").forEach(el => { const d = +el.dataset.d; if(!at.has(d)) return;
+    cmA(el, [{scale:1, opacity:.35}, {scale:2.2, opacity:1, offset:.25}, {scale:1, opacity:1}],
+        {duration:650, delay:at.get(d), easing:"ease-out", fill:"backwards"}); });
+  /* DAY 150: the first warm ember — his own words entering the book */
+  const fl = document.querySelector("#cm .cm-flare[data-d]");
+  if(fl && at.has(+fl.dataset.d)) cmA(fl, [{opacity:0, scale:.4}, {opacity:1, scale:1.8, offset:.3}, {opacity:0, scale:1}],
+    {duration:620, delay:at.get(+fl.dataset.d), easing:CM_ARRIVE, fill:"backwards"});
+}
+/* the message stack: each caption pushes in at the bottom, rises and dims to
+   .55 when the next arrives, and leaves two arrivals later — milestones 80ms
+   apart are still read, as the second line. The resting lines are the truth
+   and come back when the drive ends. */
+function cmStack(G, at, T, cold){
+  const msg = $("cmMsg"); if(!msg) return;
+  const ev = [], said = new Set();
+  if(cold) (G.sources || []).forEach((s, i) => ev.push([i * 120, s.label]));
+  G.milestones.forEach(m => { if(!at.has(m.d)) return; said.add(m.d);
+    ev.push([m.d === 0 && cold ? 60 : at.get(m.d), m.d === 0 ? `${cmDate(G.day0)} · ${m.label}` : `DAY ${m.d} · ${m.label}`]); });
+  G.chapters.forEach(c => { if(at.has(c.d) && !said.has(c.d)) ev.push([at.get(c.d) + .5, `DAY ${c.d} · ${c.label}`]); });
+  ev.sort((a, b) => a[0] - b[0]);
+  const E = 180, y = v => `translateY(${v}em)`;
+  ev.forEach(([t0, text], i) => {
+    const el = document.createElement("i"); el.className = "cm-cap2"; el.textContent = text; msg.appendChild(el);
+    const t1 = Math.max(i + 1 < ev.length ? ev[i + 1][0] : T, t0 + E);
+    const t2 = Math.max(i + 2 < ev.length ? ev[i + 2][0] : T, t1 + E);
+    const pts = [[0, 0, 3], [t0, 0, 3], [t0 + E, 1, 1.5], [t1, 1, 1.5], [t1 + E, .55, 0], [t2, .55, 0], [t2 + E, 0, -1.5], [T, 0, -1.5]];
+    let prev = 0;
+    const kf = pts.map(([ti, op, yy]) => { const off = Math.min(1, Math.max(prev, ti / T)); prev = off;
+      return { offset: off, opacity: op, transform: y(yy) }; });
+    cmA(el, kf, { duration: T, easing: "linear", fill: "none" });
+  });
+}
+/* a later entry, or a return after 60s: roll only what is new, ≤900ms */
+function cmDelta(G, from, to){
+  const hosts = [$("cmShield"), $("cmRep")].filter(Boolean); let a = null;
+  hosts.forEach(h => { a = cmA(h, [{"--cm-v": String(from)}, {"--cm-v": String(to)}], {duration:900, easing:"linear"}) || a; });
+  if(a){ CM.driving = G; a.finished.then(() => { if(CM.driving === G) cmLanded(G, true); }).catch(() => {}); }
+  else cmLanded(G, false);
+}
+
+/* ── THE SCRUB: read the log, never wind it back (the rumble strip) ───── */
+function cmTrip(G, d){
+  const s = G.series[d]; if(!s) return;
+  CM.readDay = d;
+  const m = G.milestones.find(x => x.d === d);
+  const l1 = `TRIP · DAY ${d} · ${cmDate(s.date)} · ODO THEN ${s.pts == null ? "—" : s.pts}`;
+  const l2 = m ? m.label : `${s.n} BUILT · ${s.v} SAID · ${s.g} GIVEN`;
+  const r = document.querySelectorAll("#cmMsg .cm-rest"); if(r.length === 2){ r[0].textContent = l1; r[1].textContent = l2; }
+  const bz = $("cmBezel"); if(bz){ bz.setAttribute("aria-valuenow", String(d)); bz.setAttribute("aria-valuetext", l1 + " · " + l2); }
+  const sh = $("cmShield"); if(sh) sh.style.setProperty("--cm-ghost", (d % 365) / 365 * 360 + "deg");
+  /* after a 200ms dwell the ghost layer scrolls to that day's real subjects */
+  if(CM.dwell){ clearTimeout(CM.dwell); CM.timers.delete(CM.dwell); }
+  CM.dwell = cmT(() => { const sh2 = $("cmShield"); sh2 && sh2.style.setProperty("--cm-gi", s.gi); }, 200);
+}
+function cmReadOn(){
+  const sh = $("cmShield"); if(!sh) return;
+  CM.reading = true; sh.classList.add("reading");
+  const nw = $("cmNow"); nw && (nw.hidden = false);
+}
+function cmNow(){
+  const G = cmG(), sh = $("cmShield"); if(!G || !sh) return;
+  const from = ((CM.readDay != null ? CM.readDay : G.day) % 365) / 365 * 360, to = (G.day % 365) / 365 * 360;
+  const done = () => {
+    CM.reading = false; CM.readDay = null; sh.classList.remove("reading");
+    const nw = $("cmNow"); nw && (nw.hidden = true);
+    sh.style.setProperty("--cm-gi", G.series[G.series.length - 1].gi);
+    const r = document.querySelectorAll("#cmMsg .cm-rest"), l = cmRestLines(G);
+    if(r.length === 2){ r[0].textContent = l[0]; r[1].textContent = l[1]; }
+    const bz = $("cmBezel"); if(bz){ bz.setAttribute("aria-valuenow", String(G.day)); bz.removeAttribute("aria-valuetext"); }
+  };
+  sh.style.setProperty("--cm-ghost", to + "deg");      // the truth first; the glide only shows the way back
+  const a = cmRM() ? null : cmA(sh, [{"--cm-ghost": from + "deg"}, {"--cm-ghost": to + "deg"}], {duration:600, easing:"linear"});
+  a ? a.finished.then(done).catch(() => {}) : done();
+}
+function cmReadDay(d){
+  const G = cmG(); if(!G || d == null || isNaN(d)) return;
+  $("cmHero")?.scrollIntoView({ block:"center", behavior: cmRM() ? "auto" : "smooth" });
+  cmReadOn(); cmTrip(G, Math.max(0, Math.min(G.day, d)));
+}
+function cmBezel(G){
+  const ring = $("cmBezel"), sh = $("cmShield"); if(!ring || !sh || !CM.ac) return;
+  const sig = { signal: CM.ac.signal }, ms = new Map(G.milestones.map(m => [m.d, m]));
+  const lapBase = Math.floor(G.day / 365) * 365;
+  let t = 0, x0 = 0, y0 = 0, at = G.day, curb = false;
+  const dayAt = e => { const r = ring.getBoundingClientRect();
+    const a = (Math.atan2(e.clientX - r.left - r.width / 2, -(e.clientY - r.top - r.height / 2)) + 2 * Math.PI) % (2 * Math.PI);
+    return lapBase + Math.round(a / (2 * Math.PI) * 365); };
+  const show = d => {
+    /* the curb: past today there is one firm pulse and a hard stop */
+    if(d > G.day){ d = G.day; if(!curb){ curb = true; cmBuzz(24); } } else curb = false;
+    d = Math.max(0, d);
+    if(d === at) return;
+    let n = 0, m = false;
+    for(let i = Math.min(d, at) + 1; i <= Math.max(d, at); i++){ const s = G.series[i]; if(s){ n += s.n + s.v + s.g; m = m || ms.has(i); } }
+    /* the rumble's LENGTH is the crossed receipts — felt, never shown; quiet days are smooth road */
+    m ? cmBuzz([8, 34, 8]) : n ? cmBuzz(Math.min(18, 3 + Math.round(4 * Math.log1p(n)))) : 0;
+    at = d; cmTrip(G, d);
+  };
+  const clear = () => { if(t){ clearTimeout(t); CM.timers.delete(t); t = 0; } };
+  ring.addEventListener("pointerdown", e => {
+    if(CM.skipping || $("cmBadge")?.classList.contains("replaying")) return;
+    x0 = e.clientX; y0 = e.clientY; clear();
+    const pid = e.pointerId, pt = { clientX: e.clientX, clientY: e.clientY };
+    t = cmT(() => { t = 0; cmReadOn(); cmBuzz(4); at = -1; show(dayAt(pt));
+      try{ ring.setPointerCapture(pid); }catch(_){} }, 250);
+  }, sig);
+  ring.addEventListener("pointermove", e => {
+    if(CM.reading && (e.buttons || e.pointerType === "touch")) return show(dayAt(e));
+    if(Math.hypot(e.clientX - x0, e.clientY - y0) > 6) clear();    // a scroll that starts on the ring still scrolls
+  }, sig);
+  ring.addEventListener("touchmove", e => { if(CM.reading && e.cancelable) e.preventDefault(); }, { ...sig, passive:false });
+  ["pointerup", "pointercancel"].forEach(k => ring.addEventListener(k, clear, sig));   // release keeps the reading
+  ring.addEventListener("contextmenu", e => e.preventDefault(), sig);               // a long press is the scrub, not a menu
+  ring.addEventListener("keydown", e => {
+    const cur = CM.reading && CM.readDay != null ? CM.readDay : G.day;
+    let d = null;
+    if(e.key === "ArrowLeft" || e.key === "ArrowDown") d = cur - 1;
+    else if(e.key === "ArrowRight" || e.key === "ArrowUp") d = cur + 1;
+    else if(e.key === "Home") d = 0;
+    else if(e.key === "End") d = G.day;
+    else if(e.key === "PageUp"){ const p = G.milestones.filter(m => m.d < cur).pop(); d = p ? p.d : 0; }
+    else if(e.key === "PageDown"){ const n = G.milestones.find(m => m.d > cur); d = n ? n.d : G.day; }
+    if(d == null) return;
+    e.preventDefault();
+    if(!CM.reading){ cmReadOn(); at = cur; }
+    show(Math.max(0, Math.min(G.day, d)));
+  }, sig);
+}
+
+/* ── THE TURNOVER: tap the centre, read the plate ─────────────────────── */
+function cmFlip(on){
+  const f = $("cmFlip"); if(!f) return;
+  CM.turned = on;
+  f.classList.toggle("turned", on);
+  const fr = f.querySelector(".cm-front"), bk = f.querySelector(".cm-back");
+  if(fr) fr.inert = on; if(bk) bk.inert = !on;
+  $("cmTurn")?.setAttribute("aria-pressed", String(on));
+  (on ? $("cmPlateH") : $("cmTurn"))?.focus({ preventScroll:true });
+}
+async function cmReceipts(key, offset){
+  const cur = CM.rc[key];
+  try{
+    const r = await grab(`/api/glass/receipts?term=${encodeURIComponent(key)}&offset=${offset}&limit=40`, CM.ac && CM.ac.signal);
+    CM.rc[key] = { rows: (offset && cur && cur.rows ? cur.rows : []).concat(r.rows || []), more: !!r.more, count: r.count };
+  }catch(e){
+    if(e && e.name === "AbortError") return;
+    CM.rc[key] = { rows: (cur && cur.rows) || [], more: !!(cur && cur.more), err: "the receipts did not answer — " + ((e && e.message) || e) };
+  }
+  const box = document.querySelector(`#cmT-${key} .cm-rrows`); if(box) box.innerHTML = cmRowsHTML(key);
+}
+
+/* ── THE PULL, THE TEST, THE HEADLIGHTS ──────────────────────────────── */
+function cmPaneRefresh(){
+  const p = $("cmPane"); if(!p) return;
+  const tmp = document.createElement("div"); tmp.innerHTML = cmPaneHTML(cmG());
+  p.replaceWith(tmp.firstElementChild);
+  cmFillNote(); cmWirePane(); cmHits();
+}
+function cmFillNote(){
+  const w = $("cmWords"); if(!w) return;
+  w.textContent = CM.tested ? CM.tested.text || "" : "";   // exactly ONE text node: the bytes the spine tested
+}
+function cmPullOne(){
+  const G = cmG(); if(!G) return;
+  const pool = (G.shelf || []).filter(s => !s.posted); if(!pool.length) return;
+  const w = pool[Math.floor(Math.random() * pool.length)];     // the dash picks; he doesn't have to
+  const btn = document.querySelector(`#cm .cm-spine[data-id="${w.id}"]`), sp = $("cmSpines");
+  if(!btn || !sp || cmRM()) return cmPull(w.id);
+  let done = false;
+  const go = () => { if(done) return; done = true; cmPull(w.id); };
+  btn.scrollIntoView({ inline:"center", block:"nearest", behavior:"smooth" });
+  if(CM.ac) sp.addEventListener("scrollend", go, { once:true, signal: CM.ac.signal });
+  cmT(go, 800);          // a dash already in place never ends a scroll
+}
+function cmPull(id){
+  const G = cmG(); if(!G) return;
+  if(CM.pulled && CM.pulled.id === id && CM.tested){ $("cmPane")?.scrollIntoView({block:"nearest"}); return; }
+  if(CM.onGlass && CM.onGlass.id !== id){ CM.onGlass = null; cmStore.del("onglass"); }
+  CM.tested = null; CM.say = ""; CM.postSay = ""; CM.link = "";
+  CM.pulled = { id, phase:"testing", animate: !cmRM() };
+  CM.sel = id;
+  const spine = document.querySelector(`#cm .cm-spine[data-id="${id}"]`);
+  if(document.startViewTransition && !cmRM() && spine){
+    /* the spine lifts off the dash and becomes the note (one name, never two at once) */
+    spine.style.viewTransitionName = "cm-win";
+    try{
+      const vt = CM.vt = document.startViewTransition(() => {
+        spine.style.viewTransitionName = ""; cmPaneRefresh();
+        const c = $("cmCard"); if(c) c.style.viewTransitionName = "cm-win"; });
+      vt.ready.catch(() => {}); vt.updateCallbackDone.catch(() => {});
+      vt.finished.catch(() => {}).finally(() => { const c = $("cmCard"); if(c) c.style.viewTransitionName = ""; if(CM.vt === vt) CM.vt = null; });
+    }catch(_){ spine.style.viewTransitionName = ""; cmPaneRefresh(); }
+  } else cmPaneRefresh();
+  $("cmPane")?.scrollIntoView({ block:"nearest", behavior: cmRM() ? "auto" : "smooth" });   // his own action, not a background scroll
+  cmTest(id);
+}
+async function cmTest(id){
+  const tok = CM.testing = {};
+  let r;
+  try{
+    const res = await fetch(url("/api/glass/test"), { method:"POST", headers: hdr({"Content-Type":"application/json"}),
+      body: JSON.stringify({ win_id: id }), signal: CM.ac && CM.ac.signal });
+    const j = await res.json().catch(() => ({}));
+    /* the verdict is the spine's; a test that did not run is UNREAD — nothing leaves */
+    r = res.ok ? j : { verdict:"unread", text:"", hits:[], why: j.error || ("the spine answered " + res.status) };
+  }catch(e){
+    if(e && e.name === "AbortError") return;
+    r = { verdict:"unread", text:"", hits:[], why: "the window test did not answer — " + ((e && e.message) || e) };
+  }
+  if(CM.testing !== tok || !CM.pulled || CM.pulled.id !== id) return;
+  CM.testing = null; CM.tested = r;
+  if(CM.pulled.animate && !cmRM() && !document.hidden && r.text){
+    CM.pulled.phase = "beam"; cmPaneRefresh(); cmBeam();
+  } else { CM.pulled.phase = "landed"; cmPaneRefresh(); }
+}
+function cmLocal(card){
+  /* the note is tilted: map a viewport point into its own unrotated space */
+  const b = card.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+  const th = -(parseFloat(getComputedStyle(card).rotate) || 0) * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+  const lx = card.offsetWidth / 2, ly = card.offsetHeight / 2;
+  return (x, y) => { const dx = x - cx, dy = y - cy; return { x: lx + dx * c - dy * s, y: ly + dx * s + dy * c }; };
+}
+function cmTargets(){
+  const T = CM.tested, node = $("cmWords")?.firstChild;
+  if(!T || T.verdict !== "stopped" || !node) return [];
+  return (T.hits || []).map(h => { try{
+    const r = document.createRange();
+    r.setStart(node, Math.min(h.start, node.length)); r.setEnd(node, Math.min(h.end, node.length));   // served UTF-16 offsets ARE Range offsets
+    return { r, rects: [...r.getClientRects()] }; }catch(_){ return { r:null, rects:[] }; } });
+}
+function cmLight(card, t, animate){
+  if(!t.r) return;
+  try{ if(window.Highlight && CSS.highlights){      // no DOM wrapping: the bytes stay exact
+    let h = CSS.highlights.get("cm-hit"); if(!h){ h = new Highlight(); CSS.highlights.set("cm-hit", h); } h.add(t.r); } }catch(_){}
+  const loc = cmLocal(card);
+  t.rects.forEach(rc => {
+    const p = loc(rc.left + rc.width / 2, rc.top + rc.height / 2);
+    const el = document.createElement("span"); el.className = "cm-lock";
+    el.style.cssText = `left:${p.x - rc.width / 2 - 3}px;top:${p.y - rc.height / 2 - 2}px;width:${rc.width + 6}px;height:${rc.height + 4}px`;
+    card.appendChild(el);
+    if(animate) cmA(el, [{scale:1.8, opacity:0}, {scale:1, opacity:1}], {duration:220, easing:"cubic-bezier(.2,.9,.3,1)"});
+  });
+}
+function cmHits(){
+  /* at rest: a STOPPED note keeps its reticles and its red — only there */
+  try{ CSS.highlights?.delete("cm-hit"); }catch(_){}
+  const card = $("cmCard"); if(!card) return;
+  card.querySelectorAll(".cm-lock").forEach(x => x.remove());
+  if(!CM.pulled || CM.pulled.phase !== "landed") return;
+  cmTargets().forEach(t => cmLight(card, t, false));
+}
+function cmBeam(){
+  /* a stranger's truck pulling through the Pilot lot: a 15° band of light
+     crosses the note; only paper under the beam is lit, and a hit locks the
+     moment the beam reaches it. The verdict is already in — the beam reads it out. */
+  const card = $("cmCard"); if(!card || !CM.tested){ cmVerdict(false); return; }
+  const W = card.clientWidth, dur = 900 + W * 1.1;
+  const a = cmA(card, [{"--cm-bx": "-120px"}, {"--cm-bx": (W + 120) + "px"}], {duration: dur, easing:"linear"});
+  if(!a){ cmVerdict(false); return; }
+  const targets = cmTargets(), lit = new Set(), tan = Math.tan(15 * Math.PI / 180);
+  const tick = () => {
+    if(a.playState !== "running"){ CM.raf = 0; return; }          // the rAF ends itself
+    const cr = card.getBoundingClientRect(), x = -120 + (W + 240) * ((a.currentTime || 0) / dur);
+    targets.forEach((t, i) => { const r0 = t.rects[0]; if(lit.has(i) || !r0) return;
+      if(x >= (r0.left - cr.left) + (r0.top - cr.top) * tan){ lit.add(i); cmLight(card, t, true); cmBuzz(10); } });
+    CM.raf = requestAnimationFrame(tick);
+  };
+  if(targets.length) CM.raf = requestAnimationFrame(tick);
+  a.finished.then(() => { if(CM.pulled && CM.pulled.phase === "beam") cmVerdict(true); }).catch(() => {});
+}
+function cmVerdict(animate){
+  if(!CM.pulled) return;
+  CM.pulled.phase = "landed"; CM.pulled.fresh = animate;
+  cmPaneRefresh();
+  CM.pulled.fresh = false;
+  const T = CM.tested, card = $("cmCard");
+  if(!animate || !card || cmRM() || !(T.verdict === "taped" || T.verdict === "held")) return;
+  /* the machine never bounces; the paper always does */
+  cmA(card, [{"--cm-shade":"rgba(5,9,15,.78)"}, {"--cm-shade":"rgba(5,9,15,0)"}], {duration:600, easing:CM_ARRIVE});
+  cmA(card, [{rotate:"-2.4deg"}, {rotate: T.verdict === "taped" ? "-0.4deg" : "-0.9deg"}], {duration:720, easing:CM_SETTLE});
+  const [tl, tr] = card.querySelectorAll(".cm-tape");
+  const press = [{opacity:0, scale:1.3}, {opacity:1, scale:1}];
+  cmA(tl, press, {duration:340, delay:420, easing:CM_SETTLE, fill:"backwards"});
+  cmA(tr, press, {duration:340, delay:580, easing:CM_SETTLE, fill:"backwards"});
+  cmA(card.querySelector(".cm-marker"), [{opacity:0}, {opacity:1}], {duration:300, delay:620, fill:"backwards"});
+  cmA(card.querySelector(".cm-pass"), [{opacity:0, scale:1.4}, {opacity:1, scale:1}], {duration:300, delay:800, easing:CM_SETTLE, fill:"backwards"});
+  cmBuzz([0, 420, 12, 148, 12]);
+}
+
+/* THE COPY GATE (structural, not cosmetic): the bytes that were inspected
+   are the bytes that leave. No fetch sits between the tap and the call —
+   the tap's activation must reach the clipboard. The page never posts. */
+async function cmSend(how){
+  const t = CM.tested; if(!t || t.verdict !== "taped" || !CM.pulled) return;
+  if(how === "share" && navigator.share){
+    try{ await navigator.share({ text: t.text }); cmCopied(); cmSay("in the share sheet — you post it"); return; }
+    catch(e){ if(e && e.name === "AbortError") return; }
+  }
+  try{ await navigator.clipboard.writeText(t.text); cmCopied(); cmSay("copied — the exact words that passed. You post it."); }
+  catch(_){
+    /* a refused clipboard still leaves the words on the glass for his thumb,
+       so the question that follows a post must still be asked */
+    cmCopied(); cmSay("the phone refused the clipboard — long-press the note, then post it");
+  }
+}
+function cmCopied(){
+  if(!CM.pulled) return;
+  CM.onGlass = { id: CM.pulled.id, copied_at: new Date().toISOString() };
+  cmStore.set("onglass", CM.onGlass);                // still taped to the glass after the trip to LinkedIn
+}
+function cmSay(words){ CM.say = words; cmPaneRefresh(); }
+function cmPostSay(words){ CM.postSay = words; const el = $("cmPostSay"); if(el) el.textContent = words; }
+
+/* DID IT GO OUT? — his hand says so, AFTER he posted it himself. A write, so
+   a held latch (the house holdToAct); celebration only after the 200. */
+async function cmPost(surface){
+  const P = CM.pulled; if(!P || CM.paying) return false;
+  const link = ((($("cmLink") || {}).value) || "").trim();
+  let res, out;
+  try{
+    /* NOT on CM.ac: a write that has left must be heard — tearing the room
+       down mid-flight must never leave him unsure whether the lane has it */
+    res = await fetch(url("/api/wins/" + encodeURIComponent(P.id) + "/posted"), { method:"POST",
+      headers: hdr({"Content-Type":"application/json"}), body: JSON.stringify({ surface, url: link }) });
+    out = await res.json().catch(() => ({}));
+  }catch(e){ cmPostSay("the spine did not answer — nothing is marked yet; try again when it does"); return false; }
+  if(!res.ok){ cmPostSay(out.error || ("the spine answered " + res.status)); return false; }
+  cmPayoff(out);
+  return true;
+}
+function cmPayoff(out){
+  const G0 = cmG(), G1 = out.glass || null;
+  const weekWas = !!(G0 && G0.floor && G0.floor.week_done);
+  CM.paying = true;
+  CM.payState = () => {                                  // the record, kept whether or not the show runs
+    CM.paying = false; CM.payState = null; CM.payLand = null;
+    CM.pulled = null; CM.tested = null; CM.onGlass = null; CM.say = CM.postSay = CM.link = "";
+    cmStore.del("onglass");
+    if(G1){ State.glass = G1; CM.G = G1; cmLandQuiet(G1); }
+    /* a coin strikes ONCE: on the next render only if the show never got to it */
+    CM.strike = out.struck ? [] : (out.earned || []).map(c => c.key);
+  };
+  CM.payLand = () => {
+    if(!CM.payState) return;
+    CM.payState();
+    paintField();
+    if(ACTIVE !== null && D[ACTIVE].room === "glass") renderRoom();
+    CM.strike = [];                                       // they struck once; after this they simply are
+  };
+  const card = $("cmCard"), sh = $("cmShield");
+  if(cmRM() || !card || !sh){ CM.payLand(); return; }
+  // 0 — both strips of tape lift; the residue stays
+  card.querySelectorAll(".cm-tape").forEach(tp => cmA(tp, [{opacity:1}, {opacity:0, translate:"0 -6px"}], {duration:180, fill:"forwards"}));
+  // 180 — the note turns to face the world: his words reversed, lit from behind by the dawn
+  cmA(card, [{transform:"rotateY(0deg)"}, {transform:"rotateY(180deg)"}], {duration:900, delay:180, easing:CM_SETTLE, fill:"forwards"});
+  cmA($("cmWords"), [{opacity:1}, {opacity:.3}], {duration:420, delay:600, fill:"forwards"});
+  cmA(card.querySelector(".cm-backface"), [{opacity:0}, {opacity:1}], {duration:420, delay:600, fill:"forwards"});
+  // 1080 — it rises into the rear-view mirror, where the reflection reads right again
+  cmT(() => {
+    const mirror = document.querySelector("#cm .cm-mirror");
+    const upd = () => {
+      if(mirror && out.post) mirror.innerHTML = `<span class="cm-mcap">${esc(String(out.post.surface).toUpperCase())} · ${cmDate(out.post.at)}</span><span class="cm-mline">${cmPostTitle(out.post)}</span>`;
+      const nw = card.closest(".cm-notewrap"); if(nw) nw.style.visibility = "hidden";
+    };
+    if(document.startViewTransition && mirror){
+      card.style.viewTransitionName = "cm-win";
+      try{
+        const vt = CM.vt = document.startViewTransition(() => { card.style.viewTransitionName = ""; mirror.style.viewTransitionName = "cm-win"; upd(); });
+        vt.ready.catch(() => {}); vt.updateCallbackDone.catch(() => {});
+        vt.finished.catch(() => {}).finally(() => { mirror.style.viewTransitionName = ""; if(CM.vt === vt) CM.vt = null; });
+      }catch(_){ upd(); }
+    } else upd();
+  }, 1080);
+  // 1100 — the dawn steps up by exactly one post; the drums roll before → after, linear. Light may ease; numbers may not.
+  const gb = out.given && out.given.before, ga = out.given && out.given.after;
+  if(gb != null && ga != null){ sh.style.setProperty("--cm-g", ga);
+    cmA(sh, [{"--cm-g": String(gb)}, {"--cm-g": String(ga)}], {duration:1200, delay:1100, easing:CM_ARRIVE, fill:"backwards"}); }
+  const sb = out.score && out.score.before, sa = out.score && out.score.after;
+  if(sb != null && sa != null && sa > sb){
+    [sh, $("cmRep")].filter(Boolean).forEach(h => { h.style.setProperty("--cm-v", sa);
+      cmA(h, [{"--cm-v": String(sb)}, {"--cm-v": String(sa)}], {duration:600, delay:1100, easing:"linear", fill:"backwards"}); });
+    cmT(() => cmBuzz(12), 1100);
+  }
+  cmT(() => {                                            // today's given notch, painted once; the spine takes its foil
+    const cv = $("cmDial"); if(cv && G1) cmPaintDial(cv, G1);
+    document.querySelector(`#cm .cm-spine[data-id="${out.post && out.post.win_id}"]`)?.classList.add("posted");
+  }, 1100);
+  // 1500 — if this post met the week's floor, the decal punches
+  if(!weekWas && out.floor && out.floor.week_done) cmT(() => {
+    const dc = $("cmDecal"); if(!dc) return;
+    dc.className = "cm-decal met";
+    dc.innerHTML = `<b>THIS WEEK · ON THE LANE</b>${esc(String(out.floor.week_post.surface).toUpperCase())} · ${cmWeekday(out.floor.week_post.at)}`;
+    cmA(dc, [{scale:1.06}, {scale:1}], {duration:300, easing:CM_SETTLE}); cmBuzz(10);
+  }, 1500);
+  // 1700 — each served coin strikes
+  if((out.earned || []).length && G1) cmT(() => {
+    const cp = $("cmCoins"); if(!cp) return;
+    const tmp = document.createElement("div"); tmp.innerHTML = cmCoinsHTML(G1, out.earned.map(c => c.key));
+    cp.replaceWith(tmp.firstElementChild);
+    out.struck = true;
+    cmBuzz(out.earned.flatMap((c, i) => i ? [60, 18] : [18]));
+  }, 1700);
+  cmT(() => CM.payLand && CM.payLand(), 2800);          // no confetti: the sky got brighter
+}
+
+/* back from LinkedIn, or back after a while: the book may have moved */
+function cmOnReturn(){
+  if(CM.paying || CM.phase !== "rest" || Date.now() - CM.fetchedAt < 60000) return;
+  cmRefetch();
+}
+async function cmRefetch(){
+  const G0 = cmG();
+  let G;
+  try{ G = await grab("/api/glass", CM.ac && CM.ac.signal); }catch(_){ return; }
+  if(ACTIVE === null || D[ACTIVE].room !== "glass" || CM.paying) return;
+  State.glass = G; CM.G = G; CM.fetchedAt = Date.now();
+  paintField(); renderRoom();
+  const was = G0 && G0.series[G0.series.length - 1].pts, now = G.series[G.series.length - 1].pts;
+  if(was != null && now != null && now > was && !cmRM()) cmDelta(G, was, now);
+  else cmLandQuiet(G);
+}
+
+function cmWirePane(){
+  if(!CM.ac) return;
+  const sig = { signal: CM.ac.signal };
+  $("cmCopy")?.addEventListener("click", () => cmSend("copy"), sig);
+  $("cmShare")?.addEventListener("click", () => cmSend("share"), sig);
+  $("cmPutBack")?.addEventListener("click", () => {
+    CM.pulled = null; CM.tested = null; CM.onGlass = null; CM.say = CM.postSay = CM.link = "";
+    cmStore.del("onglass"); cmPaneRefresh();
+  }, sig);
+  $("cmLink")?.addEventListener("input", e => { CM.link = e.target.value; }, sig);
+  $("cmPaste")?.addEventListener("click", async () => {
+    try{ const t = (await navigator.clipboard.readText() || "").trim(); const l = $("cmLink"); if(l){ l.value = t; CM.link = t; } }
+    catch(_){ cmPostSay("the phone would not hand over the clipboard — paste the link into the field"); }
+  }, sig);
+  document.querySelectorAll("#cm .cm-held[data-surface]").forEach(btn => {
+    const name = btn.dataset.surface === "x" ? "X" : "LINKEDIN";
+    holdToAct(btn, { idle:"HOLD · " + name, busy:"WRITING", refused:"NOT MARKED",
+                     released:"released before it took — nothing was marked" },
+      async () => (await cmPost(btn.dataset.surface)) ? undefined : false);
+  });
+}
+
+function wireGlass(){
+  const R = $("cm"); if(!R) return;
+  CM.ac = new AbortController();
+  const sig = { signal: CM.ac.signal };
+  const G = cmG(), pre = CM.phase === "reading";
+  if(pre && !CM.inflight) cmEnter();
+  if(!G) return;
+  /* the coins just rendered with CM.strike, so the strike is spent: a payoff
+     cut short by a re-render, the home button or pagehide leaves it set, and
+     every later render would replay it — motion only on the real event, once */
+  CM.strike = [];
+  if(!pre){
+    cmSetRest(G);
+    const cv = $("cmDial"); if(cv) cmPaintDial(cv, G);
+    if(CM.reading && CM.readDay != null){ cmReadOn(); cmTrip(G, CM.readDay); }
+    cmBezel(G);
+    const sh = $("cmShield");
+    /* a tap during the drive SKIPS it — and the click that follows is
+       swallowed, so a skip never also turns the plate over */
+    sh?.addEventListener("pointerdown", () => {
+      if(!$("cmBadge")?.classList.contains("replaying")) return;
+      CM.skipping = true; CM.anims.forEach(a => { try{ a.finish(); }catch(_){} });
+      try{ navigator.vibrate?.(0); }catch(_){}
+      cmT(() => { CM.skipping = false; }, 500);
+    }, { ...sig, capture:true });
+    sh?.addEventListener("click", e => { if(CM.skipping){ CM.skipping = false; e.stopPropagation(); e.preventDefault(); } }, { ...sig, capture:true });
+    $("cmTurn")?.addEventListener("click", () => cmFlip(!CM.turned), sig);
+    $("cmPlateH")?.addEventListener("click", () => cmFlip(false), sig);
+    R.querySelectorAll(".cm-trow[data-term]").forEach(b => b.addEventListener("click", () => {
+      cmFlip(false);
+      const d = $("cmT-" + b.dataset.term); if(!d) return;
+      d.open = true;
+      d.scrollIntoView({ block:"nearest", behavior: cmRM() ? "auto" : "smooth" });
+    }, sig));
+    $("cmNow")?.addEventListener("click", cmNow, sig);
+    $("cmMirror")?.addEventListener("click", () => $("cmRoad")?.scrollIntoView({ block:"start", behavior: cmRM() ? "auto" : "smooth" }), sig);
+    $("cmRepBtn")?.addEventListener("click", () => $("cmHero")?.scrollIntoView({ block:"center", behavior: cmRM() ? "auto" : "smooth" }), sig);
+    R.querySelectorAll("details.cm-term").forEach(d => d.addEventListener("toggle", () => {
+      const k = d.dataset.term;
+      if(d.open){ CM.open.add(k); if(!CM.rc[k] || CM.rc[k].err) cmReceipts(k, 0); } else CM.open.delete(k);
+    }, sig));
+    $("cmReceipts")?.addEventListener("click", e => { const m = e.target.closest(".cm-more"); if(!m) return;
+      const k = m.dataset.more; m.disabled = true; cmReceipts(k, ((CM.rc[k] || {}).rows || []).length); }, sig);
+    /* the repeater: when the hero scrolls away the payoff click stays in view */
+    if("IntersectionObserver" in window){
+      CM.io = new IntersectionObserver(es => es.forEach(e => {
+        if(e.target.id === "cmHero") R.classList.toggle("cm-away", !e.isIntersecting);
+        if(e.target.id === "cmDash") R.classList.toggle("cm-lipon", !e.isIntersecting && !!G.ready);
+      }), { root: R, threshold: 0 });
+      const hero = $("cmHero"), dash = $("cmDash");
+      hero && CM.io.observe(hero); dash && CM.io.observe(dash);
+    }
+    /* the Fold unfolding repaints the dial, debounced — it never replays */
+    const hero = $("cmHero");
+    if(hero && "ResizeObserver" in window){
+      let w0 = hero.clientWidth;
+      CM.ro = new ResizeObserver(() => { if(hero.clientWidth === w0) return; w0 = hero.clientWidth;
+        if(CM.rafDial) cancelAnimationFrame(CM.rafDial);
+        CM.rafDial = requestAnimationFrame(() => { CM.rafDial = 0; const c = $("cmDial"); c && cmPaintDial(c, cmG()); cmHits(); }); });
+      CM.ro.observe(hero);
+    }
+  }
+  /* the payoff is skippable by a tap anywhere in the room */
+  R.addEventListener("pointerdown", () => { if(CM.paying && CM.payLand){
+    CM.anims.forEach(a => { try{ a.finish(); }catch(_){} }); CM.payLand(); } }, { ...sig, capture:true });
+  // the pane: the note on the glass, re-read at rest after an app kill
+  cmFillNote(); cmWirePane(); cmHits();
+  if(!CM.pulled){
+    const og = cmStore.get("onglass");
+    if(og && (G.shelf || []).some(s => s.id === og.id && !s.posted)){
+      CM.onGlass = og; CM.sel = og.id;
+      CM.pulled = { id: og.id, phase:"testing", animate:false };  // re-tested AT REST: a revised policy shows its new word
+      cmPaneRefresh();
+    } else if(og) cmStore.del("onglass");
+  }
+  if(CM.pulled && !CM.tested && !CM.testing) cmTest(CM.pulled.id);
+  // the dash
+  const sp = $("cmSpines");
+  if(sp){
+    const cur = CM.sel != null && sp.querySelector(`.cm-spine[data-id="${CM.sel}"]`);
+    sp.scrollLeft = cur ? cur.offsetLeft - sp.clientWidth / 2 + cur.offsetWidth / 2 : sp.scrollWidth;   // newest at the right
+    const snapQ = (() => { try{ return CSS.supports("container-type", "scroll-state"); }catch(_){ return false; } })();
+    const wiredAt = performance.now();   // the opening scroll is the render's, not his thumb: no detent for it
+    const pick = id => { if(id == null || isNaN(id) || id === CM.sel) return; CM.sel = id;
+      if(!snapQ){ sp.querySelectorAll(".cm-spine.sel").forEach(x => x.classList.remove("sel"));
+        sp.querySelector(`.cm-spine[data-id="${id}"]`)?.classList.add("sel"); }
+      const pk = $("cmPeek"); if(pk) pk.innerHTML = cmPeekHTML(G);
+      if(performance.now() - wiredAt > 400) cmBuzz(4); };  // the dash detent
+    sp.addEventListener("scrollsnapchange", e => {
+      if(performance.now() - wiredAt < 400) return;         // the render settling its own scroll picks nothing
+      const t = e.snapTargetInline; if(t && t.dataset) pick(+t.dataset.id); }, sig);
+    if(!("onscrollsnapchange" in window)) sp.addEventListener("scrollend", () => {
+      if(performance.now() - wiredAt < 400) return;
+      const mid = sp.getBoundingClientRect().left + sp.clientWidth / 2; let best = null, bd = 1e9;
+      sp.querySelectorAll(".cm-spine").forEach(b => { const r = b.getBoundingClientRect(), dd = Math.abs(r.left + r.width / 2 - mid);
+        if(dd < bd){ bd = dd; best = b; } });
+      best && pick(+best.dataset.id); }, sig);
+    sp.addEventListener("click", e => { const b = e.target.closest(".cm-spine"); if(b) cmPull(+b.dataset.id); }, sig);
+  }
+  $("cmPullOne")?.addEventListener("click", cmPullOne, sig);
+  $("cmLipPull")?.addEventListener("click", cmPullOne, sig);
+  // coins: a tap reads the receipt under the row
+  R.querySelectorAll(".cm-coin[data-coin]").forEach(b => b.addEventListener("click", () => {
+    CM.coin = CM.coin === b.dataset.coin ? null : b.dataset.coin;
+    const c = (G.chips || []).find(x => x.key === CM.coin), line = $("cmCoinLine");
+    if(line) line.textContent = c ? `${c.label} — ${c.rule} · receipt ${c.receipt}`
+      : G.next_chip ? `next: ${G.next_chip.label} — ${G.next_chip.rule}` : "";
+  }, sig));
+  // mile markers and the dial are one timeline
+  R.querySelectorAll(".cm-post[data-day]").forEach(b => b.addEventListener("click", () => {
+    if(b.dataset.day !== "") cmReadDay(+b.dataset.day); }, sig));
+}
+
 /* ── render + wire ────────────────────────────────────────────────── */
 function renderRoom(){
   if(ACTIVE === null) return;
@@ -8076,7 +9719,7 @@ function renderRoom(){
      on the eleventh load and the answer arrives at the top of the page. The
      scroll position is his, not the render's. */
   const keep = [];
-  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid").forEach(el => {
+  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid,.cm-scroll").forEach(el => {
     if(el.scrollTop || el.scrollLeft)
       keep.push([el.className, el.scrollTop, el.scrollLeft]);
   });
@@ -8089,12 +9732,14 @@ function renderRoom(){
     ? [fo.selectionStart, fo.selectionEnd] : null;
 
   lrTeardown();   // the scope's rAF + listeners die before their canvas does
+  cmTeardown();   // and the glass's, every one of them (card #360, spec §3.9)
   R.innerHTML = o.room === "standing" ? standingRoom()
     : o.room === "work" ? workRoom()
     : o.room === "radio" ? radioRoom()
     : o.room === "ledger" ? ledgerRoom()
     : o.room === "learn" ? learnRoom()
-    : o.room === "planner" ? plannerRoom() : soulRoom();
+    : o.room === "planner" ? plannerRoom()
+    : o.room === "glass" ? glassRoom() : soulRoom();
 
   keep.forEach(([cls, top, left]) => {
     const el = R.querySelector("." + cls.split(" ")[0]);
@@ -8121,6 +9766,7 @@ function renderRoom(){
   if(o.room === "work"){ wireWorkTabs(); if(WK.view === "board") wireCards(); }
   if(o.room === "learn"){ wireLearn(); }
   if(o.room === "planner"){ wirePlanner(); }
+  if(o.room === "glass"){ wireGlass(); }
   if(o.room === "ledger"){ wireFin();
     /* the strip rides every fin view — its stones paint on all four tabs */
     paintStripStones(); wireStripStones(); }
@@ -9667,8 +11313,10 @@ async function refreshStanding(){
 }
 
 /* ── load ─────────────────────────────────────────────────────────── */
-async function grab(path){
-  const r = await fetch(url(path), { headers: hdr(), cache:"no-store" });
+async function grab(path, signal){
+  /* signal is optional: a room that owns its fetches (the glass, #360) hands
+     its AbortController's signal so leaving the room ends them */
+  const r = await fetch(url(path), { headers: hdr(), cache:"no-store", signal });
   if(!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0,120));
   return r.json();
 }
