@@ -523,6 +523,28 @@ body.hot .centre .weeks i.now{background:var(--hot);box-shadow:0 0 10px -2px var
 .snapline b{color:var(--mid)}
 .snapline .mis{margin-left:8px;cursor:pointer;color:var(--dim);text-decoration:underline dotted}
 .snapline .mis:hover{color:var(--hot)}
+/* THE SERVICE CLOCK (card #362) — the truck's due list on the HOTSHOT orb */
+.svc-odo{font:500 10.5px/1.6 var(--mono);color:var(--dim);margin:2px 0 6px}
+.svc-odo b{color:var(--mid)}
+.svc-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px dotted var(--line)}
+.svc-row:last-of-type{border-bottom:0}
+.svc-l{font:600 13px/1.3 var(--sans);color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.svc-b{grid-column:1;font:500 10.5px/1.5 var(--mono);color:var(--dim)}
+.svc-n{grid-row:1 / span 2;grid-column:2;text-align:right;font:600 20px/1.1 var(--mono);color:var(--ink)}
+.svc-n i{display:block;font:500 9.5px/1.4 var(--mono);font-style:normal;color:var(--dim);letter-spacing:.06em}
+.svc-row.soon .svc-n{color:var(--amber)} .svc-row.overdue .svc-n{color:var(--hot)}
+.svc-row.unknown .svc-n{color:var(--unknown)}
+.svc-acts{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.svc-btn{font:600 10.5px/1 var(--mono);letter-spacing:.08em;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:9px 12px;min-height:36px;cursor:pointer}
+.svc-btn:hover{border-color:rgba(var(--key),.6)} .svc-btn.go{border-color:rgba(var(--key),.7);color:var(--amber)}
+.svc-form{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;font:500 11px/1.4 var(--mono);color:var(--mid)}
+.svc-form input[type=number]{width:108px;font:500 14px/1 var(--mono);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px}
+.svc-form input.sm{width:64px}
+.svc-form label{display:flex;gap:6px;align-items:center}
+.svc-err{grid-column:1 / -1;color:var(--hot);font:500 11px/1.4 var(--mono)}
+.svc-log{margin-top:10px;font:500 10.5px/1.7 var(--mono);color:var(--dim)}
+.svc-log .vd{margin-left:8px;cursor:pointer;text-decoration:underline dotted}
+.svc-log .vd:hover{color:var(--hot)}
 .rows{flex:0 0 auto;display:flex;flex-direction:column;gap:5px;margin-top:8px}
 .rw{display:flex;align-items:center;gap:9px;font:400 11px/1.3 var(--sans);color:var(--mid)}
 .rw .b{flex:1;height:4px;background:rgba(var(--wash),.09);border-radius:2px;overflow:hidden;min-width:18px}
@@ -4406,7 +4428,93 @@ function standingRoom(){
           p.earned ? Math.min(100, Math.round(100*(p.still_out||0)/p.earned)) : 0}%"></i></span>
           <span class="v">${p.still_out==null?"——":money(p.still_out)}</span></div>
       </div>
-    </div>` + pulseHTML() + quoteHTML() + actsHTML() + bulletinHTML() + `</div>`;
+    </div>` + pulseHTML() + quoteHTML() + actsHTML() + svcHTML() + bulletinHTML() + `</div>`;
+}
+/* THE SERVICE CLOCK (card #362, his ask 2026-09-29) — oil, tire rotation and
+   the trailer's axle lube, served whole by /api/hotshot as `service`; the page
+   computes nothing. Miles-left reads against the furthest odometer the book
+   holds, named with its source and date so a stale figure is visibly stale.
+   DONE stamps an odometer (prefilled, editable); the oil row also takes the
+   dash's own oil-life reading. A typo is voided, never deleted. */
+const SVC = { open: null, err: null };
+function svcHTML(){
+  const h = State.hotshot, sv = h && h.service;
+  const shell = inner => `<div class="panel" style="grid-column:1 / -1">
+    <div class="cap">the truck · service clock</div>${readLine(["hotshot"])}${inner}</div>`;
+  if(!sv) return shell(`<p class="nodata">the spine has not answered with the service clock</p>`);
+  if(sv.error) return shell(`<p class="nodata">${esc(sv.error)}</p>`);
+  const o = sv.odometer || {}, now = o.miles;
+  const n = v => v == null ? "——" : Math.round(v).toLocaleString();
+  const itemLabel = k => ((sv.items || []).find(i => i.key === k) || {}).label || k;
+  const rows = (sv.items || []).map(it => {
+    const left = it.miles_left;
+    const big = left == null ? "——" : left < 0 ? n(-left) : n(left);
+    const unit = left == null ? "UNKNOWN" : left < 0 ? "MI OVERDUE" : "MI LEFT";
+    let form = "";
+    if(SVC.open === it.key + ":done"){
+      const rider = (sv.items || []).find(x => x.rides_with === it.key);
+      form = `<div class="svc-form" data-f="done" data-k="${it.key}">
+        <label>odometer <input type="number" inputmode="numeric" name="odo" value="${now == null ? "" : Math.round(now)}"></label>
+        ${rider ? `<label><input type="checkbox" name="also" value="${rider.key}" checked> ${esc(rider.label)} too</label>` : ""}
+        <button class="svc-btn go" data-save>LOG IT</button><button class="svc-btn" data-cancel>CANCEL</button></div>`;
+    } else if(SVC.open === it.key + ":oil"){
+      form = `<div class="svc-form" data-f="oil" data-k="${it.key}">
+        <label>oil life <input class="sm" type="number" inputmode="numeric" name="pct" min="0" max="100">%</label>
+        <label>miles left <input type="number" inputmode="numeric" name="left"></label>
+        <label>at odometer <input type="number" inputmode="numeric" name="odo" value="${now == null ? "" : Math.round(now)}"></label>
+        <button class="svc-btn go" data-save>LOG IT</button><button class="svc-btn" data-cancel>CANCEL</button></div>`;
+    }
+    const err = SVC.err && SVC.err.k === it.key ? `<div class="svc-err">${esc(SVC.err.msg)}</div>` : "";
+    return `<div class="svc-row ${it.status}">
+      <div class="svc-l">${esc(it.label)}</div>
+      <div class="svc-n">${big}<i>${unit}${it.due_at == null ? "" : " · DUE " + n(it.due_at)}</i></div>
+      <div class="svc-b">${esc(it.basis || "")}</div>
+      <div class="svc-acts"><button class="svc-btn" data-open="${it.key}:done">DONE</button>${
+        it.key === "oil_change" ? `<button class="svc-btn" data-open="${it.key}:oil">OIL LIFE READING</button>` : ""}</div>
+      ${form}${err}</div>`;
+  }).join("");
+  const kind = r => r.kind === "oil_life" ? `oil life ${r.oil_life_pct}% · ${n(r.est_miles_left)} mi left` : itemLabel(r.item) + " done";
+  const log = (sv.recent || []).slice(0, 4).map(r =>
+    `<div>${esc(String(r.at).slice(0,10))} · ${n(r.odometer)} · ${esc(kind(r))}<span class="vd" data-void="${r.id}" title="a mistyped entry stops counting; the row is kept">void</span></div>`).join("");
+  return shell(`<div class="svc-odo">odometer <b>${n(now)}</b>${o.source ? ` · ${esc(o.source)} · ${esc(o.date || "")}` : " · no reading yet — snap the dash"}</div>
+    ${rows}${log ? `<div class="svc-log">${log}</div>` : ""}`);
+}
+async function svcPost(path, body, k){
+  SVC.err = null;
+  try{
+    const r = await fetch(url(path), {method:"POST",
+      headers:{...hdr(), "Content-Type":"application/json"}, body: JSON.stringify(body)});
+    const o = await r.json().catch(() => ({}));
+    if(!r.ok || !o.ok){ const msg = o.error || `the spine said ${r.status}`;
+      if(k == null) toast("not kept — " + msg); SVC.err = {k, msg}; renderRoom(); return; }
+    if(State.hotshot) State.hotshot.service = o.service;
+    SVC.open = null; renderRoom(); toast("service clock updated");
+  }catch(e){ SVC.err = {k, msg: "not kept — the spine did not answer"}; renderRoom(); }
+}
+function wireSvc(){
+  document.querySelectorAll(".svc-btn[data-open]").forEach(b => b.addEventListener("click", e => {
+    e.stopPropagation(); SVC.err = null;
+    SVC.open = SVC.open === b.dataset.open ? null : b.dataset.open; renderRoom();
+  }));
+  document.querySelectorAll(".svc-form").forEach(f => {
+    f.addEventListener("click", e => e.stopPropagation());
+    const c = f.querySelector("[data-cancel]");
+    c && c.addEventListener("click", () => { SVC.open = null; SVC.err = null; renderRoom(); });
+    f.querySelector("[data-save]").addEventListener("click", () => {
+      const v = nm => (f.querySelector(`[name=${nm}]`) || {}).value;
+      const k = f.dataset.k;
+      if(f.dataset.f === "done"){
+        const also = [...f.querySelectorAll("[name=also]:checked")].map(x => x.value);
+        svcPost("/api/hotshot/service/done", {item: k, odometer: v("odo"), also}, k);
+      } else {
+        svcPost("/api/hotshot/service/oil-life", {pct: v("pct"), miles_left: v("left"), odometer: v("odo")}, k);
+      }
+    });
+  });
+  document.querySelectorAll(".svc-log .vd").forEach(el => el.addEventListener("click", e => {
+    e.stopPropagation(); el.textContent = "voiding…";
+    svcPost("/api/hotshot/service/void", {id: +el.dataset.void}, null);
+  }));
 }
 /* THE BULLETIN (card #125) — DOT/FMCSA news, the Register's rule changes,
    and his own compliance clock, at the bottom of the hotshot room. The
@@ -9761,7 +9869,7 @@ function renderRoom(){
     /* the haul gets its OWN arm — the else arm below wires the standing
        gauge and wireScale fires the quote-scale POSTs; on a haul render
        that would be phantom traffic against markup with no scale */
-    else { paintGauge(); wireFigs(); wireActs(); wireSnap(); wireScale(); }
+    else { paintGauge(); wireFigs(); wireActs(); wireSnap(); wireScale(); wireSvc(); }
   }
   if(o.room === "work"){ wireWorkTabs(); if(WK.view === "board") wireCards(); }
   if(o.room === "learn"){ wireLearn(); }
