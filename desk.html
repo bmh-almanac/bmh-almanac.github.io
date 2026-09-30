@@ -2322,6 +2322,55 @@ body.hot .act .h .n{color:var(--hot)}
 #cm .cm-qlater>summary::-webkit-details-marker{display:none}
 #cm .cm-qlater>summary::after{content:"+";margin-left:auto;font-size:14px}
 #cm .cm-qlater[open]>summary::after{content:"\2212"}
+/* ── card #366: the queue shows what's next — each lane's NEXT opens itself,
+   everything else is one row, tapped open and tapped shut. Dates and states
+   are the spine's; the page prints them. ── */
+#cm .cm-qtold{font:700 9px/1.4 var(--mono);letter-spacing:.16em;color:rgba(var(--cm-given),.85)}
+/* ONE SCREEN OF QUEUE, AT MOST: two opened threads run past a screen, so the
+   queue scrolls inside itself and the pane, the dash and the lane below it
+   are never more than a screen away. It chains to the room at its own end;
+   its thin bar is the only scrollbar in the room, so the bound can be seen. */
+#cm .cm-qscroll{max-height:min(74svh,760px);overflow-y:auto;overscroll-behavior-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(var(--cm-key),.45) transparent;padding-right:4px}
+#cm .cm-qitem>summary .cm-qd{white-space:nowrap}
+#cm .cm-qitem>summary .cm-qn{color:rgba(var(--cm-core),.6);font-variant-numeric:tabular-nums}
+#cm .cm-qitem>summary .cm-qsum{color:var(--mid)}
+#cm .cm-qitem>summary::after{content:"+";margin-left:auto;font-size:14px;color:var(--mid)}
+#cm .cm-qitem[open]>summary::after{content:"\2212"}
+#cm .cm-qstate{padding:3px 7px;border-radius:7px;corner-shape:bevel;border:1px solid rgba(var(--cm-key),.55);
+  background:rgba(var(--cm-key),.14);white-space:nowrap}
+#cm .cm-qstate.kept{border-style:dashed;border-color:var(--etch);background:none;color:var(--mid)}
+#cm .cm-qstate.out{border-color:rgba(var(--cm-given),.6);background:rgba(var(--cm-given),.08);color:rgb(var(--cm-given))}
+/* his two safety rules, said where the COPY would have been */
+#cm .cm-qrule{font:400 14px/1.45 var(--sans);color:var(--mid);margin:0 0 10px;padding-left:10px;
+  border-left:2px dashed var(--etch)}
+
+/* ── WHO ANSWERED THE BEACON (card #366): the pull, counted beside the score ── */
+#cm .cm-sparks{border-radius:12px;background:#050608;border:1px solid rgba(var(--cm-given),.14);
+  padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+#cm .cm-scount{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;font:700 10px/1.4 var(--mono);
+  letter-spacing:.14em;color:rgba(var(--cm-given),.9);font-variant-numeric:tabular-nums}
+#cm .cm-scount b{font-size:24px;letter-spacing:0;color:rgb(var(--cm-given));margin-right:6px}
+#cm .cm-calm{font:400 15px/1.5 var(--sans);color:var(--mid)}
+#cm .cm-sdrew{display:flex;flex-direction:column;gap:4px;font:400 14px/1.4 var(--sans);color:var(--mid)}
+#cm .cm-sdrew b{font:700 10px/1.4 var(--mono);letter-spacing:.12em;color:rgb(var(--cm-given));
+  font-variant-numeric:tabular-nums;margin-right:8px}
+#cm details.cm-spk{border-top:1px dotted var(--line)}
+#cm details.cm-spk>summary{list-style:none;cursor:pointer;min-height:44px;padding:8px 0;display:flex;flex-wrap:wrap;
+  align-items:center;gap:2px 10px;font:700 10px/1.4 var(--mono);letter-spacing:.12em;color:rgb(var(--cm-core))}
+#cm details.cm-spk>summary::-webkit-details-marker{display:none}
+#cm details.cm-spk>summary .cm-sp{font:400 14px/1.35 var(--sans);letter-spacing:0;color:var(--mid);flex:1 1 12em;min-width:0}
+/* a post's first line can run 140 characters: two lines say which post, the lane has the rest */
+#cm details.cm-spk>summary .cm-sp,#cm .cm-sdrew>div{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  line-clamp:2;overflow:hidden}
+#cm .cm-sbody{font:400 15px/1.5 var(--sans);color:var(--ink);padding:0 0 10px;overflow-wrap:anywhere;
+  user-select:text;-webkit-user-select:text}
+#cm .cm-sbody i{color:var(--mid)}
+#cm .cm-sdoor{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px dotted var(--line)}
+#cm .cm-sdoor select.cm-link{width:100%;font-size:15px}
+#cm .cm-sdoor textarea.cm-link{width:100%;min-height:88px;padding:10px 12px;resize:vertical;font:400 15px/1.45 var(--sans)}
+#cm .cm-sdoor .cm-recpick{flex-wrap:wrap}
+#cm .cm-sopen{align-self:flex-start}
 
 /* ── coins · mile markers · riders · the door ──────────────────────────── */
 #cm .cm-panel{border-radius:12px;background:rgba(10,14,20,.8);border:1px solid rgba(var(--cm-engrave),.08);
@@ -2349,6 +2398,10 @@ body.hot .act .h .n{color:var(--hot)}
   font:700 9px/1 var(--mono);letter-spacing:.14em;color:rgb(var(--cm-core))}
 #cm .cm-mk p{font:400 13.5px/1.6 var(--sans);color:var(--ink)}
 #cm .cm-mk .cm-stamp2{grid-column:2;font:700 8.5px/1 var(--mono);letter-spacing:.16em;color:var(--etch)}
+/* THE BACKLOG (card #366): a beat the story has not reached yet waits, said in words */
+#cm .cm-mk .cm-bk{grid-column:2;font:700 8.5px/1.5 var(--mono);letter-spacing:.14em;color:var(--mid);
+  border-left:2px dashed var(--etch);padding-left:8px}
+#cm .cm-bkline{font:400 14px/1.45 var(--sans);color:var(--mid)}
 #cm .cm-riders{display:flex;flex-wrap:wrap;gap:8px 14px}
 #cm .cm-rider{display:flex;flex-direction:column;gap:3px;min-width:70px}
 #cm .cm-rider b{font:700 10px/1 var(--mono);letter-spacing:.16em;color:var(--mid);display:flex;align-items:center;gap:6px}
@@ -2388,7 +2441,10 @@ body.hot .act .h .n{color:var(--hot)}
              radial-gradient(circle at 50% 38%,#1f4f8c,#163c6e 70%,#0f2d55)}
 :root.paper #cm .cm-odo{text-shadow:none;color:#F3EEDF}
 :root.paper #cm .cm-plate{background:#F3EEDF;--cm-engrave:29,78,137}
-:root.paper #cm .cm-dash,:root.paper #cm .cm-road,:root.paper #cm .cm-panel,:root.paper #cm .cm-pane,:root.paper #cm .cm-queue{
+/* every panel with its own dark ground takes the paper one too, or paper ink
+   lands on black — the sparks joined in card #366's review */
+:root.paper #cm .cm-dash,:root.paper #cm .cm-road,:root.paper #cm .cm-panel,:root.paper #cm .cm-pane,:root.paper #cm .cm-queue,
+:root.paper #cm .cm-sparks{
   background:rgba(247,240,224,.9);border-color:rgba(70,56,32,.24)}
 :root.paper #cm .cm-spine>span{color:#F3EEDF}
 
@@ -9300,7 +9356,9 @@ const CM = { anims:[], raf:0, rafDial:0, rafTilt:0, timers:new Set(), ac:null, r
              /* card #364: the record control, the missing link, the queue — his
                 half-typed words and his open/copied state survive a re-render */
              rec:{ surface:null, title:"", url:"" }, recSay:"", addFor:null, addUrl:"", addSay:"",
-             qOpen:new Map(), qCopied:new Map(), qSay:null };
+             qOpen:new Map(), qCopied:new Map(), qSay:null,
+             /* card #366: SOMEONE ANSWERED — his half-typed answer survives a re-render too */
+             sp:{ open:false, surface:null, kind:"", post:"", who:"", note:"" }, spSay:"", spOpen:new Set(), fOpen:false };
 const cmRM   = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const cmRT   = () => matchMedia("(prefers-reduced-transparency: reduce)").matches;
 const cmLite = () => (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
@@ -9510,7 +9568,18 @@ function cmReceiptsHTML(G){
   return `<div class="cm-receipts" id="cmReceipts" aria-label="the receipts">` + (G.score.terms || []).map(t =>
     `<details class="cm-term" data-term="${esc(t.key)}" id="cmT-${esc(t.key)}"${CM.open.has(t.key) ? " open" : ""}>
       <summary>${esc(t.label)} ${t.count == null ? "—" : t.count}<span class="cm-src">${esc(t.source)}</span></summary>
-      <div class="cm-rrows">${cmRowsHTML(t.key)}</div></details>`).join("") + `</div>`;
+      <div class="cm-rrows">${cmRowsHTML(t.key)}</div></details>`).join("") + cmFormulaHTML(G) + `</div>`;
+}
+/* THE FORMULA AND THE LANES (card #366): what counts, what is counted beside
+   it, and each surface's lane in his words — no data-term, so no receipts */
+function cmFormulaHTML(G){
+  const S = G.score, ruled = S.ruled_at ? "RULED " + cmDate(S.ruled_at) : "NOT YET RULED";
+  const lanes = cmSurfaces(G).map(s => `<div class="cm-rrow">${esc(String(s.label).toUpperCase())} · ${s.lane
+    ? esc(s.lane) : "DECLARED · LANE NOT RULED — his call"}</div>`).join("");
+  return `<details class="cm-term cm-fdrawer" id="cmFormula"${CM.fOpen ? " open" : ""}>
+      <summary>THE FORMULA · THE LANES<span class="cm-src">FORMULA ${esc(String(S.formula).toUpperCase())} · ${esc(ruled)}</span></summary>
+      <div class="cm-rrows"><div class="cm-rrow">1 receipt = 1 point — every point has its receipt above.</div>
+        <div class="cm-rrow">sparks are counted beside the score, never in it — adding them is his call.</div>${lanes}</div></details>`;
 }
 
 /* ── the glass pane: the note, the headlights, the tape ──────────────── */
@@ -9612,15 +9681,18 @@ function cmRoadHTML(G){
           <div class="cm-say" id="cmAddSay" role="status">${esc(CM.addSay)}</div></div>`
       : `<button class="cm-btn cm-addlink" data-addl="${p.id}">ADD LINK</button>`}</div>`; };
   const col = s => lane.filter(p => p.surface === s).map(refl).join("") || `<p class="cm-nothing">nothing logged here yet</p>`;
-  const r = CM.rec;
+  const r = CM.rec, cols = cmShown(G);
+  /* one painted lane per surface the spine shows (card #366) — LinkedIn left,
+     X right as they always were; a third lane only once it holds something */
+  const lanes = cols.map((s, i) => (i ? `<div class="cm-center" aria-hidden="true"></div>` : "")
+    + `<div><h4>${esc(String(s.label).toUpperCase())}</h4>${col(s.key)}</div>`).join("");
   return `<section class="cm-road" id="cmRoad" aria-label="the lane">
     <div class="cm-cap">THE LANE · WHAT WENT OUT, AND WHERE</div>
-    <div class="cm-lanes"><div><h4>LINKEDIN</h4>${col("linkedin")}</div><div class="cm-center" aria-hidden="true"></div><div><h4>X</h4>${col("x")}</div></div>
+    <div class="cm-lanes" style="grid-template-columns:${cols.map(() => "minmax(0,1fr)").join(" 2px ")}">${lanes}</div>
     <div class="cm-rec" id="cmRec">
       <div class="cm-cap">RECORD A POST · YOU POSTED IT — THIS SAYS SO</div>
       <div class="cm-recpick" role="group" aria-label="where it went">
-        <button class="cm-pick" data-rsurf="x" aria-pressed="${r.surface === "x"}">X</button>
-        <button class="cm-pick" data-rsurf="linkedin" aria-pressed="${r.surface === "linkedin"}">LINKEDIN</button></div>
+        ${cols.map(s => `<button class="cm-pick" data-rsurf="${esc(s.key)}" aria-pressed="${r.surface === s.key}">${esc(String(s.label).toUpperCase())}</button>`).join("")}</div>
       <input class="cm-link" id="cmRecTitle" autocomplete="off" placeholder="its first line — how the record finds it again"
         aria-label="the post's first line" value="${esc(r.title)}">
       <div class="cm-recrow"><input class="cm-link" id="cmRecUrl" inputmode="url" autocomplete="off"
@@ -9646,62 +9718,163 @@ function cmQLane(item, p){
      what it can't know — the queue has no date for the fact. */
   const T = p.test || {}, L = T.lanes || {}, v = L[item.surface] || T.verdict || "unread";
   const served = () => (T.hits || []).map(h => `<q>${esc(h.token)}</q> — ${esc(h.why)}.`).join(" ");
-  const undated = " The queue can't date the fact, so it reads it as today's; if it's older than that, the call is yours.";
-  if(v === "stopped") return { cls:"stopped", word:"STOPPED", copy:false,
-    why: served() + " It stays off the clipboard. Edit it in the Glass Barn; the next read tests it again.", html:true };
-  if(v !== "taped" && v !== "held")
-    return { cls:"unread", word:"UNREAD", copy:false, why:"Not tested — the spine didn't answer. Nothing leaves the glass untested." };
-  if(item.surface === "linkedin" && L.linkedin_why) return { cls:"held", word:"X ONLY", copy:true, html:true,
-    why: esc(L.linkedin_why) + "." + (T.verdict === "held" ? ` On X it waits too, until ${esc(cmDate(T.hold_until))}: ${served()}${undated}` : "") };
-  if(v === "taped") return { cls:"taped", word: L.linkedin_why ? "X ONLY" : "TAPED", copy:true, why:"" };
-  return { cls:"held", word:`HELD · TAPE IT ${cmDate(T.hold_until)}`, copy:true, html:true, why: served() + undated };
+  /* card #366: the spine dates each item by its truck fact, so a HELD says
+     which day the lag counts from; only an undated item is read as today's */
+  const dated = item.truck ? ` The lag counts from its truck fact, ${esc(cmDate(item.truck))}.`
+    : " The queue can't date the fact, so it reads it as today's; if it's older than that, the call is yours.";
+  /* a lane he has not ruled (Substack) says so — the verdict is the policy's alone */
+  const unruled = L[item.surface + "_why"] ? " " + esc(L[item.surface + "_why"]) + "." : "";
+  /* his two safety rules outrank every verdict: a BACKLOG or UNDATED item is
+     read here and never copied — the rule is a safety measure, like STOPPED */
+  const kept = cmQKept(item);
+  const r = (() => {
+    if(v === "stopped") return { cls:"stopped", word:"STOPPED", copy:false,
+      why: served() + " It stays off the clipboard. Edit it in the Glass Barn; the next read tests it again." };
+    if(v !== "taped" && v !== "held")
+      return { cls:"unread", word:"UNREAD", copy:false, why:"Not tested — the spine didn't answer. Nothing leaves the glass untested." };
+    if(item.surface === "linkedin" && L.linkedin_why) return { cls:"held", word:"X ONLY", copy:true,
+      why: esc(L.linkedin_why) + "." + (T.verdict === "held" ? ` On X it waits too, until ${esc(cmDate(T.hold_until))}: ${served()}${dated}` : "") };
+    if(v === "taped") return { cls:"taped", word: L.linkedin_why ? "X ONLY" : "TAPED", copy:true, why: unruled.trim() };
+    return { cls:"held", word:`HELD · TAPE IT ${cmDate(T.hold_until)}`, copy:true, why: served() + dated + unruled };
+  })();
+  r.html = true;                              // every reason above is escaped as it is built
+  if(kept) r.copy = false;
+  return r;
 }
+/* THE SURFACES (card #366): one registry, served. A lane, a queue row or a
+   sparks line appears only for a surface the spine marks shown — ruled, or
+   holding a post, a spark or a queued item. A spine from before the registry
+   serves none, and then the two ruled lanes stand as they always did. */
+const CM_SURF0 = [{ key:"x", label:"X", shown:true, ruled:true }, { key:"linkedin", label:"LinkedIn", shown:true, ruled:true }];
+const cmSurfaces = G => (G && G.surfaces) || CM_SURF0;
+const cmShown = G => { const order = ["linkedin", "x"];
+  return cmSurfaces(G).filter(s => s.shown)
+    .sort((a, b) => ((order.indexOf(a.key) + 1) || 9) - ((order.indexOf(b.key) + 1) || 9)); };
+const cmSurfWord = (G, k) => { const s = cmSurfaces(G).find(x => x.key === k); return String(s ? s.label : k).toUpperCase(); };
+/* HIS SAFETY RULES FAIL CLOSED (card #366's review): only an item the spine
+   serves as READY, or one already OUT, offers COPY and RECORD IT. A spine from
+   before card #366 serves no state at all, and then the page cannot tell this
+   week's draft from last month's — so on launch day, a spine that missed its
+   restart keeps every unsent item back and says why, never waves them through. */
+function cmQKept(it){ return !(it.out || it.state === "ready" || it.state === "out"); }
+const CM_Q_UNDATED_SPINE = "this spine does not date the queue yet — COPY comes back once it restarts on card #366";
+/* the item's state in words; every date in it is served */
+function cmQState(it){
+  if(it.out) return { cls:"out", word:`OUT · ${cmDate(it.out.at)}` };
+  if(it.state === "backlog") return { cls:"kept", word:`BACKLOG · READY ${cmDate(it.ready_on)}` };
+  if(it.state !== "ready") return { cls:"kept", word:"UNDATED" };
+  return { cls:"ready", word: it.next ? "NEXT" : "READY" };
+}
+/* a spine from before card #366 serves item.later, not item.fold */
+const cmFold = it => it.fold !== undefined ? it.fold : (it.later ? "later" : null);
 function cmQueueHTML(G){
   /* a spine that predates the queue sends no key at all — that is not an
      empty queue, and the glass must not say it is */
   const Q = G.queue || [], why = G.queue === undefined
     ? "this spine does not read the queue yet — it does once it restarts on card #364"
     : G.unavailable && G.unavailable.queue;
-  if(!Q.length) return `<section class="cm-queue" id="cmQueue" aria-label="the queue">
-    <div class="cm-cap">THE QUEUE · WHAT GOES OUT NEXT</div>
+  /* THE FRONTIER: how far the story has been told, from what went out */
+  const fr = G.frontier, told = G.frontier === undefined ? ""
+    : fr ? `THE STORY TOLD THROUGH ${cmDate(fr.as_of)}` : "THE STORY HASN'T GONE OUT YET — IT STARTS FROM THE BEGINNING";
+  const cap = `<div class="cm-cap">THE QUEUE · WHAT GOES OUT NEXT · COPY IS YOURS, POSTING IS YOURS</div>`
+    + (told && Q.length ? `<div class="cm-qtold">${esc(told)}</div>` : "");
+  if(!Q.length) return `<section class="cm-queue" id="cmQueue" aria-label="the queue">${cap}
     <p class="cm-nothing">${esc(why || "nothing queued in the Glass Barn")}</p></section>`;
   const item = it => {
-    const surf = it.surface === "x" ? "X" : "LINKEDIN", o = it.out;
-    /* the next unposted item opens itself; his own toggles are kept — but an
-       item that goes OUT starts fresh, collapsed to its date and link */
+    const surf = cmSurfWord(G, it.surface), o = it.out, st = cmQState(it);
+    const kept = cmQKept(it);
+    /* each lane's NEXT opens itself; his own toggles are kept — but an item
+       that goes OUT starts fresh, folded to its date and link */
     const qo = it.key + (o ? "·out" : "");
     const open = CM.qOpen.has(qo) ? CM.qOpen.get(qo) : !!it.next;
     const link = o && /^https:\/\//i.test(o.url || "") ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">LINK</a>`
       : o ? `<span>LINK NOT CAPTURED — ADD IT ON THE LANE</span>` : "";
     const copied = CM.qCopied.get(it.key) || new Map(), last = it.posts.length ? it.posts[it.posts.length - 1].n : null;
     const posts = it.posts.map(p => { const v = cmQLane(it, p);
+      const size = it.limit == null ? `${p.len} CHARS · LONG-FORM` : `${p.len} / ${it.limit}${p.fits ? "" : " · TOO LONG FOR " + surf}`;
       return `<li class="cm-qpost">
-        <div class="cm-qhead"><b>${p.n}/${it.count}</b><span class="${p.fits ? "" : "over"}">${p.len} / ${it.limit}${p.fits ? "" : " · TOO LONG FOR " + surf}</span>
+        <div class="cm-qhead"><b>${p.n}/${it.count}</b><span class="${p.fits ? "" : "over"}">${size}</span>
           <span class="cm-qchip ${v.cls}">${esc(v.word)}</span></div>
         <div class="cm-qtext">${esc(p.text)}</div>
         ${v.why ? `<div class="cm-qverdict">${v.html ? v.why : esc(v.why)}</div>` : ""}
         ${v.copy ? `<button class="cm-btn cm-qcopy" data-qk="${esc(it.key)}" data-qn="${p.n}">${copied.get(p.n) ? "COPIED" : "COPY"} ${p.n}/${it.count}</button>` : ""}
       </li>`; }).join("");
     const say = CM.qSay && CM.qSay.key === it.key ? CM.qSay.words : "";
-    const rec = !o && last != null && copied.has(last)
+    /* the rule, said where the COPY would have been — never a verdict of ours */
+    const rule = !kept ? "" : it.why ? `<div class="cm-qrule">${esc(it.why)}${it.ready_on
+      ? ` — it can go from ${esc(cmLongDate(it.ready_on))}` : ""}. Read it here; COPY comes back when the rule lets it go.</div>`
+      : `<div class="cm-qrule">${esc(CM_Q_UNDATED_SPINE)}.</div>`;
+    const rec = !kept && !o && last != null && copied.has(last)
       ? `<div class="cm-qrec"><button class="cm-btn" data-qrec="${esc(it.key)}">RECORD IT</button>
           <span class="cm-sans">fills the record on the lane — hold it there once it's out</span></div>` : "";
+    const sum = it.verdict && it.verdict.word ? `<span class="cm-qsum">${esc(it.verdict.word)}</span>` : "";
     return `<details class="cm-qitem" data-qo="${esc(qo)}"${open ? " open" : ""}>
-      <summary><span>${surf} · ${esc(cmDate(it.date))}</span><span class="cm-qt">${esc(it.title)}</span>
-        <span>${it.count} POST${it.count === 1 ? "" : "S"}</span>${o ? `<span class="cm-qout">OUT · ${esc(cmDate(o.at))}</span>${link}` : it.next ? "<span>NEXT</span>" : ""}</summary>
-      <ol class="cm-qlist">${posts}</ol>
+      <summary><span class="cm-qd">${esc(cmDate(it.date))} · ${esc(surf)}</span><span class="cm-qt">${esc(it.title)}</span>
+        <span class="cm-qn">${it.count} POST${it.count === 1 ? "" : "S"}</span><span class="cm-qstate ${st.cls}">${esc(st.word)}</span>${sum}${link}</summary>
+      ${rule}<ol class="cm-qlist">${posts}</ol>
       <div class="cm-say" role="status">${esc(say)}</div>${rec}
     </details>`; };
-  /* ON DECK stays in view; the weeks after it fold into one closed row, so
-     the pane and RECORD A POST sit near the top of the column, not under
-     twelve weeks of drafts. Which items fold, and how many, is the spine's
-     call (item.later, queue_later) — the page only groups and says it. */
-  const deck = Q.filter(it => !it.later), later = Q.filter(it => it.later);
-  const lo = CM.qOpen.has("later") ? CM.qOpen.get("later") : false;
-  const fold = later.length ? `<details class="cm-qlater" data-qo="later"${lo ? " open" : ""}>
-      <summary>LATER · ${esc(String(G.queue_later))} QUEUED</summary>${later.map(item).join("")}</details>` : "";
-  return `<section class="cm-queue" id="cmQueue" aria-label="the queue">
-    <div class="cm-cap">THE QUEUE · WHAT GOES OUT NEXT · COPY IS YOURS, POSTING IS YOURS</div>${deck.map(item).join("")}${fold}</section>`;
+  /* THE FOLD is the spine's call (item.fold, queue_folds): each lane's NEXT
+     and its newest OUT, then the next few as one row each; older OUT items
+     fold under SENT, the rest of the quarter under LATER — opened by his tap */
+  const F = G.queue_folds || { later: Q.filter(it => cmFold(it) === "later").length, sent: 0 };
+  const group = (k, label) => { const items = Q.filter(it => cmFold(it) === k); if(!items.length) return "";
+    const lo = CM.qOpen.has(k) ? CM.qOpen.get(k) : false;
+    return `<details class="cm-qlater" data-qo="${k}"${lo ? " open" : ""}>
+      <summary>${label} · ${esc(String(F[k] ?? items.length))}</summary>${items.map(item).join("")}</details>`; };
+  return `<section class="cm-queue" id="cmQueue" aria-label="the queue">${cap}
+    <div class="cm-qscroll" id="cmQScroll">${group("sent", "SENT")}${Q.filter(it => !cmFold(it)).map(item).join("")}${group("later", "LATER")}</div></section>`;
+}
+/* ── WHO ANSWERED THE BEACON (card #366) ──────────────────────────────────
+   His words 09-30: "we will put out the beacon and see if we spark interest
+   out there." The pull, measured: every count here is the spine's, and none
+   of it is in the score. A row shows kind · surface · when · which post; who
+   and what they said open on his tap. A note that touches someone's
+   recovery, family, health or money never reaches the glass — the spine
+   withholds it, and the row says so. Other people's recovery is theirs. */
+function cmSparksHTML(G){
+  const Sp = G.sparks, why = G.sparks === undefined
+    ? "this spine does not count the sparks yet — it does once it restarts on card #366"
+    : G.unavailable && G.unavailable.sparks;
+  const cap = `<div class="cm-cap">WHO ANSWERED THE BEACON · COUNTED BESIDE THE SCORE, NEVER IN IT</div>`;
+  if(!Sp) return `<section class="cm-sparks" id="cmSparks" aria-label="who answered the beacon">${cap}
+    <p class="cm-nothing">${esc(why || "the sparks could not be read")}</p></section>`;
+  const shown = new Set(cmShown(G).map(s => s.key));
+  const counts = Sp.total ? `<div class="cm-scount"><span><b>${esc(String(Sp.total))}</b>ANSWERED</span>`
+    + Object.entries(Sp.by_surface || {}).filter(([k]) => shown.has(k)).map(([k, n]) => `<span>${esc(cmSurfWord(G, k))} ${esc(String(n))}</span>`).join("")
+    + Object.entries(Sp.by_kind || {}).map(([k, n]) => `<span>${esc(k.toUpperCase())} ${esc(String(n))}</span>`).join("") + `</div>` : "";
+  /* calm, never red: the beacon is judged by who answers, and silence is a fact, not a failure */
+  const calm = Sp.total ? "" : `<p class="cm-calm">${Sp.beacon_at
+    ? `No one has answered yet — the beacon went out ${esc(cmLongDate(Sp.beacon_at))}.` : "The beacon hasn't gone out yet."}</p>`;
+  const title = t => t != null ? esc(t) : "<i>words held back from the glass</i>";
+  const drew = (Sp.by_post || []).length ? `<div class="cm-sdrew">` + Sp.by_post.slice(0, 5).map(b =>
+    `<div><b>${esc(String(b.n))} · ${esc(cmSurfWord(G, b.surface || ""))}</b>${b.held ? title(null) : title(b.title)}</div>`).join("") + `</div>` : "";
+  const rows = (Sp.recent || []).map(r => `<details class="cm-spk" data-sk="${r.id}"${CM.spOpen && CM.spOpen.has(r.id) ? " open" : ""}>
+      <summary><span>${esc(String(r.kind).toUpperCase())} · ${esc(cmSurfWord(G, r.surface))} · ${esc(cmDate(r.at))}</span>
+        <span class="cm-sp">${r.post_id ? `post ${esc(String(r.post_id))} — ${r.post_held ? title(null) : title(r.post_title)}` : "the account itself"}</span></summary>
+      <div class="cm-sbody">${r.home ? "<i>a personal note — kept off the glass</i>"
+        : (r.who ? `<div>${esc(r.who)}</div>` : "") + (r.note ? `<div>${esc(r.note)}</div>` : "")
+          + (!r.who && !r.note ? "<i>no handle or words were kept with it</i>" : "")}</div></details>`).join("");
+  return `<section class="cm-sparks" id="cmSparks" aria-label="who answered the beacon">${cap}${counts}${calm}${drew}${rows}${cmSparkDoorHTML(G)}</section>`;
+}
+/* SOMEONE ANSWERED: his hand records it; the spine's one writer checks it */
+function cmSparkDoorHTML(G){
+  const sp = CM.sp, kinds = (G.sparks && G.sparks.kinds) || [];
+  if(!sp.open) return `<button class="cm-btn cm-sopen" id="cmSparkOpen">SOMEONE ANSWERED</button>`
+    + (CM.spSay ? `<div class="cm-say" id="cmSpSay" role="status">${esc(CM.spSay)}</div>` : "");
+  const posts = (G.lane || []).map(p => `<option value="${p.id}"${String(sp.post) === String(p.id) ? " selected" : ""}>POST ${p.id} · ${esc(cmSurfWord(G, p.surface))} · ${esc(cmDate(p.at))} · ${p.title != null ? esc(String(p.title).slice(0, 60)) : "words held back"}</option>`).join("");
+  return `<div class="cm-sdoor" id="cmSparkDoor">
+      <div class="cm-cap">SOMEONE ANSWERED · YOU SAW IT — THIS SAYS SO</div>
+      <div class="cm-recpick" role="group" aria-label="where they answered">
+        ${cmShown(G).map(s => `<button class="cm-pick" data-ssurf="${esc(s.key)}" aria-pressed="${sp.surface === s.key}">${esc(String(s.label).toUpperCase())}</button>`).join("")}</div>
+      <select class="cm-link" id="cmSpKind" aria-label="what kind of answer"><option value="">what kind of answer…</option>
+        ${kinds.map(k => `<option value="${esc(k)}"${sp.kind === k ? " selected" : ""}>${esc(k.toUpperCase())}</option>`).join("")}</select>
+      <select class="cm-link" id="cmSpPost" aria-label="which post drew it"><option value="">the account itself — no one post</option>${posts}</select>
+      <input class="cm-link" id="cmSpWho" autocomplete="off" placeholder="who — their handle (kept private)" aria-label="who answered" value="${esc(sp.who)}">
+      <textarea class="cm-link" id="cmSpNote" placeholder="what they said or want (kept private)" aria-label="what they said">${esc(sp.note)}</textarea>
+      <button class="cm-held" id="cmSpHold"><span class="r2"></span><span class="cc">HOLD · RECORD IT</span></button>
+      <div class="cm-recrow"><button class="cm-btn" id="cmSpClose">NOT NOW</button></div>
+      <div class="cm-say" id="cmSpSay" role="status">${esc(CM.spSay)}</div></div>`;
 }
 function cmDoorHTML(G){
   /* THE PASSENGER DOOR: who it is for, from his ruling as the spine serves it
@@ -9733,11 +9906,20 @@ function cmCoinsHTML(G, strike){
 }
 function cmMarksHTML(G){
   const b = G.beats || [];
+  /* THE BACKLOG (his rule 09-30, card #366): a beat from this week, or one the
+     told story has not reached, waits — which ones, and how many, is served */
+  const bk = x => x.backlog === "week"
+      ? `<span class="cm-bk">BACKLOG · THIS WEEK — told when the story reaches it (his rule 09-30)</span>`
+    : x.backlog === "backlog" ? `<span class="cm-bk">BACKLOG</span>` : "";
+  const n = G.beats_backlog, fr = G.frontier;
+  const line = n == null ? "" : `<p class="cm-bkline">${esc(String(n))} beat${n === 1 ? "" : "s"} wait${n === 1 ? "s" : ""} in the backlog`
+    + (fr ? ` · the story told through ${esc(cmLongDate(fr.as_of))}` : " · the story hasn't gone out yet") + `</p>`;
   return `<section class="cm-panel" aria-label="mile markers"><div class="cm-cap">MILE MARKERS · THE BREADCRUMBS</div>
+    ${b.length ? line : ""}
     <div class="cm-marks">${b.length ? b.map(x => `<div class="cm-mk">
       <button class="cm-post" data-day="${x.d == null ? "" : x.d}">DAY ${x.d == null ? "—" : x.d}</button>
       <p>${x.home ? `${CM_LOCK} STAYS HOME` : x.beat ? esc(x.beat) : "words held back until they pass the window test"}</p>
-      ${x.tag === "sanitize" && !x.home ? `<span class="cm-stamp2">TEST FIRST</span>` : ""}</div>`).join("")
+      ${x.tag === "sanitize" && !x.home ? `<span class="cm-stamp2">TEST FIRST</span>` : ""}${bk(x)}</div>`).join("")
       : `<p class="cm-nothing">no breadcrumbs yet</p>`}</div></section>`;
 }
 function cmRidersHTML(G){
@@ -9755,7 +9937,7 @@ function glassRoom(){
        never counts as a second entry */
     CM.entryPending = false; CM.phase = "reading"; CM.chipsLanded = false;
     CM.turned = false; CM.reading = false; CM.readDay = null; CM.err = "";
-    CM.recSay = CM.addSay = ""; CM.qSay = null;   // last visit's answers are not this visit's news
+    CM.recSay = CM.addSay = CM.spSay = ""; CM.qSay = null;   // last visit's answers are not this visit's news
   }
   const pre = CM.phase === "reading", G = cmG();
   if(!G && !pre) return `<div class="cm-scroll" id="cm"><section class="cm-shield" id="cmShield">
@@ -9771,7 +9953,7 @@ function glassRoom(){
     <div class="cm-grid">
       <div class="cm-pair">
         <div class="cm-left">${cmShieldHTML(G, pre)}${G && !pre ? cmReceiptsHTML(G) : ""}</div>
-        <div class="cm-right">${G ? cmQueueHTML(G) + cmPaneHTML(G) + cmDashHTML(G) + cmRoadHTML(G) : ""}</div>
+        <div class="cm-right">${G ? cmQueueHTML(G) + cmPaneHTML(G) + cmDashHTML(G) + cmRoadHTML(G) + cmSparksHTML(G) : ""}</div>
       </div>
       ${G ? `<div class="cm-strip4">${cmCoinsHTML(G, CM.strike)}${cmMarksHTML(G)}${cmRidersHTML(G)}${cmDoorHTML(G)}</div>` : ""}
     </div>
@@ -10325,16 +10507,19 @@ function cmOnReturn(){
   if(CM.paying || CM.phase !== "rest" || Date.now() - CM.fetchedAt < 60000) return;
   cmRefetch();
 }
+/* → true when it re-read the book AND redrew the room; false when the read
+   failed or the room was left — a write's caller then settles its own control */
 async function cmRefetch(){
   const G0 = cmG();
   let G;
-  try{ G = await grab("/api/glass", CM.ac && CM.ac.signal); }catch(_){ return; }
-  if(ACTIVE === null || D[ACTIVE].room !== "glass" || CM.paying) return;
+  try{ G = await grab("/api/glass", CM.ac && CM.ac.signal); }catch(_){ return false; }
+  if(ACTIVE === null || D[ACTIVE].room !== "glass" || CM.paying) return false;
   State.glass = G; CM.G = G; CM.fetchedAt = Date.now();
   paintField(); renderRoom();
   const was = G0 && G0.series[G0.series.length - 1].pts, now = G.series[G.series.length - 1].pts;
   if(was != null && now != null && now > was && !cmRM()) cmDelta(G, was, now);
   else cmLandQuiet(G);
+  return true;
 }
 
 function cmWirePane(){
@@ -10352,7 +10537,7 @@ function cmWirePane(){
     catch(_){ cmPostSay("the phone would not hand over the clipboard — paste the link into the field"); }
   }, sig);
   document.querySelectorAll("#cm .cm-held[data-surface]").forEach(btn => {
-    const name = btn.dataset.surface === "x" ? "X" : "LINKEDIN";
+    const name = cmSurfWord(cmG(), btn.dataset.surface);     // the served label, never a list of ours
     holdToAct(btn, { idle:"HOLD · " + name, busy:"WRITING", refused:"NOT MARKED",
                      released:"released before it took — nothing was marked" },
       async () => (await cmPost(btn.dataset.surface)) ? undefined : false, CM.ac.signal);
@@ -10378,16 +10563,21 @@ async function cmSpineWrite(path, body){
 async function cmRecord(cc){
   const r = CM.rec;
   r.title = (($("cmRecTitle") || {}).value ?? r.title); r.url = (($("cmRecUrl") || {}).value ?? r.url);
-  if(!r.surface){ cmRecSay("pick where it went — X or LINKEDIN — then hold"); return false; }
+  /* the surfaces are named from the served registry, never a list of ours —
+     once Substack shows, the hint and the answer say SUBSTACK too */
+  if(!r.surface){ cmRecSay(`pick where it went — ${cmShown(cmG()).map(s => String(s.label).toUpperCase()).join(" or ")} — then hold`); return false; }
   if(!r.title.trim()){ cmRecSay("paste its first line — that's how the record finds it again"); return false; }
   const w = await cmSpineWrite("/api/glass/post", { surface:r.surface, title:r.title, url:r.url.trim() });
   if(!w.ok){ cmRecSay(w.error); return false; }
   cc.textContent = "RECORDED";
   CM.rec = { surface:null, title:"", url:"" };
-  cmRecSay(`recorded — post ${w.out.post.id} on the ${w.out.post.surface === "x" ? "X" : "LinkedIn"} lane`
+  cmRecSay(`recorded — post ${w.out.post.id} on the ${cmSurfWord(cmG(), w.out.post.surface)} lane`
     + (w.out.post.url ? "" : " · link not captured — said so; ADD LINK takes it later"));
   CM.strike = (w.out.earned || []).map(c => c.key);        // a coin this post struck strikes on the re-read, once
-  await cmRefetch();
+  /* the write landed; if the re-read failed or the room was left, the HOLD
+     would sit at RECORDED, disabled, over a lane that never moved — so the
+     control goes back to idle and says where the post will show (#364's review) */
+  if(!(await cmRefetch())){ cmRoadRefresh(); cmRecSay("recorded — the lane re-reads on your next visit"); }
   return true;
 }
 async function cmSaveLink(pid, cc){
@@ -10397,7 +10587,8 @@ async function cmSaveLink(pid, cc){
   if(!w.ok){ cmAddSay(w.error); return false; }
   cc.textContent = "SAVED";
   CM.addFor = null; CM.addUrl = ""; CM.addSay = "";
-  await cmRefetch();
+  /* the same settle as RECORD: a saved link the room could not redraw says so */
+  if(!(await cmRefetch())){ cmRoadRefresh(); cmRecSay("link saved — the lane re-reads on your next visit"); }
   return true;
 }
 async function cmPasteInto(id, onText, onRefuse){
@@ -10428,6 +10619,55 @@ function cmWireRoad(){
   if(ah) holdToAct(ah, { idle:"HOLD · SAVE LINK", busy:"SAVING", refused:"NOT SAVED",
                          released:"released before it took — no link was saved" },
     cc => cmSaveLink(+ah.dataset.post, cc), CM.ac.signal);
+}
+/* SOMEONE ANSWERED (card #366): a write, so it rides the held latch; the
+   fetch is not on CM.ac — a write that has left must be heard */
+function cmSpSay(words){ CM.spSay = words; const el = $("cmSpSay"); if(el) el.textContent = words; }
+async function cmSparkRecord(cc){
+  const sp = CM.sp;
+  sp.kind = ($("cmSpKind") || {}).value ?? sp.kind; sp.post = ($("cmSpPost") || {}).value ?? sp.post;
+  sp.who = ($("cmSpWho") || {}).value ?? sp.who; sp.note = ($("cmSpNote") || {}).value ?? sp.note;
+  if(!sp.surface){ cmSpSay("pick where they answered, then hold"); return false; }
+  if(!sp.kind){ cmSpSay("say what kind of answer it was, then hold"); return false; }
+  const w = await cmSpineWrite("/api/glass/sparks", { surface: sp.surface, kind: sp.kind,
+    post_id: sp.post ? +sp.post : null, who: sp.who.trim(), note: sp.note.trim() });
+  if(!w.ok){ cmSpSay(w.error); return false; }
+  cc.textContent = "RECORDED";
+  CM.sp = { open:false, surface:null, kind:"", post:"", who:"", note:"" };
+  CM.spSay = `recorded — spark ${w.out.spark.id}, a ${w.out.spark.kind} on ${cmSurfWord(cmG(), w.out.spark.surface)}. The score does not move for it.`;
+  if(!(await cmRefetch())){ cmSparksRefresh(); cmSpSay("recorded — the sparks re-read on your next visit"); }
+  return true;
+}
+function cmWireSparks(){
+  if(!CM.ac) return;
+  const sig = { signal: CM.ac.signal };
+  document.querySelectorAll("#cm details.cm-spk[data-sk]").forEach(d => d.addEventListener("toggle", () => {
+    const id = +d.dataset.sk; if(d.open) CM.spOpen.add(id); else CM.spOpen.delete(id); }, sig));
+  $("cmSparkOpen")?.addEventListener("click", () => { CM.sp.open = true; CM.spSay = ""; cmSparksRefresh();
+    $("cmSparkDoor")?.scrollIntoView({ block:"nearest", behavior: cmRM() ? "auto" : "smooth" }); }, sig);   // his tap, his scroll
+  $("cmSpClose")?.addEventListener("click", () => { CM.sp.open = false; CM.spSay = ""; cmSparksRefresh(); }, sig);
+  document.querySelectorAll("#cm .cm-pick[data-ssurf]").forEach(b => b.addEventListener("click", () => {
+    CM.sp.surface = b.dataset.ssurf;
+    document.querySelectorAll("#cm .cm-pick[data-ssurf]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  }, sig));
+  $("cmSpKind")?.addEventListener("change", e => { CM.sp.kind = e.target.value; }, sig);
+  $("cmSpPost")?.addEventListener("change", e => { CM.sp.post = e.target.value;
+    /* a post answers on its own lane: picking one picks its surface, his to change */
+    const p = (cmG().lane || []).find(x => String(x.id) === e.target.value);
+    if(p){ CM.sp.surface = p.surface;
+      document.querySelectorAll("#cm .cm-pick[data-ssurf]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.ssurf === p.surface))); }
+  }, sig);
+  $("cmSpWho")?.addEventListener("input", e => { CM.sp.who = e.target.value; }, sig);
+  $("cmSpNote")?.addEventListener("input", e => { CM.sp.note = e.target.value; }, sig);
+  const h = $("cmSpHold");
+  if(h) holdToAct(h, { idle:"HOLD · RECORD IT", busy:"RECORDING", refused:"NOT RECORDED",
+                       released:"released before it took — nothing was recorded" }, cmSparkRecord, CM.ac.signal);
+}
+function cmSparksRefresh(){
+  const el = $("cmSparks"), G = cmG(); if(!el || !G) return;
+  const tmp = document.createElement("div"); tmp.innerHTML = cmSparksHTML(G);
+  el.replaceWith(tmp.firstElementChild);
+  cmWireSparks();
 }
 function cmRoadRefresh(){
   const el = $("cmRoad"), G = cmG(); if(!el || !G) return;
@@ -10468,8 +10708,10 @@ function cmWireQueue(){
 }
 function cmQueueRefresh(){
   const el = $("cmQueue"), G = cmG(); if(!el || !G) return;
+  const top = ($("cmQScroll") || {}).scrollTop || 0;       // COPY 5/8 must not throw him back to 1/8
   const tmp = document.createElement("div"); tmp.innerHTML = cmQueueHTML(G);
   el.replaceWith(tmp.firstElementChild);
+  const sc = $("cmQScroll"); if(sc) sc.scrollTop = top;
   cmWireQueue(); cmPinFit();
 }
 
@@ -10519,7 +10761,7 @@ function wireGlass(){
     $("cmNow")?.addEventListener("click", cmNow, sig);
     $("cmMirror")?.addEventListener("click", () => $("cmRoad")?.scrollIntoView({ block:"start", behavior: cmRM() ? "auto" : "smooth" }), sig);
     $("cmRepBtn")?.addEventListener("click", () => $("cmHero")?.scrollIntoView({ block:"center", behavior: cmRM() ? "auto" : "smooth" }), sig);
-    R.querySelectorAll("details.cm-term").forEach(d => d.addEventListener("toggle", () => {
+    R.querySelectorAll("details.cm-term[data-term]").forEach(d => d.addEventListener("toggle", () => {
       const k = d.dataset.term;
       if(d.open){ CM.open.add(k); if(!CM.rc[k] || CM.rc[k].err) cmReceipts(k, 0); } else CM.open.delete(k);
     }, sig));
@@ -10554,6 +10796,8 @@ function wireGlass(){
   // the pane: the note on the glass, re-read at rest after an app kill
   cmFillNote(); cmWirePane(); cmHits();
   cmWireQueue(); cmWireRoad();          // the queue and the lane's two write doors (card #364)
+  cmWireSparks();                       // WHO ANSWERED THE BEACON and its door (card #366)
+  $("cmFormula")?.addEventListener("toggle", e => { CM.fOpen = e.target.open; }, sig);
   if(!CM.pulled){
     const og = cmStore.get("onglass");
     if(og && (G.shelf || []).some(s => s.id === og.id && !s.posted)){
@@ -10615,7 +10859,7 @@ function renderRoom(){
      on the eleventh load and the answer arrives at the top of the page. The
      scroll position is his, not the render's. */
   const keep = [];
-  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid,.cm-scroll").forEach(el => {
+  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid,.cm-scroll,.cm-qscroll").forEach(el => {
     if(el.scrollTop || el.scrollLeft)
       keep.push([el.className, el.scrollTop, el.scrollLeft]);
   });
