@@ -648,13 +648,13 @@ Last session's prose. `--alm-prose`, 66ch, `text-wrap: pretty`, `hyphens: auto`.
 
 ### 4.11 THE PROVENANCE LINE
 
-The last line of the book, above the runway: `SPINE 200 · PROVED 41s AGO · BUILD v7`. Tapping the build calls `r.update()` on the SW registration. **The connection reads as the age of the last successful proof, never as a dot.** This is the only chrome on the page.
+The last line of the book, above the clock line: `SPINE 200 · PROVED 41s AGO · BUILD v7`. Tapping the build calls `r.update()` on the SW registration. **The connection reads as the age of the last successful proof, never as a dot.** This is the only chrome on the page.
 
-### 4.12 THE RUNWAY — doctrine as a design decision
+### 4.12 THE CLOCK LINE — doctrine as a design decision
 
 `the-clock`: *"notice it, return to the work, do not grip it."*
 
-**One hairline at the extreme bottom edge of the viewport, below the safe area**, its lit fraction the elapsed share of the runway to 2026-09-21. **No number. No countdown. No color escalation, ever.** `pointer-events: none` — you cannot tap it, hover it, or expand it. Present in peripheral vision, permanently unaddressable. **A meditation you cannot grip.** No dashboard would ever arrive at this.
+**One hairline at the extreme bottom edge of the viewport, below the safe area**, its lit fraction the elapsed share of the clock's span to its date. **No number. No countdown. No color escalation, ever.** `pointer-events: none` — you cannot tap it, hover it, or expand it. Present in peripheral vision, permanently unaddressable. **A meditation you cannot grip.** No dashboard would ever arrive at this.
 
 ---
 
@@ -907,7 +907,7 @@ self.addEventListener('fetch', e => {
 - The hold gesture has a keyboard equal on every form factor (`f`, 420ms). **There is no pointer-only path to any settle.**
 - Contrast: `--alm-ink` on `--alm-ground` ≥ 7:1; `--alm-muted` ≥ 4.5:1; `--alm-faint` is decorative only and never carries text. `contrast-color()` on any label sitting over a data-driven fill.
 - Color is never the only channel: severity also carries a caps word (`OVERDUE` / `DUE MON` / `CLEAR`).
-- The runway hairline is `aria-hidden` — it is peripheral by design.
+- The clock hairline is `aria-hidden` — it is peripheral by design.
 
 ## 7.7 Degradation ladder — every enhancement is additive
 
@@ -960,7 +960,7 @@ document.documentElement.dataset.caps = Object.entries(HAS).filter(([,v])=>v).ma
 1. **The latch, on one hardcoded row.** Arm → seat → the real POST → the refusal. Nothing else exists yet.
 2. **CLOSE THE BOOK and sundown.** Then test it with the spine unreachable and confirm it **refuses**.
 3. **Type and color.** `text-box`, the four sizes, the OKLCH ramp, the two unknown tokens, the two light systems.
-4. **The reading** (the prose paragraph with live tappable figures), then the month tape, obligations tape, board strip, watch, muscle, narrative, provenance, runway.
+4. **The reading** (the prose paragraph with live tappable figures), then the month tape, obligations tape, board strip, watch, muscle, narrative, provenance, clock line.
 5. **The night count.**
 6. **Fold posture and the desktop register.**
 7. **Voice, agents, `?view=glance`** — none of which may require touching 1–6. **That is the test of whether the container actually absorbs the future.**

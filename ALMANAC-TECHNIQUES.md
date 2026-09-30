@@ -684,7 +684,7 @@ document.documentElement.style.setProperty('--grain', `url(${grainURI()})`);
 
 ### 6.3 The clock, carried as a meditation
 
-Doctrine `the-clock`: *notice it, return to the work, do not grip it.* Render it as **one hairline at the very bottom edge of the viewport**, its lit fraction = elapsed share of the runway. No number, no countdown, no color escalation. Present in peripheral vision, never addressable.
+Doctrine `the-clock`: *notice it, return to the work, do not grip it.* Render it as **one hairline at the very bottom edge of the viewport**, its lit fraction = elapsed share of the clock's span. No number, no countdown, no color escalation. Present in peripheral vision, never addressable.
 
 ```css
 .clock { position:fixed; inset:auto 0 0 0; block-size:1px; background:var(--faint); }

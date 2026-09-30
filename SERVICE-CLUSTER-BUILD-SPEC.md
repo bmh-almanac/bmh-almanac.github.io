@@ -829,7 +829,7 @@ Cut these, in order:
 .svc-g.lampout .svc-dial::before{opacity:0;animation:svc-pool 1.1s cubic-bezier(.3,0,.2,1) calc(var(--svc-dur,0ms) + 90ms) backwards}
 ```
 
-**Why first.** It is rare and earned: once per interval, and only when a lamp was really lit. For a man alone in a cab on a three-month runway, a lit lamp is a breakdown and money he doesn't have, and watching it go dark on his own logged odometer is control coming back.
+**Why first.** It is rare and earned: once per interval, and only when a lamp was really lit. For a man alone in a cab, a lit lamp is a breakdown waiting to happen, and watching it go dark on his own logged odometer is control coming back.
 
 ### 2. The glance: needle, lamp at E, and the date window
 
