@@ -1930,14 +1930,24 @@ body.hot .act .h .n{color:var(--hot)}
   --cm-settle:linear(0,.008 1.1%,.078 3.9%,.323 9.9%,.642 17%,.877 24.3%,1.021 32%,1.062 38.9%,
                      1.049 46.4%,1.008 59%,.996 69.8%,1 100%); } }   /* TALLY lineage. NEVER on a number. */
 @media (max-width:399px){ .room:has(> #cm){ padding:0 16px 16px } }
-#cm .cm-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding-bottom:18px}
+#cm .cm-grid{display:flex;flex-direction:column;gap:12px;padding-bottom:18px}
+/* the two columns are their OWN row (card #364): a sticky column's reach is
+   its containing block, and when that was the whole grid the pinned hero slid
+   over the strip below it. Bounded by .cm-pair, the pin lets go at the row's
+   foot and the strip scrolls up under nothing. */
+#cm .cm-pair{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 #cm .cm-left,#cm .cm-right{display:flex;flex-direction:column;gap:12px;min-width:0}
-#cm .cm-strip4{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+/* each panel is as tall as its own words — never stretched to the tallest */
+#cm .cm-strip4{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
 @container cm (min-width:640px){
-  #cm .cm-grid{grid-template-columns:minmax(300px,1fr) 1.2fr;align-items:start}
+  #cm .cm-pair{grid-template-columns:minmax(300px,1fr) 1.2fr;align-items:start}
   #cm .cm-left{position:sticky;top:0}
-  #cm .cm-strip4{grid-column:1 / -1;grid-template-columns:repeat(4,minmax(0,1fr))}
-  #cm .cm-repeater{display:none !important}
+  /* a column taller than the scroll area would hide its own foot while
+     pinned, so cmPinFit() lets it scroll — and then the repeater comes back,
+     because the hero can leave the view again */
+  #cm.cm-nopin .cm-left{position:static}
+  #cm .cm-strip4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #cm:not(.cm-nopin) .cm-repeater{display:none !important}
 }
 #cm .cm-cap{font:700 9px/1 var(--mono);letter-spacing:.2em;color:var(--etch);text-transform:uppercase}
 #cm .cm-sans{font:400 14px/1.45 var(--sans);color:var(--mid);letter-spacing:0;text-transform:none}
@@ -2264,6 +2274,54 @@ body.hot .act .h .n{color:var(--hot)}
 @keyframes cm-glint{50%{opacity:1;box-shadow:0 0 14px 3px rgba(var(--cm-given),.9)}to{opacity:.8}}
 @media (prefers-reduced-motion:reduce){ #cm .cm-refl{animation:none;opacity:.8} }
 #cm .cm-nothing{font:400 13px/1.45 var(--sans);color:var(--dim);font-style:italic}
+/* ADD LINK (card #364): a lane row with no permalink takes one, once */
+#cm .cm-reflrow{margin-bottom:6px}
+#cm .cm-reflrow .cm-refl{margin-bottom:0}
+#cm .cm-addlink{min-height:40px;width:100%;margin-top:4px;padding:0 10px;font-size:10px}
+#cm .cm-addl{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+#cm .cm-addl .cm-recrow .cm-btn{padding:0 10px}
+/* RECORD A POST (card #364): any post, not only a win — he posted it, this says so */
+#cm .cm-rec{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px dotted var(--line)}
+#cm .cm-recpick{display:flex;gap:8px}
+#cm .cm-pick{flex:1;min-height:44px;border-radius:3px;border:1px solid rgba(var(--cm-given),.35);
+  font:700 11px/1 var(--mono);letter-spacing:.16em;color:var(--mid)}
+#cm .cm-pick[aria-pressed="true"]{border-color:rgba(var(--cm-given),.8);background:rgba(var(--cm-given),.14);color:rgb(var(--cm-given))}
+#cm .cm-recrow{display:flex;gap:8px}
+#cm .cm-rec .cm-link,#cm .cm-addl .cm-link{width:100%}
+
+/* ── THE QUEUE (card #364): his launch drafts, on the glass, copy by copy ── */
+#cm .cm-queue{border-radius:12px;background:var(--cm-pane);border:1px solid rgba(var(--cm-engrave),.1);
+  padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+#cm .cm-qitem{border-top:1px dotted var(--line)}
+#cm .cm-qitem>summary{list-style:none;cursor:pointer;min-height:44px;padding:10px 0;display:flex;flex-wrap:wrap;
+  align-items:baseline;gap:4px 10px;font:700 10px/1.4 var(--mono);letter-spacing:.14em;color:rgb(var(--cm-core))}
+#cm .cm-qitem>summary::-webkit-details-marker{display:none}
+#cm .cm-qitem>summary .cm-qt{font:500 14px/1.35 var(--sans);letter-spacing:0;color:var(--ink);flex:1 1 12em;min-width:0}
+#cm .cm-qitem>summary .cm-qout{color:rgb(var(--cm-given))}
+#cm .cm-qitem>summary a{color:rgb(var(--cm-given));min-height:40px;display:inline-flex;align-items:center}
+#cm .cm-qlist{margin:0;padding:0 0 10px;list-style:none;display:flex;flex-direction:column;gap:12px}
+#cm .cm-qpost{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:3px;
+  background:rgba(var(--cm-key),.05);border:1px solid rgba(var(--cm-key),.14)}
+#cm .cm-qhead{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;
+  font:700 9px/1.4 var(--mono);letter-spacing:.14em;color:rgba(var(--cm-core),.75)}
+#cm .cm-qhead .over{color:var(--ink)}
+#cm .cm-qchip{padding:4px 7px;border-radius:7px;corner-shape:bevel;border:1px solid rgba(var(--cm-key),.55);
+  background:rgba(var(--cm-key),.14);color:rgb(var(--cm-core))}
+#cm .cm-qchip.held{border-style:dashed;background:none}
+#cm .cm-qchip.stopped,#cm .cm-qchip.unread{border-color:var(--etch);background:none;color:var(--mid)}
+#cm .cm-qtext{white-space:pre-wrap;overflow-wrap:anywhere;font:400 15px/1.5 var(--sans);color:var(--ink);
+  user-select:text;-webkit-user-select:text}
+#cm .cm-qverdict{font:400 13px/1.45 var(--sans);color:var(--mid)}
+#cm .cm-qverdict q{color:var(--ink);quotes:"\201C" "\201D"}
+#cm .cm-qcopy{align-self:flex-start;min-width:120px}
+#cm .cm-qrec{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-bottom:12px}
+/* the weeks past the next one fold into one row — opened by his tap only */
+#cm .cm-qlater{border-top:1px solid rgba(var(--cm-engrave),.14)}
+#cm .cm-qlater>summary{list-style:none;cursor:pointer;min-height:44px;padding:12px 0;display:flex;align-items:center;
+  font:700 10px/1.4 var(--mono);letter-spacing:.16em;color:var(--mid)}
+#cm .cm-qlater>summary::-webkit-details-marker{display:none}
+#cm .cm-qlater>summary::after{content:"+";margin-left:auto;font-size:14px}
+#cm .cm-qlater[open]>summary::after{content:"\2212"}
 
 /* ── coins · mile markers · riders · the door ──────────────────────────── */
 #cm .cm-panel{border-radius:12px;background:rgba(10,14,20,.8);border:1px solid rgba(var(--cm-engrave),.08);
@@ -2299,6 +2357,11 @@ body.hot .act .h .n{color:var(--hot)}
 #cm .cm-door{min-height:120px;border-radius:12px;border:1.5px dashed var(--etch);display:grid;place-items:center;
   padding:14px;text-align:center;font:700 9px/1.6 var(--mono);letter-spacing:.16em;color:var(--etch)}
 #cm .cm-door span{display:block;font:400 13px/1.45 var(--sans);letter-spacing:0;margin-top:6px}
+/* who it is for, in his ruling as the spine serves it (card #364) */
+#cm .cm-door .cm-dcap{font:700 9px/1.6 var(--mono);letter-spacing:.16em;margin-top:12px}
+#cm .cm-door .cm-dwho{color:var(--ink);font-size:14px}
+#cm .cm-door q{display:block;font:italic 400 13px/1.45 var(--sans);letter-spacing:0;color:var(--mid);margin-top:6px;
+  quotes:"\201C" "\201D"}
 
 /* the pull: the spine lifts off the dash and becomes the note (paper: mass) */
 ::view-transition-group(cm-win){animation-duration:.55s;animation-timing-function:cubic-bezier(.34,1.3,.64,1)}
@@ -2325,7 +2388,7 @@ body.hot .act .h .n{color:var(--hot)}
              radial-gradient(circle at 50% 38%,#1f4f8c,#163c6e 70%,#0f2d55)}
 :root.paper #cm .cm-odo{text-shadow:none;color:#F3EEDF}
 :root.paper #cm .cm-plate{background:#F3EEDF;--cm-engrave:29,78,137}
-:root.paper #cm .cm-dash,:root.paper #cm .cm-road,:root.paper #cm .cm-panel,:root.paper #cm .cm-pane{
+:root.paper #cm .cm-dash,:root.paper #cm .cm-road,:root.paper #cm .cm-panel,:root.paper #cm .cm-pane,:root.paper #cm .cm-queue{
   background:rgba(247,240,224,.9);border-color:rgba(70,56,32,.24)}
 :root.paper #cm .cm-spine>span{color:#F3EEDF}
 
@@ -9233,7 +9296,11 @@ const CM = { anims:[], raf:0, rafDial:0, rafTilt:0, timers:new Set(), ac:null, r
              entryPending:false, room:null, G:null, tested:null, onGlass:null, reading:false, skipping:false,
              phase:"rest", inflight:null, testing:null, err:"", readDay:null, pulled:null, driving:null,
              chipsLanded:false, rc:{}, open:new Set(), coin:null, say:"", postSay:"", link:"",
-             paying:false, payState:null, payLand:null, fetchedAt:0, turned:false, sel:null, strike:[] };
+             paying:false, payState:null, payLand:null, fetchedAt:0, turned:false, sel:null, strike:[],
+             /* card #364: the record control, the missing link, the queue — his
+                half-typed words and his open/copied state survive a re-render */
+             rec:{ surface:null, title:"", url:"" }, recSay:"", addFor:null, addUrl:"", addSay:"",
+             qOpen:new Map(), qCopied:new Map(), qSay:null };
 const cmRM   = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const cmRT   = () => matchMedia("(prefers-reduced-transparency: reduce)").matches;
 const cmLite = () => (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
@@ -9533,12 +9600,122 @@ function cmDashHTML(G){
 function cmRoadHTML(G){
   const lane = G.lane || [];
   const refl = p => { const ok = /^https:\/\//i.test(p.url || "");
-    return `<a class="cm-refl"${ok ? ` href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"` : ""}>${cmDate(p.at)} · ${p.win_id ? "WIN " + p.win_id : "POST " + p.id} · ${ok ? "LINK" : "LINK NOT CAPTURED — SAID SO"}<span>${cmPostTitle(p)}</span></a>`; };
+    const a = `<a class="cm-refl"${ok ? ` href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"` : ""}>${cmDate(p.at)} · ${p.win_id ? "WIN " + p.win_id : "POST " + p.id} · ${ok ? "LINK" : "LINK NOT CAPTURED — SAID SO"}<span>${cmPostTitle(p)}</span></a>`;
+    if(ok) return a;
+    /* ADD LINK (card #364): the permalink pasted after the fact — the spine
+       takes it only while the row has none, so it can never rewrite one */
+    return `<div class="cm-reflrow">${a}${CM.addFor === p.id
+      ? `<div class="cm-addl"><div class="cm-recrow"><input class="cm-link" id="cmAddUrl" inputmode="url" autocomplete="off"
+            placeholder="https://… the permalink" aria-label="the permalink for post ${p.id}" value="${esc(CM.addUrl)}">
+          <button class="cm-btn" id="cmAddPaste">PASTE</button></div>
+          <button class="cm-held" id="cmAddHold" data-post="${p.id}"><span class="r2"></span><span class="cc">HOLD · SAVE LINK</span></button>
+          <div class="cm-say" id="cmAddSay" role="status">${esc(CM.addSay)}</div></div>`
+      : `<button class="cm-btn cm-addlink" data-addl="${p.id}">ADD LINK</button>`}</div>`; };
   const col = s => lane.filter(p => p.surface === s).map(refl).join("") || `<p class="cm-nothing">nothing logged here yet</p>`;
+  const r = CM.rec;
   return `<section class="cm-road" id="cmRoad" aria-label="the lane">
     <div class="cm-cap">THE LANE · WHAT WENT OUT, AND WHERE</div>
     <div class="cm-lanes"><div><h4>LINKEDIN</h4>${col("linkedin")}</div><div class="cm-center" aria-hidden="true"></div><div><h4>X</h4>${col("x")}</div></div>
+    <div class="cm-rec" id="cmRec">
+      <div class="cm-cap">RECORD A POST · YOU POSTED IT — THIS SAYS SO</div>
+      <div class="cm-recpick" role="group" aria-label="where it went">
+        <button class="cm-pick" data-rsurf="x" aria-pressed="${r.surface === "x"}">X</button>
+        <button class="cm-pick" data-rsurf="linkedin" aria-pressed="${r.surface === "linkedin"}">LINKEDIN</button></div>
+      <input class="cm-link" id="cmRecTitle" autocomplete="off" placeholder="its first line — how the record finds it again"
+        aria-label="the post's first line" value="${esc(r.title)}">
+      <div class="cm-recrow"><input class="cm-link" id="cmRecUrl" inputmode="url" autocomplete="off"
+          placeholder="the permalink — or leave it empty" aria-label="the permalink" value="${esc(r.url)}">
+        <button class="cm-btn" id="cmRecPaste">PASTE</button></div>
+      <button class="cm-held" id="cmRecHold"><span class="r2"></span><span class="cc">HOLD · RECORD</span></button>
+      <div class="cm-say" id="cmRecSay" role="status">${esc(CM.recSay)}</div>
+    </div>
   </section>`;
+}
+
+/* ── THE QUEUE (card #364): his launch drafts, read by the spine from the
+   Glass Barn. Every count, length, fit and verdict is served; the page only
+   reads them out. COPY puts the exact served words on the clipboard — the
+   page never posts. ── */
+function cmQLane(item, p){
+  /* the verdict for THIS item's surface, in words. X ONLY: it carries the
+     story LinkedIn doesn't (his rulings 09-26) — the spine serves that as
+     lanes.linkedin_why on every verdict, so a story line with a truck fact
+     in it still reads X ONLY, never a HELD that points it at LinkedIn. A
+     STOPPED or UNREAD post gets no COPY: nothing leaves the glass untested.
+     Every reason is the spine's own words (its hits); the page adds only
+     what it can't know — the queue has no date for the fact. */
+  const T = p.test || {}, L = T.lanes || {}, v = L[item.surface] || T.verdict || "unread";
+  const served = () => (T.hits || []).map(h => `<q>${esc(h.token)}</q> — ${esc(h.why)}.`).join(" ");
+  const undated = " The queue can't date the fact, so it reads it as today's; if it's older than that, the call is yours.";
+  if(v === "stopped") return { cls:"stopped", word:"STOPPED", copy:false,
+    why: served() + " It stays off the clipboard. Edit it in the Glass Barn; the next read tests it again.", html:true };
+  if(v !== "taped" && v !== "held")
+    return { cls:"unread", word:"UNREAD", copy:false, why:"Not tested — the spine didn't answer. Nothing leaves the glass untested." };
+  if(item.surface === "linkedin" && L.linkedin_why) return { cls:"held", word:"X ONLY", copy:true, html:true,
+    why: esc(L.linkedin_why) + "." + (T.verdict === "held" ? ` On X it waits too, until ${esc(cmDate(T.hold_until))}: ${served()}${undated}` : "") };
+  if(v === "taped") return { cls:"taped", word: L.linkedin_why ? "X ONLY" : "TAPED", copy:true, why:"" };
+  return { cls:"held", word:`HELD · TAPE IT ${cmDate(T.hold_until)}`, copy:true, html:true, why: served() + undated };
+}
+function cmQueueHTML(G){
+  /* a spine that predates the queue sends no key at all — that is not an
+     empty queue, and the glass must not say it is */
+  const Q = G.queue || [], why = G.queue === undefined
+    ? "this spine does not read the queue yet — it does once it restarts on card #364"
+    : G.unavailable && G.unavailable.queue;
+  if(!Q.length) return `<section class="cm-queue" id="cmQueue" aria-label="the queue">
+    <div class="cm-cap">THE QUEUE · WHAT GOES OUT NEXT</div>
+    <p class="cm-nothing">${esc(why || "nothing queued in the Glass Barn")}</p></section>`;
+  const item = it => {
+    const surf = it.surface === "x" ? "X" : "LINKEDIN", o = it.out;
+    /* the next unposted item opens itself; his own toggles are kept — but an
+       item that goes OUT starts fresh, collapsed to its date and link */
+    const qo = it.key + (o ? "·out" : "");
+    const open = CM.qOpen.has(qo) ? CM.qOpen.get(qo) : !!it.next;
+    const link = o && /^https:\/\//i.test(o.url || "") ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">LINK</a>`
+      : o ? `<span>LINK NOT CAPTURED — ADD IT ON THE LANE</span>` : "";
+    const copied = CM.qCopied.get(it.key) || new Map(), last = it.posts.length ? it.posts[it.posts.length - 1].n : null;
+    const posts = it.posts.map(p => { const v = cmQLane(it, p);
+      return `<li class="cm-qpost">
+        <div class="cm-qhead"><b>${p.n}/${it.count}</b><span class="${p.fits ? "" : "over"}">${p.len} / ${it.limit}${p.fits ? "" : " · TOO LONG FOR " + surf}</span>
+          <span class="cm-qchip ${v.cls}">${esc(v.word)}</span></div>
+        <div class="cm-qtext">${esc(p.text)}</div>
+        ${v.why ? `<div class="cm-qverdict">${v.html ? v.why : esc(v.why)}</div>` : ""}
+        ${v.copy ? `<button class="cm-btn cm-qcopy" data-qk="${esc(it.key)}" data-qn="${p.n}">${copied.get(p.n) ? "COPIED" : "COPY"} ${p.n}/${it.count}</button>` : ""}
+      </li>`; }).join("");
+    const say = CM.qSay && CM.qSay.key === it.key ? CM.qSay.words : "";
+    const rec = !o && last != null && copied.has(last)
+      ? `<div class="cm-qrec"><button class="cm-btn" data-qrec="${esc(it.key)}">RECORD IT</button>
+          <span class="cm-sans">fills the record on the lane — hold it there once it's out</span></div>` : "";
+    return `<details class="cm-qitem" data-qo="${esc(qo)}"${open ? " open" : ""}>
+      <summary><span>${surf} · ${esc(cmDate(it.date))}</span><span class="cm-qt">${esc(it.title)}</span>
+        <span>${it.count} POST${it.count === 1 ? "" : "S"}</span>${o ? `<span class="cm-qout">OUT · ${esc(cmDate(o.at))}</span>${link}` : it.next ? "<span>NEXT</span>" : ""}</summary>
+      <ol class="cm-qlist">${posts}</ol>
+      <div class="cm-say" role="status">${esc(say)}</div>${rec}
+    </details>`; };
+  /* ON DECK stays in view; the weeks after it fold into one closed row, so
+     the pane and RECORD A POST sit near the top of the column, not under
+     twelve weeks of drafts. Which items fold, and how many, is the spine's
+     call (item.later, queue_later) — the page only groups and says it. */
+  const deck = Q.filter(it => !it.later), later = Q.filter(it => it.later);
+  const lo = CM.qOpen.has("later") ? CM.qOpen.get("later") : false;
+  const fold = later.length ? `<details class="cm-qlater" data-qo="later"${lo ? " open" : ""}>
+      <summary>LATER · ${esc(String(G.queue_later))} QUEUED</summary>${later.map(item).join("")}</details>` : "";
+  return `<section class="cm-queue" id="cmQueue" aria-label="the queue">
+    <div class="cm-cap">THE QUEUE · WHAT GOES OUT NEXT · COPY IS YOURS, POSTING IS YOURS</div>${deck.map(item).join("")}${fold}</section>`;
+}
+function cmDoorHTML(G){
+  /* THE PASSENGER DOOR: who it is for, from his ruling as the spine serves it
+     — no form, no link, no invitation of ours. It still answers no touch; it
+     waits on a decision. A null door says only that he hasn't said — unless
+     the spine says why it's null (a ruling it could not read): then the
+     reason shows, so a ruling he made never reads as one he didn't. */
+  const d = G.door, why = G.unavailable && G.unavailable.door;
+  return `<div class="cm-door" aria-disabled="true"><div>THE PASSENGER DOOR`
+    + (d ? `<span class="cm-dcap">WHO IT'S FOR${d.ruled_at ? " · YOUR RULING " + esc(cmDate(d.ruled_at)) : ""}</span>
+        <span class="cm-dwho">${esc(d.who)}</span>${(d.his_words || []).map(w => `<q>${esc(w)}</q>`).join("")}`
+      : why ? `<span class="cm-dcap">WHO IT'S FOR</span><span>${esc(why)}</span>`
+      : `<span>who rides along is yours to say.</span>`)
+    + `<span class="cm-dcap">THE DOOR ITSELF IS STILL HIS TO SHAPE</span></div></div>`;
 }
 function cmCoinsHTML(G, strike){
   const st = new Set(strike || []);
@@ -9578,6 +9755,7 @@ function glassRoom(){
        never counts as a second entry */
     CM.entryPending = false; CM.phase = "reading"; CM.chipsLanded = false;
     CM.turned = false; CM.reading = false; CM.readDay = null; CM.err = "";
+    CM.recSay = CM.addSay = ""; CM.qSay = null;   // last visit's answers are not this visit's news
   }
   const pre = CM.phase === "reading", G = cmG();
   if(!G && !pre) return `<div class="cm-scroll" id="cm"><section class="cm-shield" id="cmShield">
@@ -9591,10 +9769,11 @@ function glassRoom(){
     <div class="cm-repeater">${G && !pre ? `<button id="cmRepBtn" aria-label="back to the odometer"><span id="cmRep">${cmOdo(G, false)}</span><span class="cm-rday">DAY ${G.day}</span></button>` : ""}</div>
     ${age}
     <div class="cm-grid">
-      <div class="cm-left">${cmShieldHTML(G, pre)}${G && !pre ? cmReceiptsHTML(G) : ""}</div>
-      <div class="cm-right">${G ? cmPaneHTML(G) + cmDashHTML(G) + cmRoadHTML(G) : ""}</div>
-      ${G ? `<div class="cm-strip4">${cmCoinsHTML(G, CM.strike)}${cmMarksHTML(G)}${cmRidersHTML(G)}
-        <div class="cm-door" aria-disabled="true">THE PASSENGER DOOR<span>who rides along is yours to say.</span></div></div>` : ""}
+      <div class="cm-pair">
+        <div class="cm-left">${cmShieldHTML(G, pre)}${G && !pre ? cmReceiptsHTML(G) : ""}</div>
+        <div class="cm-right">${G ? cmQueueHTML(G) + cmPaneHTML(G) + cmDashHTML(G) + cmRoadHTML(G) : ""}</div>
+      </div>
+      ${G ? `<div class="cm-strip4">${cmCoinsHTML(G, CM.strike)}${cmMarksHTML(G)}${cmRidersHTML(G)}${cmDoorHTML(G)}</div>` : ""}
     </div>
     ${G && G.ready ? `<div class="cm-lip"><button id="cmLipPull">PULL ONE · ${G.ready} ON THE DASH</button></div>` : ""}
   </div>`;
@@ -10176,8 +10355,131 @@ function cmWirePane(){
     const name = btn.dataset.surface === "x" ? "X" : "LINKEDIN";
     holdToAct(btn, { idle:"HOLD · " + name, busy:"WRITING", refused:"NOT MARKED",
                      released:"released before it took — nothing was marked" },
-      async () => (await cmPost(btn.dataset.surface)) ? undefined : false);
+      async () => (await cmPost(btn.dataset.surface)) ? undefined : false, CM.ac.signal);
   });
+}
+
+/* ── RECORD A POST and ADD LINK (card #364) ─────────────────────────────
+   Both are writes, so both ride the room's held latch; neither fetch is on
+   CM.ac — a write that has left must be heard, even if the room goes. After
+   a 200 the room re-reads the book, so the lane, the floor, the coins and
+   the score move by the spine's numbers, never the page's. */
+function cmRecSay(words){ CM.recSay = words; const el = $("cmRecSay"); if(el) el.textContent = words; }
+function cmAddSay(words){ CM.addSay = words; const el = $("cmAddSay"); if(el) el.textContent = words; }
+async function cmSpineWrite(path, body){
+  let res, out;
+  try{
+    res = await fetch(url(path), { method:"POST", headers: hdr({"Content-Type":"application/json"}),
+                                   body: JSON.stringify(body) });
+    out = await res.json().catch(() => ({}));
+  }catch(_){ return { ok:false, error:"the spine did not answer — nothing is written yet; try again when it does" }; }
+  return res.ok ? { ok:true, out } : { ok:false, error: out.error || ("the spine answered " + res.status) };
+}
+async function cmRecord(cc){
+  const r = CM.rec;
+  r.title = (($("cmRecTitle") || {}).value ?? r.title); r.url = (($("cmRecUrl") || {}).value ?? r.url);
+  if(!r.surface){ cmRecSay("pick where it went — X or LINKEDIN — then hold"); return false; }
+  if(!r.title.trim()){ cmRecSay("paste its first line — that's how the record finds it again"); return false; }
+  const w = await cmSpineWrite("/api/glass/post", { surface:r.surface, title:r.title, url:r.url.trim() });
+  if(!w.ok){ cmRecSay(w.error); return false; }
+  cc.textContent = "RECORDED";
+  CM.rec = { surface:null, title:"", url:"" };
+  cmRecSay(`recorded — post ${w.out.post.id} on the ${w.out.post.surface === "x" ? "X" : "LinkedIn"} lane`
+    + (w.out.post.url ? "" : " · link not captured — said so; ADD LINK takes it later"));
+  CM.strike = (w.out.earned || []).map(c => c.key);        // a coin this post struck strikes on the re-read, once
+  await cmRefetch();
+  return true;
+}
+async function cmSaveLink(pid, cc){
+  const u = ((($("cmAddUrl") || {}).value) || CM.addUrl || "").trim();
+  if(!u){ cmAddSay("paste the permalink first — it starts with https://"); return false; }
+  const w = await cmSpineWrite("/api/glass/post/" + encodeURIComponent(pid) + "/link", { url:u });
+  if(!w.ok){ cmAddSay(w.error); return false; }
+  cc.textContent = "SAVED";
+  CM.addFor = null; CM.addUrl = ""; CM.addSay = "";
+  await cmRefetch();
+  return true;
+}
+async function cmPasteInto(id, onText, onRefuse){
+  try{ const t = (await navigator.clipboard.readText() || "").trim(); const el = $(id);
+       if(el){ el.value = t; onText(t); } }
+  catch(_){ onRefuse("the phone would not hand over the clipboard — paste into the field"); }
+}
+function cmWireRoad(){
+  if(!CM.ac) return;
+  const sig = { signal: CM.ac.signal };
+  document.querySelectorAll("#cm .cm-pick[data-rsurf]").forEach(b => b.addEventListener("click", () => {
+    CM.rec.surface = b.dataset.rsurf;
+    document.querySelectorAll("#cm .cm-pick[data-rsurf]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  }, sig));
+  $("cmRecTitle")?.addEventListener("input", e => { CM.rec.title = e.target.value; }, sig);
+  $("cmRecUrl")?.addEventListener("input", e => { CM.rec.url = e.target.value; }, sig);
+  $("cmRecPaste")?.addEventListener("click", () => cmPasteInto("cmRecUrl", t => { CM.rec.url = t; }, cmRecSay), sig);
+  const rh = $("cmRecHold");
+  if(rh) holdToAct(rh, { idle:"HOLD · RECORD", busy:"RECORDING", refused:"NOT RECORDED",
+                         released:"released before it took — nothing was recorded" }, cmRecord, CM.ac.signal);
+  document.querySelectorAll("#cm .cm-addlink[data-addl]").forEach(b => b.addEventListener("click", () => {
+    CM.addFor = +b.dataset.addl; CM.addUrl = ""; CM.addSay = ""; cmRoadRefresh();
+    $("cmAddUrl")?.focus({ preventScroll:true });
+  }, sig));
+  $("cmAddUrl")?.addEventListener("input", e => { CM.addUrl = e.target.value; }, sig);
+  $("cmAddPaste")?.addEventListener("click", () => cmPasteInto("cmAddUrl", t => { CM.addUrl = t; }, cmAddSay), sig);
+  const ah = $("cmAddHold");
+  if(ah) holdToAct(ah, { idle:"HOLD · SAVE LINK", busy:"SAVING", refused:"NOT SAVED",
+                         released:"released before it took — no link was saved" },
+    cc => cmSaveLink(+ah.dataset.post, cc), CM.ac.signal);
+}
+function cmRoadRefresh(){
+  const el = $("cmRoad"), G = cmG(); if(!el || !G) return;
+  const tmp = document.createElement("div"); tmp.innerHTML = cmRoadHTML(G);
+  el.replaceWith(tmp.firstElementChild);
+  cmWireRoad();
+}
+
+/* THE QUEUE's hands: COPY is the tap's own clipboard call with the served
+   words (no fetch between the tap and the write, or the phone refuses) */
+async function cmQCopy(key, n){
+  const it = ((cmG() || {}).queue || []).find(q => q.key === key), p = it && it.posts.find(x => x.n === n);
+  if(!p) return;
+  const v = cmQLane(it, p); if(!v.copy) return;
+  if(!CM.qCopied.has(key)) CM.qCopied.set(key, new Map());
+  /* a refused clipboard still leaves the words on the glass for his thumb,
+     so the item still reaches RECORD IT — only the button stays honest */
+  try{ await navigator.clipboard.writeText(p.text); CM.qCopied.get(key).set(n, true);
+       CM.qSay = { key, words:`copied ${n}/${it.count} — the exact words above. You post it.` }; }
+  catch(_){ if(!CM.qCopied.get(key).get(n)) CM.qCopied.get(key).set(n, false);
+            CM.qSay = { key, words:"the phone refused the clipboard — long-press the words to copy them" }; }
+  cmQueueRefresh();
+}
+function cmWireQueue(){
+  if(!CM.ac) return;
+  const sig = { signal: CM.ac.signal };
+  document.querySelectorAll("#cm #cmQueue details[data-qo]").forEach(d => d.addEventListener("toggle", () => {
+    CM.qOpen.set(d.dataset.qo, d.open); }, sig));
+  document.querySelectorAll("#cm .cm-qcopy[data-qk]").forEach(b => b.addEventListener("click", () =>
+    cmQCopy(b.dataset.qk, +b.dataset.qn), sig));
+  document.querySelectorAll("#cm [data-qrec]").forEach(b => b.addEventListener("click", () => {
+    const it = ((cmG() || {}).queue || []).find(q => q.key === b.dataset.qrec); if(!it) return;
+    CM.rec = { surface: it.surface, title: it.first_line, url:"" };
+    CM.recSay = "filled from the queue — paste the permalink if you have it, then hold RECORD";
+    cmRoadRefresh();
+    $("cmRec")?.scrollIntoView({ block:"nearest", behavior: cmRM() ? "auto" : "smooth" });   // his tap, his scroll
+  }, sig));
+}
+function cmQueueRefresh(){
+  const el = $("cmQueue"), G = cmG(); if(!el || !G) return;
+  const tmp = document.createElement("div"); tmp.innerHTML = cmQueueHTML(G);
+  el.replaceWith(tmp.firstElementChild);
+  cmWireQueue(); cmPinFit();
+}
+
+/* THE PIN HOLDS ONLY WHILE IT FITS (card #364): a pinned column taller than
+   the scroll area hides its own foot — the receipts — until the very end,
+   so it scrolls with the room instead. Measured on render and on the room's
+   resize path; never on a loop or a timer. */
+function cmPinFit(){
+  const R = $("cm"), L = R && R.querySelector(".cm-left"); if(!L) return;
+  R.classList.toggle("cm-nopin", L.offsetHeight > R.clientHeight);
 }
 
 function wireGlass(){
@@ -10232,14 +10534,18 @@ function wireGlass(){
       const hero = $("cmHero"), dash = $("cmDash");
       hero && CM.io.observe(hero); dash && CM.io.observe(dash);
     }
-    /* the Fold unfolding repaints the dial, debounced — it never replays */
-    const hero = $("cmHero");
+    /* the Fold unfolding repaints the dial, debounced — it never replays.
+       The same observer watches the left column and the scroll area, so the
+       pin is re-judged whenever either changes size (a receipt drawer
+       opening, the room growing) — the pin's class moves nothing it watches */
+    cmPinFit();
+    const hero = $("cmHero"), left = R.querySelector(".cm-left");
     if(hero && "ResizeObserver" in window){
       let w0 = hero.clientWidth;
-      CM.ro = new ResizeObserver(() => { if(hero.clientWidth === w0) return; w0 = hero.clientWidth;
+      CM.ro = new ResizeObserver(() => { cmPinFit(); if(hero.clientWidth === w0) return; w0 = hero.clientWidth;
         if(CM.rafDial) cancelAnimationFrame(CM.rafDial);
         CM.rafDial = requestAnimationFrame(() => { CM.rafDial = 0; const c = $("cmDial"); c && cmPaintDial(c, cmG()); cmHits(); }); });
-      CM.ro.observe(hero);
+      CM.ro.observe(hero); left && CM.ro.observe(left); CM.ro.observe(R);
     }
   }
   /* the payoff is skippable by a tap anywhere in the room */
@@ -10247,6 +10553,7 @@ function wireGlass(){
     CM.anims.forEach(a => { try{ a.finish(); }catch(_){} }); CM.payLand(); } }, { ...sig, capture:true });
   // the pane: the note on the glass, re-read at rest after an app kill
   cmFillNote(); cmWirePane(); cmHits();
+  cmWireQueue(); cmWireRoad();          // the queue and the lane's two write doors (card #364)
   if(!CM.pulled){
     const og = cmStore.get("onglass");
     if(og && (G.shelf || []).some(s => s.id === og.id && !s.posted)){
@@ -10579,11 +10886,16 @@ function wireCards(){
    anything else to leave the button as it set itself (CLOSED, RECORDED).
    holdToAct, not wireHold — the money room owns wireHold (its drag-to-read
    hold, ~7860), and a second declaration of that name would hoist over it. */
-function holdToAct(btn, o, onHeld){
+function holdToAct(btn, o, onHeld, signal){
   let t = 0, anim = null;
   const r2 = btn.querySelector(".r2"), cc = btn.querySelector(".cc");
   const rest = () => { btn.disabled = false; cc.textContent = o.idle;
     r2.getAnimations().forEach(a => a.cancel()); r2.style.transform = "scaleX(0)"; };
+  /* signal is optional: a room that owns its listeners (the glass, #364)
+     hands its AbortController's, so leaving the room mid-press ends the
+     hold — its listeners, its timer and its fill — with everything else */
+  const ls = signal ? { signal } : undefined;
+  if(signal) signal.addEventListener("abort", () => { clearTimeout(t); if(anim) anim.cancel(); }, { once:true });
   btn.addEventListener("pointerdown", e => {
     e.preventDefault(); e.stopPropagation();
     if(btn.disabled || document.visibilityState !== "visible") return;
@@ -10600,13 +10912,13 @@ function holdToAct(btn, o, onHeld){
       catch(err){ toast(o.refused + " — " + (err.message || err)); }
       if(!took) rest();
     }, 640);
-  });
+  }, ls);
   ["pointerup","pointerleave","pointercancel"].forEach(ev => btn.addEventListener(ev, e => {
     clearTimeout(t); if(anim) anim.cancel();
     /* a CANCEL is the browser taking the gesture for a scroll, not his
        release — panning past a RULE bar must not toast a refusal at him */
     if(cc.textContent === "HOLDING"){ rest(); if(e.type !== "pointercancel") toast(o.released); }
-  }));
+  }, ls));
 }
 const RULE_HOLD = {idle:"HOLD TO RULE", busy:"OPENING", refused:"NOT OPENED",
                    released:"released before it took — nothing was opened"};
