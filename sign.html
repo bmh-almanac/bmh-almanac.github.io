@@ -29,7 +29,13 @@
   #picker-wrap p { color:#8b949e; margin:14px 0 26px; line-height:1.5; }
   #file-btn { font-size:18px; padding:18px 26px; }
   input[type=file] { display:none; }
-  #pages { padding:10px; display:flex; flex-direction:column; gap:12px; align-items:center; }
+  #pages { padding:10px; display:flex; flex-direction:column; gap:12px; align-items:center; overflow-x:auto; }
+  #pages.zoomed { align-items:flex-start; }   /* a page wider than the glass scrolls from its left edge */
+  /* Zoom (his ask 10-02: "zoom in and out of the docs to find and identify
+     where to sign"). Pinch the page, or these. */
+  #zoombar { position:fixed; right:12px; bottom:156px; z-index:21; display:none; gap:6px; }
+  #zoombar .btn { padding:8px 12px; min-width:44px; min-height:44px; font-size:17px; background:rgba(22,27,34,.92); }
+  #zoombar #zoom-pct { font-size:13px; min-width:60px; }
   .page-wrap { position:relative; box-shadow:0 4px 18px rgba(0,0,0,.6); }
   .page-wrap canvas { display:block; background:#fff; border-radius:4px; }
   .placed { position:absolute; touch-action:none; cursor:move; }
@@ -113,6 +119,12 @@
 </div>
 
 <div id="pages"></div>
+
+<div id="zoombar" role="group" aria-label="Zoom">
+  <button class="btn" id="zoom-out" aria-label="Zoom out">−</button>
+  <button class="btn" id="zoom-pct" aria-label="Fit the page width">100%</button>
+  <button class="btn" id="zoom-in" aria-label="Zoom in">+</button>
+</div>
 
 <div id="dock" style="display:none">
   <div id="stampbar" role="group" aria-label="Your stamps"></div>
@@ -207,6 +219,7 @@ let openedRow = null;   // set when the load card opened this load's own rate co
 function showDoc() {
   $("picker-wrap").style.display = "none";
   $("dock").style.display = "block";
+  $("zoombar").style.display = "flex";
   renderChips();
   $("new-file").style.display = "block";
 }
@@ -255,36 +268,191 @@ document.addEventListener("DOMContentLoaded", () => {
   if (row && /^\d+$/.test(row)) openFromLoad(+row);
 });
 
+/* ── Pages + zoom ──
+   pageScales[i].scale is CSS px per PDF point at the CURRENT zoom — the save
+   divides by it, so a stamp placed at any zoom lands on the same spot.
+   Each page's backing pixels follow the zoom only while it is near the
+   glass (a 30-page packet fully painted at 4x would be a gigabyte); a page
+   far off the glass is repainted at its fit-width size. */
+const ZOOM_MAX = 4, PAINT_CAP = 2600;   // backing px across a page, at most
+let zoom = 1, pdfDoc = null, pageBase = [], paintTimer = 0, lastPinchAt = 0, layoutGen = 0;
+const fingersDown = new Set();   // pointers on the pages: two or more is a pinch, never a placement
+const nearView = new Set();
+const pageIO = new IntersectionObserver(entries => {
+  entries.forEach(en => { const i = +en.target.dataset.page; en.isIntersecting ? nearView.add(i) : nearView.delete(i); });
+  schedulePaint();
+}, { rootMargin: "100% 0px" });
+
 async function renderPdf() {
-  const doc = await pdfjsLib.getDocument({ data: origBytes.slice() }).promise;
-  const holder = $("pages"); holder.innerHTML = ""; pageScales = [];
+  if (pdfDoc) { try { pdfDoc.destroy(); } catch (_) {} }
+  pdfDoc = await pdfjsLib.getDocument({ data: origBytes.slice() }).promise;
+  const holder = $("pages"); holder.innerHTML = ""; pageScales = []; pageBase = [];
+  pageIO.disconnect(); nearView.clear();
+  zoom = 1; holder.classList.remove("zoomed"); $("zoom-pct").textContent = "100%";
   const maxW = Math.min(window.innerWidth - 20, 900);
-  for (let p = 1; p <= doc.numPages; p++) {
-    const page = await doc.getPage(p);
+  for (let p = 1; p <= pdfDoc.numPages; p++) {
+    const page = await pdfDoc.getPage(p);
     const vp1 = page.getViewport({ scale: 1 });
     const scale = maxW / vp1.width;
-    const vp = page.getViewport({ scale });
-    const dpr = window.devicePixelRatio || 1;
+    pageBase[p - 1] = scale;
+    pageScales[p - 1] = { scale, pdfW: vp1.width, pdfH: vp1.height };
     const wrap = document.createElement("div");
     wrap.className = "page-wrap"; wrap.dataset.page = p - 1;
-    wrap.style.width = vp.width + "px"; wrap.style.height = vp.height + "px";
+    wrap.style.width = vp1.width * scale + "px"; wrap.style.height = vp1.height * scale + "px";
     const cv = document.createElement("canvas");
-    cv.width = vp.width * dpr; cv.height = vp.height * dpr;
-    cv.style.width = vp.width + "px"; cv.style.height = vp.height + "px";
+    cv.style.width = wrap.style.width; cv.style.height = wrap.style.height;
     wrap.appendChild(cv); holder.appendChild(wrap);
-    pageScales[p - 1] = { scale, pdfW: vp1.width, pdfH: vp1.height };
-    // Paint filled form fields into the preview (a broker's pre-filled packet):
-    // the default leaves them to an HTML layer this page never builds, so he
-    // could stamp over a value he could not see. The save keeps them anyway.
-    await page.render({ canvasContext: cv.getContext("2d"),
-                        viewport: page.getViewport({ scale: scale * dpr }),
-                        annotationMode: pdfjsLib.AnnotationMode.ENABLE_STORAGE }).promise;
     wrap.addEventListener("pointerup", ev => onPageTap(ev, wrap), { passive: false });
+    await paintPage(p - 1);
+    pageIO.observe(wrap);
   }
+}
+
+// Device px per PDF point this page should be painted at right now.
+function wantBacking(i) {
+  const s = (nearView.has(i) ? pageScales[i].scale : pageBase[i]) * (window.devicePixelRatio || 1);
+  return Math.min(s, PAINT_CAP / pageScales[i].pdfW);
+}
+async function paintPage(i) {
+  const wrap = $("pages").children[i];
+  if (!wrap || !pdfDoc) return;
+  const want = wantBacking(i);
+  if (Math.abs((wrap._painted || 0) - want) < 0.01) return;
+  if (wrap._want != null && Math.abs(wrap._want - want) < 0.01) return;   // that very paint is already on its way
+  const token = (wrap._token || 0) + 1; wrap._token = token;
+  wrap._want = want;
+  const doc = pdfDoc;
+  const cv = document.createElement("canvas");
+  try {
+  const page = await doc.getPage(i + 1);
+  const vp = page.getViewport({ scale: want });
+  cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+  // Painted as a PRINT: filled form fields (a broker's pre-filled packet) are
+  // drawn in — the default leaves them to an HTML layer this page never
+  // builds — and a print never waits on an animation frame. The save keeps
+  // the fields either way.
+  await page.render({ canvasContext: cv.getContext("2d"), viewport: vp, intent: "print",
+                      annotationMode: pdfjsLib.AnnotationMode.ENABLE_STORAGE }).promise;
+  } catch (e) {
+    // A file closed under the paint (New, another PDF) or a cancelled render:
+    // nothing to show for it, and nothing kept.
+    cv.width = cv.height = 0;
+    if (wrap._token === token) wrap._want = null;
+    return;
+  }
+  if (wrap._token !== token || doc !== pdfDoc) { cv.width = cv.height = 0; return; }   // a newer paint won
+  wrap._want = null;
+  const old = wrap.querySelector("canvas");
+  cv.style.width = old.style.width; cv.style.height = old.style.height;
+  wrap.replaceChild(cv, old);
+  old.width = old.height = 0;   // hand its pixels back now
+  wrap._painted = want;
+}
+function schedulePaint() {
+  clearTimeout(paintTimer);
+  paintTimer = setTimeout(() => { for (let i = 0; i < pageScales.length; i++) paintPage(i); }, 120);
+}
+
+// Every page, and every stamp on it, grows by the same ratio — so where a
+// stamp sits on the paper never moves; only the glass gets closer.
+function layoutPages() {
+  layoutGen++;
+  const wraps = $("pages").children, ratio = [];
+  for (let i = 0; i < wraps.length; i++) {
+    const ps = pageScales[i], s = pageBase[i] * zoom;
+    ratio[i] = s / ps.scale;
+    ps.scale = s;
+    const w = ps.pdfW * s + "px", h = ps.pdfH * s + "px";
+    wraps[i].style.width = w; wraps[i].style.height = h;
+    const cv = wraps[i].querySelector("canvas");
+    cv.style.width = w; cv.style.height = h;
+  }
+  for (const p of placements) {
+    const r = ratio[p.page];
+    if (!r || r === 1) continue;
+    p.el.style.left = parseFloat(p.el.style.left) * r + "px";
+    p.el.style.top = parseFloat(p.el.style.top) * r + "px";
+    if (p.type === "sig") p.el.style.width = parseFloat(p.el.style.width) * r + "px";
+    else { const tx = p.el.querySelector(".date-text"); tx.style.fontSize = parseFloat(tx.style.fontSize) * r + "px"; }
+  }
+}
+
+// Zoom to z, holding the paper under (ax, ay) — a screen point — where it is.
+function setZoom(z, ax, ay) {
+  z = Math.max(1, Math.min(ZOOM_MAX, z));
+  if (!pageScales.length || Math.abs(z - zoom) < 0.01) return;
+  const holder = $("pages");
+  if (ax == null) { ax = window.innerWidth / 2; ay = window.innerHeight / 2; }
+  // The page under the anchor (or the nearest one) and where on it, as a
+  // fraction — the 10px padding and 12px gaps do not scale, so a plain
+  // ratio of the scroll drifts ~190px by page 8 (review, card #387).
+  let anchor = null, best = Infinity;
+  for (const w of holder.children) {
+    const r = w.getBoundingClientRect();
+    const d = ay < r.top ? r.top - ay : ay > r.bottom ? ay - r.bottom : 0;
+    if (d < best) { best = d; anchor = { w, fx: (ax - r.left) / r.width, fy: (ay - r.top) / r.height }; }
+  }
+  zoom = z;
+  holder.classList.toggle("zoomed", zoom > 1);
+  layoutPages();
+  if (anchor) {
+    const r = anchor.w.getBoundingClientRect();
+    holder.scrollLeft += (r.left + anchor.fx * r.width) - ax;
+    window.scrollBy(0, (r.top + anchor.fy * r.height) - ay);
+  }
+  $("zoom-pct").textContent = Math.round(zoom * 100) + "%";
+  schedulePaint();
+}
+$("zoom-in").onclick = () => setZoom(zoom * 1.5);
+$("zoom-out").onclick = () => setZoom(zoom / 1.5);
+$("zoom-pct").onclick = () => setZoom(1);
+
+// Pinch: the pages scale live under the fingers, and the zoom lands on lift.
+// A pinch is never a placement — its fingers' pointerups are ignored.
+{
+  const holder = $("pages");
+  let pinch = null;
+  const gap = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  holder.addEventListener("touchstart", e => {
+    if (e.touches.length !== 2 || !pageScales.length) return;
+    const [a, b] = e.touches, hr = holder.getBoundingClientRect();
+    pinch = { d0: gap(a, b), z0: zoom, k: 1, cx: (a.clientX + b.clientX) / 2, cy: (a.clientY + b.clientY) / 2 };
+    if (!(pinch.d0 > 0)) { pinch = null; return; }
+    holder.style.transformOrigin = (pinch.cx - hr.left) + "px " + (pinch.cy - hr.top) + "px";
+    lastPinchAt = performance.now();
+  }, { passive: true });
+  holder.addEventListener("touchmove", e => {
+    if (!pinch || e.touches.length !== 2) return;
+    e.preventDefault();
+    const [a, b] = e.touches;
+    pinch.k = Math.max(1 / pinch.z0, Math.min(ZOOM_MAX / pinch.z0, gap(a, b) / pinch.d0));
+    holder.style.transform = "scale(" + pinch.k + ")";
+    lastPinchAt = performance.now();
+  }, { passive: false });
+  const end = e => {
+    if (!pinch || e.touches.length >= 2) return;
+    const p = pinch; pinch = null;
+    lastPinchAt = performance.now();
+    holder.style.transform = ""; holder.style.transformOrigin = "";
+    setZoom(p.z0 * p.k, p.cx, p.cy);
+  };
+  holder.addEventListener("touchend", end);
+  holder.addEventListener("touchcancel", end);
+  // Capture runs before the page's own pointerup (the tap); bubble runs after
+  // it — so the tap sees the pinch's fingers still counted, and they are
+  // cleared once it has looked.
+  let multi = false;
+  holder.addEventListener("pointerdown", e => { fingersDown.add(e.pointerId); if (fingersDown.size >= 2) multi = true; }, true);
+  const lift = e => { fingersDown.delete(e.pointerId); if (!fingersDown.size) multi = false; };
+  holder.addEventListener("pointerup", lift);
+  holder.addEventListener("pointercancel", lift);
+  window.__pinching = () => multi;
 }
 
 function onPageTap(ev, wrap) {
   if (!mode || ev.target.closest(".placed")) return;
+  if (window.__pinching && window.__pinching()) return;   // a finger of a pinch lifting, however slowly
+  if (performance.now() - lastPinchAt < 500) return;      // belt: the end of a pinch, not a tap
   const r = wrap.getBoundingClientRect();
   pendingTap = { page: +wrap.dataset.page, x: ev.clientX - r.left, y: ev.clientY - r.top, wrap };
   if (mode === "sign") openPad("place");
@@ -535,11 +703,15 @@ function makeDraggable(el) {
   let start = null;
   el.addEventListener("pointerdown", e => {
     if (e.target.classList.contains("x")) return;
-    start = { x: e.clientX, y: e.clientY, left: el.offsetLeft, top: el.offsetTop };
+    start = { x: e.clientX, y: e.clientY, left: parseFloat(el.style.left), top: parseFloat(el.style.top), gen: layoutGen };
     el.setPointerCapture(e.pointerId); e.preventDefault();
   });
   el.addEventListener("pointermove", e => {
     if (!start) return;
+    if (start.gen !== layoutGen) {   // a zoom landed mid-drag: carry on from where it is now, at the new size
+      start = { x: e.clientX, y: e.clientY, left: parseFloat(el.style.left), top: parseFloat(el.style.top), gen: layoutGen };
+      return;
+    }
     el.style.left = (start.left + e.clientX - start.x) + "px";
     el.style.top = (start.top + e.clientY - start.y) + "px";
   });
@@ -567,11 +739,13 @@ $("save").onclick = async () => {
     for (const p of placements) {
       const { scale, pdfH } = pageScales[p.page];
       const pg = pages[p.page];
-      const x = p.el.offsetLeft / scale;
-      const topPdf = p.el.offsetTop / scale;
+      // The exact spot, not offsetLeft's whole pixels: at 3x zoom a pixel of
+      // rounding is still a fraction of a point, but there is no need for any.
+      const x = parseFloat(p.el.style.left) / scale;
+      const topPdf = parseFloat(p.el.style.top) / scale;
       if (p.type === "sig") {
         const img = await doc.embedPng(p.png);
-        const w = p.el.offsetWidth / scale, h = w * p.aspect;
+        const w = parseFloat(p.el.style.width) / scale, h = w * p.aspect;
         pg.drawImage(img, { x, y: pdfH - topPdf - h, width: w, height: h });
       } else {
         const size = 11;
@@ -613,10 +787,10 @@ async function downloadFallback() {
   for (const p of placements) {
     const { scale, pdfH } = pageScales[p.page];
     const pg = pages[p.page];
-    const x = p.el.offsetLeft / scale, topPdf = p.el.offsetTop / scale;
+    const x = parseFloat(p.el.style.left) / scale, topPdf = parseFloat(p.el.style.top) / scale;
     if (p.type === "sig") {
       const img = await doc.embedPng(p.png);
-      const w = p.el.offsetWidth / scale, h = w * p.aspect;
+      const w = parseFloat(p.el.style.width) / scale, h = w * p.aspect;
       pg.drawImage(img, { x, y: pdfH - topPdf - h, width: w, height: h });
     } else {
       pg.drawText(p.text,
