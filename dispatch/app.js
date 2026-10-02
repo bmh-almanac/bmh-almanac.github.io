@@ -29,8 +29,14 @@ const DEMO = location.hash === '#demo';
 const HERE = new URL('./', location.href).href;          // this app's scope
 const OUR_WORKER = new URL('sw.js', location.href).href;
 const POLL_MS = 15000, TIMEOUT_MS = 12000, HOLD_MS = 800, KEEP_ROWS = 400;
+// alert (card #386): bik-dispatch is the alarm for everything, his words, so
+// Almanac's own alarms (a death on the watch, a payment chase, a road-gate
+// question) land on the line as kind 'alert'. One renders like a loud runner
+// fault (k-alert wears the hot colour, as k-failed does), never like the
+// batch slip, and as text only: any url the spine kept for it is never read
+// here, so nothing in an alert becomes a link.
 const TAGS = {started: 'STARTED', built: 'BUILT', failed: 'FAILED', held: 'HELD', done: 'LANDED',
-              ask: 'ASK', triage: 'TRIAGE', status: 'STATUS', ack: 'OK'};
+              ask: 'ASK', triage: 'TRIAGE', status: 'STATUS', ack: 'OK', alert: 'ALERT'};
 // THE SLIP CONTRACT, exactly as card #374 writes the title. · is the '·'.
 const SLIP = /^Batch landed: (\d+) to QA · (\d+) failed · (\d+) held · (\d+) need you/;
 const SLIP_LABELS = ['TO QA', 'FAILED', 'HELD', 'NEED YOU'];
@@ -557,9 +563,13 @@ function minutes(since) {
   return Math.max(0, Math.floor((b - a + (Date.now() - S.gotAt)) / 60000));
 }
 
+// The newest thing the RUNNER said. An Almanac alert (card #386) is not the
+// runner talking, so a watch death landing after the slip never moves the
+// RUN key out of it.
 function newestOp() {
   let best = null;
-  for (const m of S.msgs.values()) if (m.sender === 'operation' && (!best || m.id > best.id)) best = m;
+  for (const m of S.msgs.values())
+    if (m.sender === 'operation' && m.kind !== 'alert' && (!best || m.id > best.id)) best = m;
   return best;
 }
 function slipCounts(m) {
@@ -927,6 +937,8 @@ function demoBoot() {
            'QA  #911 Demo card: a quieter ring (demo003)\nFAILED  #910 the proof did not pass\n' +
            'NEEDS YOU  #912 the contract asks which file owns the strip\n4 approved waiting. Say run for the next batch.'},
     {at: ago(12), sender: 'bryan', kind: 'text', body: "how's the drive look", seen: false},
+    {at: ago(4), sender: 'operation', kind: 'alert', title: 'THE WATCH — sage went down',
+     body: 'sage: connection refused'},
   ];
   for (const r of rows)
     S.msgs.set(++S.demoId, {id: S.demoId, at: r.at, sender: r.sender, kind: r.kind, title: r.title || null,

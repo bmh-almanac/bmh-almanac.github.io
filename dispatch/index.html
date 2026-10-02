@@ -83,6 +83,10 @@ h1{flex:1;min-width:0;margin:0;font:700 15px/1 var(--sans);letter-spacing:.18em;
 .row{margin:4px 0;padding:10px 14px 12px 12px;border-left:3px solid var(--ink);min-width:0}
 .row.k-ask,.row.k-triage{border-left-color:var(--amber)}
 .row.k-failed{border-left-color:var(--hot)}
+/* An Almanac alert (card #386) carries a loud fault's weight: the same hot
+   token as FAILED, so it reads in NIGHT and in SUN alike. */
+.row.k-alert{border-left-color:var(--hot)}
+.row.k-alert .tag{color:var(--hot)}
 .meta{display:flex;align-items:center;gap:8px;min-width:0;font:700 13px/1.2 var(--mono);letter-spacing:.1em;color:var(--mid)}
 .meta time{margin-left:auto;font-weight:var(--w-body);letter-spacing:.04em;color:var(--dim)}
 .row.k-failed .tag{color:var(--hot)}

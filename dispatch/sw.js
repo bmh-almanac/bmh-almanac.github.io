@@ -20,7 +20,9 @@
  * fetch handler only ever touches URLs inside this scope, and /api/ is never
  * inside it), and always bypass the HTTP cache for the shell (cache:'reload').
  */
-const VERSION = 'almanac-dispatch-v1';   // bump whenever ANY dispatch file changes; the root VERSION is separate
+// v2 (card #386): the line now carries Almanac's alerts — app.js tags them
+// ALERT and index.html styles them hot.
+const VERSION = 'almanac-dispatch-v2';   // bump whenever ANY dispatch file changes; the root VERSION is separate
 const PREFIX = 'almanac-dispatch-';
 const SHELL = ['./', './index.html', './app.js', './manifest.webmanifest',
                './icons/icon-192.png', './icons/icon-512.png',
