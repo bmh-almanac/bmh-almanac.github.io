@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#07080A" id="metaTheme">
-<title>Almanac — the desk</title>
+<title>bik-almanac — the desk</title>
 <script>/* PAPER MODE boots before first paint — a flash of the wrong theme reads
 as a broken instrument. The class lands on <html> so every :root.paper rule
 and every canvas ink helper can read one source of truth. */
@@ -2507,7 +2507,6 @@ body.hot .act .h .n{color:var(--hot)}
       <button class="readstamp" id="readstamp" title="click to pull the Load Log and re-read the spine"></button>
       <span class="pill" id="pill">reading the spine</span>
       <button class="btn" id="home" hidden>&#9666; THE FIELD</button>
-      <button class="btn" id="toPlate" title="the phone instrument">&#8646; THE INSTRUMENT</button>
     </span>
   </div>
 
@@ -2695,11 +2694,6 @@ function unreadWhy(p){
   const k = Object.keys(u)[0];
   return k ? `${k} could not be read — ${String(u[k]).slice(0, 120)}` : "";
 }
-
-$("toPlate").addEventListener("click", () => {
-  localStorage.setItem("almanac_view", "detent");
-  location.href = "detent.html";
-});
 
 /* ── THE LAMP — night barn or printed page, his call, kept per device.
    The head boot script already classed <html> before first paint; this

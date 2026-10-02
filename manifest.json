@@ -1,6 +1,6 @@
 {
-  "name": "Almanac",
-  "short_name": "Almanac",
+  "name": "bik-almanac",
+  "short_name": "bik-almanac",
   "description": "Where you stand, the work, the soul, and the muscle.",
   "start_url": "./desk.html",
   "scope": "./",

@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v183';   // v183: GLASS tracks the beacon — every queue item dated and this week's held in the backlog, NEXT per lane with the rest one row each, WHO ANSWERED THE BEACON, Substack declared, the story's frontier (card #366) // v182: THE GLASS ready for the 10/1 launch — the queue of drafts with COPY, RECORD A POST and ADD LINK on the lane, the pin that never covers the strip, the door says who it's for (card #364) // v181: THE SERVICE CLUSTER — countdown gauges, the date window, HOLD TO LOG and the reset (card #362) // v180: THE SERVICE CLOCK on the HOTSHOT orb — oil life, tire rotation, trailer axle lube (card #362) // v179: THE GLASS joins the field — the community orb, its room FIRST LIGHT: the build odometer from the book, the dash of wins, the window test, the lane (card #360)   // v178: the destination fills as he types from the shell's own city list (card #355); a fix older than five minutes is never sent and the plan is never blanked over the device's date (cards #334 #337); the budget wall says why a line has no evidence (card #348)   // v177: THE DAY says when a window could not be read (card #333), a trend bucket before the load book is hatched (card #341), a blank to-go names the figure that could not be read (card #346)
+const VERSION = 'almanac-shell-v184';   // v184: the app is named bik-almanac (manifest + page titles; BIK = Blacktop Intelligence Krew) and Detent is gone — the desk's THE INSTRUMENT switch and detent.html removed; a notification tap opens the desk's radio room (card #377) // v183: GLASS tracks the beacon — every queue item dated and this week's held in the backlog, NEXT per lane with the rest one row each, WHO ANSWERED THE BEACON, Substack declared, the story's frontier (card #366) // v182: THE GLASS ready for the 10/1 launch — the queue of drafts with COPY, RECORD A POST and ADD LINK on the lane, the pin that never covers the strip, the door says who it's for (card #364) // v181: THE SERVICE CLUSTER — countdown gauges, the date window, HOLD TO LOG and the reset (card #362) // v180: THE SERVICE CLOCK on the HOTSHOT orb — oil life, tire rotation, trailer axle lube (card #362) // v179: THE GLASS joins the field — the community orb, its room FIRST LIGHT: the build odometer from the book, the dash of wins, the window test, the lane (card #360)   // v178: the destination fills as he types from the shell's own city list (card #355); a fix older than five minutes is never sent and the plan is never blanked over the device's date (cards #334 #337); the budget wall says why a line has no evidence (card #348)   // v177: THE DAY says when a window could not be read (card #333), a trend bucket before the load book is hatched (card #341), a blank to-go names the figure that could not be read (card #346)
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded
@@ -25,7 +25,7 @@ self.addEventListener('message', e => {
   if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 const SHELL = ['./', './index.html', './manifest.json',
-               './detent.html', './detent.webmanifest', './desk.html',
+               './desk.html',
                './companion.html', './ear.html', './history.html',
                './vendor/leaflet.js', './vendor/leaflet.css',
                './icons/icon-192.png', './icons/icon-512.png',
@@ -82,7 +82,7 @@ self.addEventListener('push', e => {
     body: d.body || '',
     data: isApproval
       ? { url: d.url, kind: 'approval', approval_id: d.approval_id, token: d.token }
-      : { url: d.url || './detent.html' },
+      : { url: d.url || './desk.html#radio' },
     icon: './icons/icon-192.png',
     badge: './icons/badge-96.png',
     tag: isApproval ? `approval-${d.approval_id}` : 'almanac',
@@ -137,7 +137,10 @@ self.addEventListener('notificationclick', e => {
   // A BODY tap on an approval (not a button) must not navigate to the POST-only
   // decision URL — that is a dead page. Send him to the desk instead.
   e.notification.close();
-  const target = new URL((data.kind === 'approval' ? './desk.html#hand' : data.url) || './detent.html',
+  // Detent was deleted 10-02 (card #377): a notification still in the tray from
+  // before that names its page, so it lands on the desk's radio room instead of a 404.
+  const asked = (data.kind === 'approval' ? './desk.html#hand' : data.url) || './desk.html#radio';
+  const target = new URL(asked.replace('detent.html', 'desk.html'),
                          self.registration.scope).href;
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
     for (const c of list)
