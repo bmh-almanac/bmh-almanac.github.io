@@ -401,10 +401,9 @@ let DEEP_CH = 0;      // a channel handed over by #ch= — tuned once, on boot
   if(h === "#reset" || h === "#nuke"){
     (async () => {
       try{
-        /* Only Almanac's own worker and caches (card #376). Dispatch lives on
-           this origin with its own registration at /dispatch/, and that
-           registration holds its push subscription: unregistering every
-           registration here would silently kill the Dispatch bell. */
+        /* Only Almanac's own worker and caches (card #376). Dispatch moved to
+           its own origin (card #388); an old /dispatch/ registration on a
+           phone is removed by that path's own kill switch, never from here. */
         const root = new URL("./", location.href).href;
         const regs = await (navigator.serviceWorker?.getRegistrations?.() ?? []);
         await Promise.all(regs.filter(r => r.scope === root).map(r => r.unregister()));
