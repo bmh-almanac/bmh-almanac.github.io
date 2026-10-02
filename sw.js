@@ -14,7 +14,7 @@
  *    network every time; the SW cache is then only ever a genuine offline
  *    fallback.
  */
-const VERSION = 'almanac-shell-v188';   // v188: the #cfg fix itself (desk.html + companion.html) — v187 went out carrying only its version line when a sibling session's commit picked it up (card #384) // v187: a #cfg link is honored only with both the address and the key, and only for an https spine or this Mac's loopback — a key-less link can no longer send the stored bearer to a stranger (card #384) // v186: FILL & SIGN from the load card opens that load's own rate con and saves it back to the folder it came from; a file with no load number goes to the phone (card #382) // v185: FILL & SIGN stamps — Signature, Initials, Address, MC, DOT, Phone, Email set once under ⚙ Stamps, one tap each; text previews at the size it prints and rests on the line tapped (card #381) // v184: the app is named bik-almanac (manifest + page titles; BIK = Blacktop Intelligence Krew) and Detent is gone — the desk's THE INSTRUMENT switch and detent.html removed; a notification tap opens the desk's radio room (card #377) // v183: GLASS tracks the beacon — every queue item dated and this week's held in the backlog, NEXT per lane with the rest one row each, WHO ANSWERED THE BEACON, Substack declared, the story's frontier (card #366) // v182: THE GLASS ready for the 10/1 launch — the queue of drafts with COPY, RECORD A POST and ADD LINK on the lane, the pin that never covers the strip, the door says who it's for (card #364) // v181: THE SERVICE CLUSTER — countdown gauges, the date window, HOLD TO LOG and the reset (card #362) // v180: THE SERVICE CLOCK on the HOTSHOT orb — oil life, tire rotation, trailer axle lube (card #362) // v179: THE GLASS joins the field — the community orb, its room FIRST LIGHT: the build odometer from the book, the dash of wins, the window test, the lane (card #360)   // v178: the destination fills as he types from the shell's own city list (card #355); a fix older than five minutes is never sent and the plan is never blanked over the device's date (cards #334 #337); the budget wall says why a line has no evidence (card #348)   // v177: THE DAY says when a window could not be read (card #333), a trend bucket before the load book is hatched (card #341), a blank to-go names the figure that could not be read (card #346)
+const VERSION = 'almanac-shell-v189';   // v189: Dispatch lives beside us: caches and windows kept apart (card #376) // v188: the #cfg fix itself (desk.html + companion.html) — v187 went out carrying only its version line when a sibling session's commit picked it up (card #384) // v187: a #cfg link is honored only with both the address and the key, and only for an https spine or this Mac's loopback — a key-less link can no longer send the stored bearer to a stranger (card #384) // v186: FILL & SIGN from the load card opens that load's own rate con and saves it back to the folder it came from; a file with no load number goes to the phone (card #382) // v185: FILL & SIGN stamps — Signature, Initials, Address, MC, DOT, Phone, Email set once under ⚙ Stamps, one tap each; text previews at the size it prints and rests on the line tapped (card #381) // v184: the app is named bik-almanac (manifest + page titles; BIK = Blacktop Intelligence Krew) and Detent is gone — the desk's THE INSTRUMENT switch and detent.html removed; a notification tap opens the desk's radio room (card #377) // v183: GLASS tracks the beacon — every queue item dated and this week's held in the backlog, NEXT per lane with the rest one row each, WHO ANSWERED THE BEACON, Substack declared, the story's frontier (card #366) // v182: THE GLASS ready for the 10/1 launch — the queue of drafts with COPY, RECORD A POST and ADD LINK on the lane, the pin that never covers the strip, the door says who it's for (card #364) // v181: THE SERVICE CLUSTER — countdown gauges, the date window, HOLD TO LOG and the reset (card #362) // v180: THE SERVICE CLOCK on the HOTSHOT orb — oil life, tire rotation, trailer axle lube (card #362) // v179: THE GLASS joins the field — the community orb, its room FIRST LIGHT: the build odometer from the book, the dash of wins, the window test, the lane (card #360)   // v178: the destination fills as he types from the shell's own city list (card #355); a fix older than five minutes is never sent and the plan is never blanked over the device's date (cards #334 #337); the budget wall says why a line has no evidence (card #348)   // v177: THE DAY says when a window could not be read (card #333), a trend bucket before the load book is hatched (card #341), a blank to-go names the figure that could not be read (card #346)
 
 // The version gauge that cannot lie (Almanac #8): the page asks, the worker
 // answers — the chip renders what is actually installed, never a hardcoded
@@ -52,9 +52,13 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   // Deleting the old caches is safe ONLY because install is now atomic —
   // activate cannot run behind a partial cache (card #99).
+  // Only OUR caches (card #376): CacheStorage is shared by every worker on this
+  // origin, and Dispatch keeps its own 'almanac-dispatch-*' caches beside us.
+  // Deleting everything that isn't VERSION would wipe its offline shell.
   e.waitUntil(
     caches.keys()
-      .then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(ks => Promise.all(ks.filter(k => k.startsWith('almanac-shell-') && k !== VERSION)
+                                .map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -142,9 +146,13 @@ self.addEventListener('notificationclick', e => {
   const asked = (data.kind === 'approval' ? './desk.html#hand' : data.url) || './desk.html#radio';
   const target = new URL(asked.replace('detent.html', 'desk.html'),
                          self.registration.scope).href;
+  // A Dispatch window also starts with our scope, but it belongs to another
+  // worker (card #376): navigate() rejects on a client another worker controls,
+  // and focus() would raise Dispatch for an Almanac tap. So we skip it.
+  const dispatchScope = self.registration.scope + 'dispatch/';
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
     for (const c of list)
-      if (c.url.startsWith(self.registration.scope) && 'focus' in c) {
+      if (c.url.startsWith(self.registration.scope) && !c.url.startsWith(dispatchScope) && 'focus' in c) {
         c.navigate(target);
         return c.focus();
       }
@@ -159,6 +167,10 @@ self.addEventListener('fetch', e => {
   // into CacheStorage below, so a THERAPIST transcript could land in the
   // phone's cache). Rule 1 above, made mechanical: never touch /api/.
   if (u.pathname.startsWith('/api/')) return;
+  // Dispatch is served by its own worker (card #376). Before that worker
+  // claims a first visit, this one is in charge, and it must not copy
+  // Dispatch's files into Almanac's cache or answer for them offline.
+  if (u.pathname.startsWith('/dispatch/') || u.pathname === '/dispatch') return;
   if (u.origin !== location.origin) return;        // a foreign origin is never cached
 
   const isShell = e.request.mode === 'navigate' ||

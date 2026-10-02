@@ -401,10 +401,15 @@ let DEEP_CH = 0;      // a channel handed over by #ch= — tuned once, on boot
   if(h === "#reset" || h === "#nuke"){
     (async () => {
       try{
+        /* Only Almanac's own worker and caches (card #376). Dispatch lives on
+           this origin with its own registration at /dispatch/, and that
+           registration holds its push subscription: unregistering every
+           registration here would silently kill the Dispatch bell. */
+        const root = new URL("./", location.href).href;
         const regs = await (navigator.serviceWorker?.getRegistrations?.() ?? []);
-        await Promise.all(regs.map(r => r.unregister()));
+        await Promise.all(regs.filter(r => r.scope === root).map(r => r.unregister()));
         const ks = await (caches?.keys?.() ?? []);
-        await Promise.all(ks.map(k => caches.delete(k)));
+        await Promise.all(ks.filter(k => k.startsWith("almanac-shell-")).map(k => caches.delete(k)));
       }catch(e){}
       if(h === "#nuke"){ localStorage.removeItem("almanac_api"); localStorage.removeItem("almanac_token"); }
       location.replace(location.pathname + location.search);
