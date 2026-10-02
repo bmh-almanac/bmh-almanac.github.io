@@ -12,7 +12,7 @@
 <style>
   :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --gold:#e5b524; --ink:#e6edf3; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  body { background:var(--bg); color:var(--ink); font:15px -apple-system,'Segoe UI',Roboto,sans-serif; padding-bottom:90px; }
+  body { background:var(--bg); color:var(--ink); font:15px -apple-system,'Segoe UI',Roboto,sans-serif; padding-bottom:150px; }
   header { position:sticky; top:0; z-index:20; background:var(--panel); border-bottom:1px solid var(--line);
            padding:10px 14px; display:flex; align-items:center; gap:10px; }
   header h1 { font-size:16px; color:var(--gold); flex:1; white-space:nowrap; }
@@ -21,9 +21,9 @@
   .btn:active { transform:scale(.97); }
   .btn.gold { background:var(--gold); color:#111; border-color:var(--gold); }
   .btn.on { outline:3px solid var(--gold); }
-  #toolbar { position:fixed; bottom:0; left:0; right:0; z-index:20; display:flex; gap:8px;
-             padding:12px 14px calc(12px + env(safe-area-inset-bottom)); background:var(--panel);
-             border-top:1px solid var(--line); }
+  #dock { position:fixed; bottom:0; left:0; right:0; z-index:20; background:var(--panel);
+          border-top:1px solid var(--line); }
+  #toolbar { display:flex; gap:8px; padding:10px 14px calc(12px + env(safe-area-inset-bottom)); }
   #toolbar .btn { flex:1; text-align:center; }
   #picker-wrap { padding:40px 20px; text-align:center; }
   #picker-wrap p { color:#8b949e; margin:14px 0 26px; line-height:1.5; }
@@ -34,7 +34,35 @@
   .page-wrap canvas { display:block; background:#fff; border-radius:4px; }
   .placed { position:absolute; touch-action:none; cursor:move; }
   .placed img { width:100%; display:block; pointer-events:none; }
-  .placed .date-text { font:600 16px Helvetica,Arial,sans-serif; color:#111; white-space:nowrap; }
+  .placed .date-text { font:600 16px Helvetica,Arial,sans-serif; line-height:1.2; color:#111; white-space:pre; }
+  /* Text previews at the size it prints (11pt on the page), so a thin line of
+     it needs a finger-sized target around it to be dragged. */
+  .placed.txt::before { content:""; position:absolute; inset:-14px -10px; }
+  .placed.txt .x { top:-30px; right:-32px; }   /* clear of a short line like "MC 1234567" */
+  /* Stamps (card #381): his one-tap carrier fields, set once in ⚙ Stamps */
+  #stampbar { display:flex; gap:8px; padding:10px 14px 0; overflow-x:auto; scrollbar-width:none; }
+  #stampbar::-webkit-scrollbar { display:none; }
+  .chip { flex:0 0 auto; background:transparent; color:var(--ink); border:1px solid var(--line); border-radius:18px;
+          padding:9px 14px; font-size:14px; font-weight:600; white-space:nowrap; cursor:pointer; }
+  .chip.on { background:var(--gold); color:#111; border-color:var(--gold); }
+  .chip.unset { color:#8b949e; border-style:dashed; }
+  #setup { position:fixed; inset:0; z-index:45; background:var(--bg); display:none; flex-direction:column; }
+  #setup .body { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+  #setup h3 { color:var(--gold); }
+  #setup .sub { color:#8b949e; font-size:13px; margin-top:4px; }
+  .srow { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+  .srow .lbl, .sfield span { font-size:12px; font-weight:700; color:var(--gold); letter-spacing:.5px; text-transform:uppercase; }
+  .srow .lbl { flex:0 0 76px; }
+  .sprev { flex:1; min-width:0; height:44px; display:flex; align-items:center; padding:0 8px; background:#fff; border-radius:8px; overflow:hidden; }
+  .sprev img { max-height:40px; max-width:100%; }
+  .sprev.empty { background:transparent; border:1px dashed var(--line); color:#8b949e; font-size:12px; }
+  .srow .btn { padding:10px 16px; }
+  .sfield { display:flex; flex-direction:column; gap:6px; }
+  .sfield input, .sfield textarea { width:100%; font:inherit; font-size:16px; padding:12px; border-radius:10px;
+                                    border:1px solid var(--line); background:var(--panel); color:var(--ink); resize:none; }
+  #setup .bar { display:flex; gap:10px; padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+                border-top:1px solid var(--line); background:var(--panel); }
+  #setup .bar .btn { flex:1; text-align:center; }
   .placed .x { position:absolute; top:-14px; right:-14px; width:28px; height:28px; border-radius:50%;
                background:#da3633; color:#fff; font-size:15px; line-height:28px; text-align:center; }
   #hint { position:fixed; top:64px; left:0; right:0; z-index:15; text-align:center; pointer-events:none; }
@@ -61,7 +89,8 @@
   #datebox .row { display:flex; gap:10px; }
   #datebox .row .btn { flex:1; text-align:center; }
   #toast { position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:60; background:#238636;
-           color:#fff; padding:12px 20px; border-radius:12px; font-weight:600; display:none; max-width:90vw; }
+           color:#fff; padding:12px 20px; border-radius:12px; font-weight:600; display:none; max-width:90vw;
+           pointer-events:none; }   /* a toast only speaks — it sits over the stamps sheet's rows */
   #toast.err { background:#da3633; }
 </style>
 <link rel="icon" href="icons/favicon.png" type="image/png">
@@ -69,6 +98,7 @@
 <body>
 <header>
   <h1>✍️ Fill &amp; Sign</h1>
+  <button class="btn" id="stamps-btn">⚙ Stamps</button>
   <button class="btn" id="new-file" style="display:none">📂 New</button>
 </header>
 
@@ -84,12 +114,41 @@
 
 <div id="pages"></div>
 
-<div id="toolbar" style="display:none">
-  <button class="btn" id="mode-sign">✍️ Sign</button>
-  <button class="btn" id="mode-text">🔤 Name</button>
-  <button class="btn" id="mode-date">📅 Date</button>
-  <button class="btn" id="undo">↩️</button>
-  <button class="btn gold" id="save">💾 Save</button>
+<div id="dock" style="display:none">
+  <div id="stampbar" role="group" aria-label="Your stamps"></div>
+  <div id="toolbar">
+    <button class="btn" id="mode-sign">✍️ Sign</button>
+    <button class="btn" id="mode-text">🔤 Name</button>
+    <button class="btn" id="mode-date">📅 Date</button>
+    <button class="btn" id="undo">↩️</button>
+    <button class="btn gold" id="save">💾 Save</button>
+  </div>
+</div>
+
+<!-- My Stamps (card #381). His values live on this phone only:
+     localStorage + an IndexedDB survivor copy, never in this file. -->
+<div id="setup">
+  <div class="body">
+    <div><h3>⚙ My Stamps</h3><div class="sub">Set them once. They stay on this phone.</div></div>
+    <div class="srow"><span class="lbl">Signature</span><div class="sprev" id="prev-signature"></div>
+      <button class="btn" data-draw="signature">Draw</button></div>
+    <div class="srow"><span class="lbl">Initials</span><div class="sprev" id="prev-initials"></div>
+      <button class="btn" data-draw="initials">Draw</button></div>
+    <label class="sfield"><span>Address</span>
+      <textarea id="st-address" rows="2" autocomplete="off" placeholder="Street, City, ST ZIP"></textarea></label>
+    <label class="sfield"><span>MC</span>
+      <input id="st-mc" type="text" autocomplete="off" placeholder="e.g. MC 1234567"></label>
+    <label class="sfield"><span>DOT</span>
+      <input id="st-dot" type="text" autocomplete="off" placeholder="e.g. DOT 1234567"></label>
+    <label class="sfield"><span>Phone</span>
+      <input id="st-phone" type="tel" autocomplete="off" placeholder="(555) 555-5555"></label>
+    <label class="sfield"><span>Email</span>
+      <input id="st-email" type="email" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="you@business.com"></label>
+  </div>
+  <div class="bar">
+    <button class="btn" id="setup-cancel">Cancel</button>
+    <button class="btn gold" id="setup-save">Save</button>
+  </div>
 </div>
 
 <div id="pad">
@@ -149,7 +208,8 @@ $("file-input").onchange = async e => {
   origBytes = new Uint8Array(await f.arrayBuffer());
   await renderPdf();
   $("picker-wrap").style.display = "none";
-  $("toolbar").style.display = "flex";
+  $("dock").style.display = "block";
+  renderChips();
   $("new-file").style.display = "block";
 };
 
@@ -181,9 +241,10 @@ function onPageTap(ev, wrap) {
   if (!mode || ev.target.closest(".placed")) return;
   const r = wrap.getBoundingClientRect();
   pendingTap = { page: +wrap.dataset.page, x: ev.clientX - r.left, y: ev.clientY - r.top, wrap };
-  if (mode === "sign") openPad();
+  if (mode === "sign") openPad("place");
   else if (mode === "text") { $("text-input").value = ""; $("textbox").style.display = "flex"; $("text-input").focus(); }
-  else { $("date-input").value = new Date().toISOString().slice(0, 10); $("datebox").style.display = "flex"; }
+  else if (mode === "date") { $("date-input").value = new Date().toISOString().slice(0, 10); $("datebox").style.display = "flex"; }
+  else placeStamp(mode.slice(6));
 }
 
 function setMode(m) {
@@ -193,7 +254,9 @@ function setMode(m) {
   $("mode-date").classList.toggle("on", mode === "date");
   hint(mode === "sign" ? "Tap the line you're signing" :
        mode === "text" ? "Tap where the name goes" :
-       mode === "date" ? "Tap where the date goes" : "");
+       mode === "date" ? "Tap where the date goes" :
+       mode ? "Tap where the " + STAMP_NOUN[mode.slice(6)] + " goes" : "");
+  renderChips();
 }
 $("mode-sign").onclick = () => setMode("sign");
 $("mode-text").onclick = () => setMode("text");
@@ -207,9 +270,132 @@ $("text-ok").onclick = () => {
   $("textbox").style.display = "none";
 };
 
-/* ── Full-screen scribble pad ── */
-let drawing = false, last = null, inked = false;
-function openPad() {
+/* ── Stamps (card #381) ──
+   His words 2026-10-02: "the ability to stamp things that i do all the time.
+   Full signature, Initials, Address, MC, DOT, Phone number, business email."
+   Set once under ⚙ Stamps; each one is then a chip — tap it, tap the line.
+   The values are his and this page is public, so they live on the phone only:
+   localStorage for the read, an IndexedDB copy as the survivor an eviction
+   cannot take. Nothing of his is ever written into this file. */
+const IMG_STAMPS = { signature: { label: "Signature", widthFrac: 0.30 },
+                     initials:  { label: "Initials",  widthFrac: 0.10 } };
+const TEXT_STAMPS = ["address", "mc", "dot", "phone", "email"];
+const CHIPS = [["signature", "Signature"], ["initials", "Initials"], ["address", "Address"],
+               ["mc", "MC"], ["dot", "DOT"], ["phone", "Phone"], ["email", "Email"]];
+const STAMP_NOUN = { signature: "signature", initials: "initials", address: "address",
+                     mc: "MC", dot: "DOT", phone: "phone", email: "email" };
+const STAMP_LS = { signature: "almanac_stamp_signature", initials: "almanac_stamp_initials", text: "almanac_stamps" };
+
+function stampKv(mode, fn) {
+  return new Promise(res => {
+    try {
+      const r = indexedDB.open("almanac-stamps", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => {
+        const db = r.result, tx = db.transaction("kv", mode), q = fn(tx.objectStore("kv"));
+        tx.oncomplete = () => { db.close(); res(q.result == null ? null : q.result); };
+        tx.onabort = tx.onerror = () => { db.close(); res(null); };
+      };
+      r.onerror = r.onblocked = () => res(null);
+    } catch (_) { res(null); }
+  });
+}
+const kvGet = k => stampKv("readonly", st => st.get(k));
+const kvPut = (k, v) => stampKv("readwrite", st => st.put(v, k));
+const lsGet = k => { try { return localStorage.getItem(k) || ""; } catch (_) { return ""; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (_) { return false; } };
+const stampImg = kind => lsGet(STAMP_LS[kind]);
+const stampText = () => { try { return JSON.parse(lsGet(STAMP_LS.text) || "{}") || {}; } catch (_) { return {}; } };
+const stampReady = (kind, t) => IMG_STAMPS[kind] ? !!stampImg(kind) : !!String((t || stampText())[kind] || "").trim();
+// Each returns whether the fast copy took — a refused store must say so, not "saved".
+function saveStampImg(kind, url) { kvPut(STAMP_LS[kind], url); return lsSet(STAMP_LS[kind], url); }
+function saveStampText(t) { kvPut(STAMP_LS.text, t); return lsSet(STAMP_LS.text, JSON.stringify(t)); }
+
+// A stamp missing from localStorage comes back from the survivor; one present
+// gains its survivor copy.
+(async () => {
+  for (const k of Object.keys(IMG_STAMPS)) {   // localStorage re-read after each await
+    const kept = await kvGet(STAMP_LS[k]), have = stampImg(k);
+    if (have && kept !== have) kvPut(STAMP_LS[k], have);
+    else if (!have && kept) lsSet(STAMP_LS[k], kept);
+  }
+  const keptText = await kvGet(STAMP_LS.text);
+  if (lsGet(STAMP_LS.text)) kvPut(STAMP_LS.text, stampText());
+  else if (keptText) lsSet(STAMP_LS.text, JSON.stringify(keptText));
+  renderChips();
+})();
+
+function renderChips() {
+  const t = stampText();
+  $("stampbar").innerHTML = CHIPS.map(([k, label]) =>
+    `<button class="chip${mode === "stamp:" + k ? " on" : ""}${stampReady(k, t) ? "" : " unset"}" data-stamp="${k}">${label}</button>`
+  ).join("") + `<button class="chip" data-setup="1" aria-label="Set up stamps">⚙</button>`;
+}
+$("stampbar").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.setup) return openSetup();
+  const k = b.dataset.stamp;
+  if (!stampReady(k)) return openSetup(k);   // never set up: set it up right where he reached for it
+  setMode("stamp:" + k);
+};
+
+async function placeStamp(kind) {
+  try {
+    if (!stampReady(kind)) throw new Error("stamp not set up");
+    if (IMG_STAMPS[kind]) {
+      const png = stampImg(kind), im = new Image();
+      await new Promise((res, rej) => { im.onload = res; im.onerror = rej; im.src = png; });
+      addPlacement({ type: "sig", png, aspect: im.height / im.width, widthFrac: IMG_STAMPS[kind].widthFrac });
+    } else {
+      addPlacement({ type: "date", text: stampText()[kind] });
+    }
+  } catch (_) {
+    pendingTap = null;
+    toast("That stamp could not be drawn — set it up again under ⚙ Stamps", true);
+  }
+}
+
+function openSetup(focus) {
+  const t = stampText();
+  TEXT_STAMPS.forEach(k => { $("st-" + k).value = t[k] || ""; });
+  renderPreviews();
+  $("setup").style.display = "flex";
+  if (focus && IMG_STAMPS[focus]) openPad(focus);
+  else if (focus) setTimeout(() => $("st-" + focus).focus(), 50);
+}
+function renderPreviews() {
+  Object.keys(IMG_STAMPS).forEach(k => {
+    const box = $("prev-" + k), url = stampImg(k);
+    box.className = "sprev" + (url ? "" : " empty");
+    box.textContent = url ? "" : "Not set";
+    if (url) { const im = document.createElement("img"); im.alt = ""; im.src = url; box.appendChild(im); }
+  });
+}
+$("stamps-btn").onclick = () => openSetup();
+document.querySelectorAll("[data-draw]").forEach(b => { b.onclick = () => openPad(b.dataset.draw); });
+$("setup-cancel").onclick = () => { $("setup").style.display = "none"; };
+$("setup-save").onclick = () => {
+  const t = {};
+  TEXT_STAMPS.forEach(k => {
+    // An address may run two lines; every other stamp is one.
+    const v = $("st-" + k).value.split(/\r?\n/).map(x => x.trim()).filter(Boolean).join(k === "address" ? "\n" : " ");
+    if (v) t[k] = v;
+  });
+  const kept = saveStampText(t);
+  $("setup").style.display = "none";
+  if (mode && mode.startsWith("stamp:") && !stampReady(mode.slice(6))) setMode(mode);   // an emptied stamp disarms
+  renderChips();
+  toast(kept ? "Stamps saved" : "Stamps NOT saved — this phone refused to store them", !kept);
+};
+
+/* ── Full-screen scribble pad ──
+   "place" signs the page where he tapped; "signature" / "initials" draw the
+   stamp he keeps under ⚙ Stamps. */
+let drawing = false, last = null, inked = false, padFor = "place";
+function openPad(forWhat) {
+  padFor = forWhat || "place";
+  $("pad-title").textContent = padFor === "signature" ? "DRAW YOUR SIGNATURE"
+                             : padFor === "initials" ? "DRAW YOUR INITIALS" : "SIGN WITH YOUR FINGER";
   const pad = $("pad"); pad.style.display = "flex";
   requestAnimationFrame(() => {
     const cv = $("pad-canvas"), dpr = window.devicePixelRatio || 1;
@@ -244,8 +430,13 @@ $("pad-done").onclick = () => {
   const pad = 12, cw = maxX - minX + pad * 2, ch = maxY - minY + pad * 2;
   const out = document.createElement("canvas"); out.width = cw; out.height = ch;
   out.getContext("2d").drawImage(cv, minX - pad, minY - pad, cw, ch, 0, 0, cw, ch);
-  addPlacement({ type: "sig", png: out.toDataURL("image/png"), aspect: ch / cw });
+  const png = out.toDataURL("image/png");
   $("pad").style.display = "none";
+  if (padFor === "place") { addPlacement({ type: "sig", png, aspect: ch / cw }); return; }
+  const kept = saveStampImg(padFor, png);
+  renderPreviews();
+  renderChips();
+  toast(IMG_STAMPS[padFor].label + (kept ? " saved" : " NOT saved — this phone refused to store it"), !kept);
 };
 
 /* ── Date ── */
@@ -263,14 +454,25 @@ function addPlacement(p) {
   const el = document.createElement("div"); el.className = "placed";
   let w;
   if (p.type === "sig") {
-    w = t.wrap.clientWidth * 0.30;
+    w = t.wrap.clientWidth * (p.widthFrac || 0.30);
     el.style.width = w + "px";
     el.innerHTML = `<img src="${p.png}">`;
     el.style.left = (t.x - w / 2) + "px";
     el.style.top = (t.y - w * p.aspect + 6) + "px";
   } else {
-    el.innerHTML = `<div class="date-text">${p.text}</div>`;
-    el.style.left = t.x + "px"; el.style.top = (t.y - 18) + "px";
+    // What you see is what prints (card #381): the preview is the 11pt the
+    // save draws, scaled to this page, and the last line rests on the line he
+    // tapped. It used to preview at a flat 16px with its top 18px above the
+    // tap — about 2.5x the printed size, and the print landed ~20pt above the
+    // line, under nothing he could see.
+    const fs = 11 * pageScales[t.page].scale, lines = String(p.text).split("\n").length;
+    const tx = document.createElement("div"); tx.className = "date-text";
+    tx.style.fontSize = fs + "px";
+    tx.textContent = p.text;   // typed by hand — text, never markup
+    el.appendChild(tx);
+    el.classList.add("txt");
+    el.style.left = t.x + "px";
+    el.style.top = (t.y - fs * 1.2 * lines + fs * 0.25) + "px";
   }
   const x = document.createElement("div"); x.className = "x"; x.textContent = "✕";
   x.onpointerdown = e => { e.stopPropagation(); el.remove(); placements = placements.filter(q => q.el !== el); };
@@ -319,8 +521,8 @@ $("save").onclick = async () => {
         pg.drawImage(img, { x, y: pdfH - topPdf - h, width: w, height: h });
       } else {
         const size = 11;
-        pg.drawText(p.el.textContent.replace("✕", "").trim(),
-          { x, y: pdfH - topPdf - size, size, font, color: PDFLib.rgb(0.06, 0.09, 0.13) });
+        pg.drawText(p.text,
+          { x, y: pdfH - topPdf - size, size, lineHeight: size * 1.2, font, color: PDFLib.rgb(0.06, 0.09, 0.13) });
       }
     }
     const outBytes = await doc.save();
@@ -362,8 +564,8 @@ async function downloadFallback() {
       const w = p.el.offsetWidth / scale, h = w * p.aspect;
       pg.drawImage(img, { x, y: pdfH - topPdf - h, width: w, height: h });
     } else {
-      pg.drawText(p.el.textContent.replace("✕", "").trim(),
-        { x, y: pdfH - topPdf - 11, size: 11, font, color: PDFLib.rgb(0.06, 0.09, 0.13) });
+      pg.drawText(p.text,
+        { x, y: pdfH - topPdf - 11, size: 11, lineHeight: 13.2, font, color: PDFLib.rgb(0.06, 0.09, 0.13) });
     }
   }
   const bytes = await doc.save();
