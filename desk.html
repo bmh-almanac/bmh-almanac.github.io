@@ -6359,7 +6359,7 @@ function haulCard(l, opts){
     ${broker ? `<div class="hlBrokerLn">${broker}</div>` : ""}
     ${(l.drive_folder_link || "").startsWith("http") ? `<div class="hlBrokerLn"><a href="${esc(l.drive_folder_link)}" target="_blank" rel="noopener">THE PAPERS — rate con, BOL, invoice</a></div>` : ""}
     <div class="hlActs"><button class="btn go bolBtn" data-bol="${esc(l.load_number)}">📄 MAKE BOL</button>
-      <a class="btn go" href="./sign.html" target="_blank" rel="noopener" style="text-decoration:none">✍️ FILL &amp; SIGN</a>${
+      <a class="btn go" href="./sign.html?row=${l.sheet_row}" target="_blank" rel="noopener" style="text-decoration:none" title="open this load's rate con to sign">✍️ FILL &amp; SIGN</a>${
       opts.road ? `<span class="roadSeg"><button type="button" class="btn roadMode${State.roadMode === "partial" ? " on" : ""}" data-m="partial" title="running partials — the cheapest legal order across the book">PARTIAL</button><button type="button" class="btn roadMode${State.roadMode === "full" ? " on" : ""}" data-m="full" title="one load at a time — finish it, then the next pickup">FULL</button></span>` : ""}</div>
   </div>`;
 }
