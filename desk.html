@@ -2606,8 +2606,19 @@ let TOK = localStorage.getItem("almanac_token") || "";
   if(m){
     try{
       const cfg = JSON.parse(decodeURIComponent(m[1]));
-      if(cfg.api)   localStorage.setItem("almanac_api",   API = cfg.api.replace(/\/$/, ""));
-      if(cfg.token) localStorage.setItem("almanac_token", TOK = cfg.token);
+      /* A connect link carries the address AND the key, always (reconnect.py,
+         connect.py). One that names an address without a key used to repoint
+         this page and keep the stored key, so the next request handed his
+         bearer to whatever server the link named (card #384). Now the pair is
+         honored together or not at all, and only for an https spine or this
+         Mac's own loopback preview. */
+      const api = typeof cfg.api === "string" ? cfg.api.replace(/\/$/, "") : "";
+      const tok = typeof cfg.token === "string" ? cfg.token : "";
+      const safeApi = /^https:\/\/[^\/\s]+$/.test(api) || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(api);
+      if(api && tok && safeApi){
+        localStorage.setItem("almanac_api", API = api);
+        localStorage.setItem("almanac_token", TOK = tok);
+      }
       history.replaceState(null, "", location.pathname + location.search);
     }catch(e){}
   }
