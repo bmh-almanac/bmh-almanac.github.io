@@ -273,8 +273,12 @@ async function renderPdf() {
     cv.style.width = vp.width + "px"; cv.style.height = vp.height + "px";
     wrap.appendChild(cv); holder.appendChild(wrap);
     pageScales[p - 1] = { scale, pdfW: vp1.width, pdfH: vp1.height };
+    // Paint filled form fields into the preview (a broker's pre-filled packet):
+    // the default leaves them to an HTML layer this page never builds, so he
+    // could stamp over a value he could not see. The save keeps them anyway.
     await page.render({ canvasContext: cv.getContext("2d"),
-                        viewport: page.getViewport({ scale: scale * dpr }) }).promise;
+                        viewport: page.getViewport({ scale: scale * dpr }),
+                        annotationMode: pdfjsLib.AnnotationMode.ENABLE_STORAGE }).promise;
     wrap.addEventListener("pointerup", ev => onPageTap(ev, wrap), { passive: false });
   }
 }
@@ -587,7 +591,7 @@ $("save").onclick = async () => {
                                              : { filename: name, data: b64, row: openedRow }) });
     const j = await resp.json().catch(() => ({}));
     if (resp.ok && j.saved) {
-      toast("✔ Saved to load folder: " + name);
+      toast("✔ Saved to load folder: " + String(j.saved).split("/").pop());   // the name actually written (a re-sign is '… 2')
     } else {
       throw new Error(j.error || ("HTTP " + resp.status));
     }
