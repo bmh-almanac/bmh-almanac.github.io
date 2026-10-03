@@ -331,7 +331,7 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
     <button class="sc-mode" data-mode="analysis" role="radio" title="the full read — a voice that knows your numbers">ANALYSIS</button>
     <button class="sc-mode" data-mode="chat" role="radio" title="off the clock — quick voice, no ledger">CHAT</button>
     <button class="sc-mode" data-mode="therapist" role="radio" title="the inner room — walled from the work">THERAPIST</button>
-    <button class="sc-mode" data-mode="atlas" role="radio" id="modeAtlas" title="the chief of staff — the loads, the money, the web, your folders; a change goes to your phone">ATLAS</button>
+    <button class="sc-mode" data-mode="atlas" role="radio" id="modeAtlas" title="the chief of staff — the loads, the money, the web, your folders; a change goes to your phone">GOOSE</button>
     <button class="sc-mode" data-mode="brainstorm" role="radio" title="the pad — think out loud, it argues back; every few lines it offers your own words to keep">BRAINSTORM</button>
   </div>
   <div class="sc-modes sub" id="subdials" role="group" aria-label="atlas dials" hidden>
@@ -519,18 +519,22 @@ const S = {
 };
 
 /* ══ the mode selector — one set, three voices (card #131) ══ */
+/* The seat's name — his ruling 2026-10-03: "Goose", the RIO in the back seat who
+   runs the radar and the radio while he holds the stick. It was ATLAS; the spine's
+   own home for it is radio.NAME, and "atlas" stays the internal mode slug. */
+const SEAT_NAME = "GOOSE";
 const MODE_PLACEHOLDER = {
   analysis:  "say it — or tap TALK and just speak; quiet sends it",
   chat:      "shoot the breeze — quick voice, no ledger",
   therapist: "say what's on you — this room holds it",
-  atlas:     "say it — the chief of staff reaches for the loads, the money, the web, your folders",
+  atlas:     "talk to me, Goose — the loads, the money, the web, your folders",
   brainstorm:"work it out loud — the pad keeps what you circle",
 };
 const MODE_QUIET = {
   analysis:  "a fresh run — say something into the dark. the operation answers in a voice that knows your numbers.",
   chat:      "a fresh run — say anything. off the clock, no ledger, quick voice.",
   therapist: "a fresh run — say what's on you. this room is walled from the work.",
-  atlas:     "a fresh run — ask the chief of staff. it looks things up, reads your loads and folders, and files any change for your phone.",
+  atlas:     "a fresh run — talk to me, Goose. it runs the radar: looks things up, reads your loads and folders, and files any change for your phone. the stick stays yours.",
   brainstorm:"a fresh pad — say the half-formed thing. it pushes back, and every few lines it offers your own words back to keep. no voice, no ledger.",
 };
 function setMode(m, first){
@@ -557,12 +561,12 @@ function paintDials(){
   $("dialDeep").classList.toggle("on", S.gear === "deep");
   $("dialDeep").title = S.gear === "deep" ? "DEEP — this turn goes to Claude" : "TALK — local, streamed";
   $("dialWeb").classList.toggle("on", S.web);
-  $("dialWeb").title = S.web ? "look-ups on — every one logged and cited" : "look-ups off — ATLAS stays on the book";
+  $("dialWeb").title = S.web ? "look-ups on — every one logged and cited" : `look-ups off — ${SEAT_NAME} stays on the book`;
 }
 async function refreshAtlas(){
   try{ S.atlas = await grab("/api/atlas"); }catch(e){ S.atlas = null; }
   const off = !S.atlas || !S.atlas.armed;
-  $("modeAtlas").textContent = off ? "ATLAS · OFF" : "ATLAS";
+  $("modeAtlas").textContent = off ? `${SEAT_NAME} · OFF` : SEAT_NAME;
   $("atlasnote").textContent = off ? "off — arm it from the spine" :
     (S.gear === "deep" ? "next turn goes to Claude" : "");
 }
@@ -605,7 +609,7 @@ function wireDials(){
   $("dialWeb").addEventListener("click", () => {
     S.web = !S.web;
     localStorage.setItem("almanac_sc_web", S.web ? "1" : "0"); buzz([10]); paintDials();
-    toast(S.web ? "web on — every look-up is logged and cited" : "web off — ATLAS stays on the book");
+    toast(S.web ? "web on — every look-up is logged and cited" : `web off — ${SEAT_NAME} stays on the book`);
   });
 }
 function wireModes(){
@@ -674,10 +678,10 @@ function spikeRun(grains){
 
 /* ══ the log ══ */
 function stampFor(m, dur){
-  const who = (m.kind === "answer" || m.kind === "undelivered" || m.sender === "operation") ? "ATLAS" : "BRYAN";
+  const who = (m.kind === "answer" || m.kind === "undelivered" || m.sender === "operation") ? SEAT_NAME : "BRYAN";
   /* the record knows which voice spoke (card #131); analysis stays unbadged —
      it is the old default and the stamp stays clean for the common case */
-  const md = (m.mode && m.mode !== "analysis" && who === "ATLAS")
+  const md = (m.mode && m.mode !== "analysis" && who === SEAT_NAME)
     ? ` · ${esc(String(m.mode).toUpperCase())}` : "";
   if(m.kind === "tool")     return `${who}${md} · LOOKED · ${esc(rel(m.at))}`;
   if(m.kind === "proposal") return `${who}${md} · PROPOSED · ${esc(rel(m.at))}`;
@@ -1234,7 +1238,7 @@ async function hearRow(m, el, isArrival){
   try{
     if("mediaSession" in navigator){
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: "ATLAS", artist: "SIDE CHANNEL · ALMANAC" });
+        title: SEAT_NAME, artist: "SIDE CHANNEL · ALMANAC" });
       navigator.mediaSession.setActionHandler("play",  () => a.play());
       navigator.mediaSession.setActionHandler("pause", () => a.pause());
     }
@@ -1521,7 +1525,7 @@ async function readAtlasStream(r, body, ctrl, onMeta, mode = "atlas"){
     if(live) return;
     live = document.createElement("div"); live.className = "sc-row atl live"; live.dataset.id = "live";
     const st = document.createElement("div"); st.className = "st";
-    st.innerHTML = `<span class="who">ATLAS${mode === "chat" ? " · CHAT" : S.gear === "deep" ? " · DEEP" : ""} · now</span><span class="sp"></span>`;
+    st.innerHTML = `<span class="who">${SEAT_NAME}${mode === "chat" ? " · CHAT" : S.gear === "deep" ? " · DEEP" : ""} · now</span><span class="sp"></span>`;
     liveBd = document.createElement("div"); liveBd.className = "bd";
     live.appendChild(st); live.appendChild(liveBd);
     const w = $("wire"); if(!S.msgs.length) w.textContent = ""; w.prepend(live); w.scrollTop = 0;
@@ -1614,7 +1618,7 @@ async function readAtlasStream(r, body, ctrl, onMeta, mode = "atlas"){
     }else if(ev.t === "error"){
       done = true; dropLive(); stopClips();
       arc("atl", false); stateWord(); releaseWake(); thud(); buzz([12,70,12]);
-      toast(ev.error || "ATLAS could not answer — your words hold");
+      toast(ev.error || `${SEAT_NAME} could not answer — your words hold`);
       if(ev.code === "off") refreshAtlas();
       await refill();
     }
@@ -1682,7 +1686,7 @@ async function sendLegacyAtlas(body, key, mode = "atlas"){
   rogerBeep(); buzz([14,26,14]);
   appendTurn({ id: d.id, at: new Date().toISOString(), sender:"bryan", kind:"say", body, thread_id: S.run, mode });
   if(d.answering) startWait(d.id);
-  else toast("sent — but ATLAS could not take the mic; the turn stands");
+  else toast(`sent — but ${SEAT_NAME} could not take the mic; the turn stands`);
   loadRuns();
   return d;
 }
@@ -1704,7 +1708,7 @@ async function sendTurn(body, key){
     appendTurn({ id: d.id, at: new Date().toISOString(), sender:"bryan",
                  kind:"say", body, thread_id: S.run, mode: S.mode });
     if(d.answering) startWait(d.id);
-    else toast("sent — but ATLAS could not take the mic; the turn stands");
+    else toast(`sent — but ${SEAT_NAME} could not take the mic; the turn stands`);
     loadRuns();
     return d;
   }catch(err){ clearTimeout(abortT); throw err; }
