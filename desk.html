@@ -2895,6 +2895,15 @@ function separate(){
      afterthoughts: an orb pushed off a label is fixed, an orb buried under a
      panel is still unreadable. */
   const fr = field.getBoundingClientRect();
+  /* THE FIELD'S HEIGHT IS STILL MOVING (card #400, his report 10-04). .field
+     animates its height over .75s and this runs the instant a room closes,
+     with the field still at the rail's ~64px. The card is pinned to the
+     field's floor and the core to its middle, so measured THIS frame they sit
+     hundreds of px above where they will rest — the card's top read -316 —
+     and the clamp below pinned the top arc (PLANNING, RADIO, GLASS) above the
+     screen at top:-405px, for good. Measure where they will REST: H is the
+     target height; lag is how far this frame's height has still to travel. */
+  const lag = H - field.offsetHeight;
   const obstacles = [];
   for(const sel of [".consider", ".core"]){
     const el = document.querySelector(sel);
@@ -2917,8 +2926,13 @@ function separate(){
       }
     }
     if(!r.width || !r.height) continue;
-    obstacles.push({ sel, x: r.left - fr.left + r.width/2, y: r.top - fr.top + r.height/2,
-                     w: r.width, h: r.height });
+    /* the card rides the floor (bottom:6px): its resting top is its layout top
+       plus the whole lag, and offsetTop ignores the translateY it is still
+       easing out of. The core sits at top:50%, so it travels half the lag. */
+    const y = sel === ".consider" ? el.offsetTop + lag + el.offsetHeight/2
+                                  : r.top - fr.top + r.height/2 + lag/2;
+    obstacles.push({ sel, x: r.left - fr.left + r.width/2, y,
+                     w: r.width, h: sel === ".consider" ? el.offsetHeight : r.height });
   }
 
   // If the footprints cannot fit the field, shrink the BALLS until they can.
@@ -4228,7 +4242,11 @@ $("home").addEventListener("click", () => {
   $("home").hidden = true;
   D.forEach(x => x.el.classList.remove("active"));
   document.documentElement.style.setProperty("--key","255,164,25");
-  ACTIVE = null; layout(); $("room").innerHTML = "";
+  ACTIVE = null;
+  /* THE FIELD means the field (card #400): a room left the scroll where he
+     was — down at the load, the orbs above the screen — so back to the top. */
+  const fw = stage.querySelector(".fieldwrap"); if(fw) fw.scrollTop = 0;
+  layout(); $("room").innerHTML = "";
   if(ROAD_DIRTY || ROADMAP){ ROAD_DIRTY = false; drawRoadMap(); }
   history.replaceState(null, "", location.pathname + location.search);
 });
