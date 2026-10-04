@@ -273,6 +273,9 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
   background:var(--glass);border:1px solid rgba(var(--key),.35);border-radius:20px;
   padding:7px 12px;backdrop-filter:blur(11px)}
 .stage.entered .daycue{display:none}
+.cuerow{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:10px auto}
+.cuerow .daycue{margin:0;text-decoration:none}
+.stage.entered .cuerow{display:none}
 .dayroom{width:min(920px,94%);margin:18px auto 30px}
 .stage.entered .dayroom{display:none}
 .dayroom .cap2{font:700 10px/1 var(--mono);letter-spacing:.22em;color:var(--amber);
@@ -384,6 +387,7 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
   .consider .att{margin-top:4px;font-size:7.5px}
   .consider .cml{margin-top:6px;font-size:11px}
   .daycue{margin:8px auto 8px}
+  .cuerow{margin:8px auto}
 }
 
 /* ══ THE DOCKET BREATHES (card #114) — a slow glow when NEW items wait,
@@ -2550,7 +2554,16 @@ body.hot .act .h .n{color:var(--hot)}
       <div class="mirror" id="mirror" hidden></div>
     </div>
   </div>
-  <button class="daycue" id="daycue" hidden>&#9662; THE DAY</button>
+  <div class="cuerow">
+    <button class="daycue" id="daycue" hidden>&#9662; THE DAY</button>
+    <!-- FILL & SIGN one tap from the field (his ask 10-04: "put a fill and sign
+         button maybe next to the load pill it would be easier to access when
+         broker agreements need to be signed"). No row: the picker, the path a
+         broker agreement already takes (card #382). A load's own rate con is
+         still signed from its card. -->
+    <a class="daycue signcue" id="signcue" href="./sign.html" target="_blank" rel="noopener"
+       title="sign a broker agreement or any document from your phone">&#9997;&#65039; FILL &amp; SIGN</a>
+  </div>
   <section class="dayroom" id="dayroom" hidden></section>
   </div>
 
@@ -12555,6 +12568,7 @@ async function loadDay(fresh, force){
      slowest read (router + weather) and must never hold the card */
   loadRoad(fix).catch(() => {});
 }
+$("signcue").addEventListener("click", e => e.stopPropagation());   // a field control: the link opens, the field does not hear it
 $("daycue").addEventListener("click", e => {
   e.stopPropagation();      // law on the field's controls (ruled 08-03)
   $("dayroom").scrollIntoView({ behavior: "smooth", block: "start" });
