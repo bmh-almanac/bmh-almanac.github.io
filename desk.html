@@ -2833,9 +2833,24 @@ function fieldH(){
      the eighth either buried under the card or sitting on LEARN. The field
      is the header and the fieldwrap scrolls (card #171), so a screen under
      800px buys the room in height; THE DAY simply starts a little lower. */
-  if(!stage.classList.contains("entered")) return Math.round(innerHeight*(innerWidth < 800 ? 0.84 : 0.72));
-  return innerHeight <= 620 ? 56 : innerHeight <= 820 ? 64 : 72;
+  if(stage.classList.contains("entered")) return innerHeight <= 620 ? 56 : innerHeight <= 820 ? 64 : 72;
+  const base = Math.round(innerHeight*(innerWidth < 800 ? 0.84 : 0.72));
+  /* THE CARD GREW, SO THE SKY GROWS (card #401). The canon card now carries
+     the practices and the YOU RULED note; at 375x812 it stood ~445px tall and
+     left eight orbs 211px above it — twelve overlapping pairs, measured
+     10-04. His 09-02 ruling keeps the card's words whole, so the field makes
+     the room instead: at least the card plus the sky the orbs need above it.
+     On a screen where the base already holds both, nothing moves; elsewhere
+     the field runs taller and the fieldwrap scrolls (card #171). */
+  const c = $("consider");
+  const card = c && !c.hidden ? c.offsetHeight + 6 : 0;          // + its bottom:6px
+  return Math.max(base, card + orbRoom());
 }
+/* The sky eight labelled orbs need above the card, by width — measured with
+   separate()'s own footprints (card #401): a phone stacks them above a card
+   that spans the screen; a wide screen seats some of them beside it. */
+function orbRoom(){ return innerWidth < 520 ? ORB_ROOM.phone : innerWidth < 1100 ? ORB_ROOM.mid : ORB_ROOM.wide; }
+const ORB_ROOM = { phone: 480, mid: 260, wide: 200 };
 function layout(){
   const entered = stage.classList.contains("entered");
   const W = innerWidth, H = fieldH();
@@ -2878,6 +2893,10 @@ function layout(){
 function separate(){
   if(SYS) return;   // the constellation owns the sky; the frozen field waits
   const W = innerWidth, H = fieldH(), GAP = 14, EDGE = 6;
+  /* the card's height moves with what it carries — a practice row, a mirror
+     note — and three paint paths call this without layout() (card #401): the
+     field keeps up here, and lag below rides the growth */
+  if(field.style.height !== H + "px") field.style.height = H + "px";
   /* the sig hangs OUTSIDE the element box now (it may not take taps — the
      radio's wide caption was stealing its neighbors' clicks in the rail), so
      the collision law measures it back in: the FOOTPRINT includes the caption
