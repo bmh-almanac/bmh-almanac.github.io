@@ -334,6 +334,10 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
     <button class="sc-mode" data-mode="atlas" role="radio" id="modeAtlas" title="the chief of staff — the loads, the money, the web, your folders; a change goes to your phone">GOOSE</button>
     <button class="sc-mode" data-mode="brainstorm" role="radio" title="the pad — think out loud, it argues back; every few lines it offers your own words to keep">BRAINSTORM</button>
   </div>
+  <div class="sc-modes sub" id="padtools" role="group" aria-label="pad tools" hidden>
+    <button class="sc-mode" id="prepNext" title="the prep — the next topic opens as a run with its dossier; on the road it speaks (card #405)">PREP NEXT</button>
+    <span class="sc-atlasnote" id="padnote"></span>
+  </div>
   <div class="sc-modes sub" id="subdials" role="group" aria-label="atlas dials" hidden>
     <button class="sc-mode" id="dialDeep" title="TALK — local, streamed">DEEP</button>
     <button class="sc-mode on" id="dialWeb" title="look-ups on — every one logged and cited">WEB</button>
@@ -535,8 +539,28 @@ const MODE_QUIET = {
   chat:      "a fresh run — say anything. off the clock, no ledger, quick voice.",
   therapist: "a fresh run — say what's on you. this room is walled from the work.",
   atlas:     "a fresh run — talk to me, Goose. it runs the radar: looks things up, reads your loads and folders, and files any change for your phone. the stick stays yours.",
-  brainstorm:"a fresh pad — say the half-formed thing. it pushes back, and every few lines it offers your own words back to keep. no voice, no ledger.",
+  brainstorm:"a fresh pad — say the half-formed thing. it pushes back, and every few lines it offers your own words back to keep. no ledger. silent, unless PREP NEXT opened it — then it speaks.",
 };
+/* ══ THE PREP (card #405) — a pad opened with its dossier speaks on the road ══ */
+function currentRun(){ return S.runs.find(r => r.id === S.run) || (S.archived || []).find(r => r.id === S.run); }
+function prepped(){ const t = currentRun(); return !!(t && t.topic); }
+function paintPad(){
+  const n = $("padnote"); if(!n) return;
+  const t = currentRun();
+  n.textContent = (t && t.topic) ? `${t.topic} · prepped — it speaks` : "";
+}
+function wirePad(){
+  $("prepNext").addEventListener("click", async () => {
+    try{
+      const r = await fetch(url("/api/brainstorm/open"), { method:"POST",
+        headers: hdr({"Content-Type":"application/json"}), body:"{}" });
+      const d = await r.json().catch(() => ({}));
+      if(!r.ok || !d.tid) throw new Error(d.error || ("the spine answered " + r.status));
+      await loadRuns(); setMode("brainstorm"); await tune(d.tid);
+      toast(`${d.key} — ${d.question}`);
+    }catch(err){ toast("no topic opened — " + (err.message||err)); thud(); }
+  });
+}
 function setMode(m, first){
   if(!MODE_PLACEHOLDER[m]) m = "atlas";      // an unknown dial lands on the chief of staff
   S.mode = m;
@@ -549,6 +573,8 @@ function setMode(m, first){
   }
   $("say").placeholder = MODE_PLACEHOLDER[m];
   $("subdials").hidden = (m !== "atlas");
+  $("padtools").hidden = (m !== "brainstorm");
+  paintPad();
   if(m === "atlas"){ paintDials(); grabFix(); refreshAtlas().then(() => { if(S.atlas?.armed) warmAtlas(); }); }   // the mode tap lights the stove — only an armed one — and asks where the truck is
   if(!first && !S.msgs.length) renderWire();     // the quiet line speaks the mode
 }
@@ -709,8 +735,9 @@ function wireRow(m){
       /^\s+$/.test(t) ? (t.includes("\n") ? "<br>".repeat(Math.min(2, (t.match(/\n/g)||[]).length)) : t)
                        : `<span class="w">${esc(t)}</span>`).join("");
     /* NO ▶ ON THE PAD. His ruling gives brainstorm no voice, so the button
-       could only ever fetch a clip that was never cut and refuse in words. */
-    if(m.mode !== "brainstorm"){
+       could only ever fetch a clip that was never cut and refuse in words.
+       A PREPPED pad speaks (card #405, his ruling 10-06) — it gets the ▶. */
+    if(m.mode !== "brainstorm" || prepped()){
       const play = document.createElement("button");
       play.className = "play"; play.textContent = "▶";
       play.title = "hear it again";
@@ -1105,6 +1132,7 @@ async function tune(tid){
   S.msgs = d.messages || [];
   renderLog(); renderWire();
   heard();
+  paintPad();
 }
 async function newRun(){
   try{
@@ -1396,8 +1424,9 @@ function follow(){
         const sayId = S.waiting.sayId; clearWait();
         for(const m of fresh) appendTurn(m);
         const el = $("wire").querySelector(`[data-id="${landed.id}"]`);
-        if(landed.kind === "answer" && el && landed.mode === "brainstorm"){
+        if(landed.kind === "answer" && el && landed.mode === "brainstorm" && !prepped()){
           /* THE PAD HAS NO VOICE (his ruling 2026-09-13): the text IS the turn.
+             A PREPPED pad falls through to THE BREAK below (card #405, 10-06).
              hearRow would sit ~9s waiting for a clip that is never cut. And the
              read-back files its pin? chips AFTER this row — keep looking. */
           markDone(el); S.reopenMic?.(); afterglow(sayId);
@@ -2014,6 +2043,7 @@ function connect(){
 }
 async function boot(){
   paintCarrierGlass();
+  wirePad();
   try{
     await loadRuns();
     if(DEEP_CH){
