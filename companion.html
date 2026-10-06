@@ -1434,6 +1434,9 @@ function follow(){
           markDone(el); S.reopenMic?.(); primePeaks(landed).catch?.(() => {});   // the clips already spoke this one
         }else if(landed.kind === "answer" && el && document.visibilityState === "visible"){
           hearRow(landed, el, true).then(() => primePeaks(landed));  // THE BREAK
+          /* a PREPPED pad still files its pin? chips — now AFTER the voice cut
+             and the distiller, 10-40s out — so it keeps looking longer (card #405) */
+          if(landed.mode === "brainstorm") afterglow(sayId, 7);
         }
         loadRuns();
         return;
@@ -1471,10 +1474,10 @@ function followDelay(){
 /* the pad's afterglow: the read-back runs on the worker after the answer lands
    (every third of his lines), so its chips arrive seconds later than the row
    that ended the wait. Three looks, six seconds apart, appending anything new. */
-function afterglow(sayId){
+function afterglow(sayId, max = 3){
   let looks = 0;
   const look = async () => {
-    if(looks++ >= 3 || S.waiting) return;   // never poll on top of a live wait
+    if(looks++ >= max || S.waiting) return;   // never poll on top of a live wait
     try{
       const d = await grab(`/api/threads/${S.run}/messages`);
       const known = new Set(S.msgs.map(m => m.id));
@@ -2043,7 +2046,6 @@ function connect(){
 }
 async function boot(){
   paintCarrierGlass();
-  wirePad();
   try{
     await loadRuns();
     if(DEEP_CH){
@@ -2077,7 +2079,7 @@ addEventListener("pagehide", () => {
   if(S.stream){ try{ S.stream.abort(); }catch(e){} S.stream = null; }
   try{ AC && AC.close(); }catch(e){}
 });
-wireKey(); wireTalk(); wireVisor(); wireDials(); wireModes();
+wireKey(); wireTalk(); wireVisor(); wireDials(); wireModes(); wirePad();   // once, at parse — boot() can re-enter
 if(TOK === "" && !API) connect(); else boot();
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 
