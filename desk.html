@@ -962,6 +962,12 @@ body.hot .seg button.on{background:rgba(var(--hot-rgb),.16);color:var(--hot);box
   color:var(--etch);text-transform:uppercase;clear:both}
 .lane .lin{flex:1 1 auto;min-height:96px;padding:7px 9px;overflow-y:auto}
 .lane .lin::-webkit-scrollbar{width:0}
+/* the MONTHLY lane's ask can run past its box — twelve bills under one bank
+   row — and a hidden scrollbar read as 'the bill isn't offered' (his report
+   10-09, Storage sat seventh). This lane shows it can scroll. */
+.lane.monthly .lin{scrollbar-width:thin;scrollbar-color:rgba(var(--key),.5) transparent}
+.lane.monthly .lin::-webkit-scrollbar{width:6px}
+.lane.monthly .lin::-webkit-scrollbar-thumb{background:rgba(var(--key),.5);border-radius:3px}
 .lane .empty{height:100%;display:grid;place-items:center;text-align:center;
   font:400 11px/1.5 var(--sans);color:var(--etch);font-style:italic}
 .lane .drop-in{display:flex;justify-content:space-between;gap:8px;padding:5px 6px;
