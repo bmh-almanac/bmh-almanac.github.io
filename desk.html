@@ -2319,6 +2319,7 @@ body.hot .act .h .n{color:var(--hot)}
 #cm .cm-qverdict q{color:var(--ink);quotes:"\201C" "\201D"}
 #cm .cm-qcopy{align-self:flex-start;min-width:120px}
 #cm .cm-qrec{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-bottom:12px}
+#cm .cm-qrec .cm-held{flex:0 0 auto;min-width:172px;padding:0 14px}   /* card #410: the hold sits beside its line, never stretched across it */
 /* the weeks past the next one fold into one row — opened by his tap only */
 #cm .cm-qlater{border-top:1px solid rgba(var(--cm-engrave),.14)}
 #cm .cm-qlater>summary{list-style:none;cursor:pointer;min-height:44px;padding:12px 0;display:flex;align-items:center;
@@ -9844,7 +9845,7 @@ function cmQueueHTML(G){
     const open = CM.qOpen.has(qo) ? CM.qOpen.get(qo) : !!it.next;
     const link = o && /^https:\/\//i.test(o.url || "") ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">LINK</a>`
       : o ? `<span>LINK NOT CAPTURED — ADD IT ON THE LANE</span>` : "";
-    const copied = CM.qCopied.get(it.key) || new Map(), last = it.posts.length ? it.posts[it.posts.length - 1].n : null;
+    const copied = CM.qCopied.get(it.key) || new Map();
     const posts = it.posts.map(p => { const v = cmQLane(it, p);
       const size = it.limit == null ? `${p.len} CHARS · LONG-FORM` : `${p.len} / ${it.limit}${p.fits ? "" : " · TOO LONG FOR " + surf}`;
       return `<li class="cm-qpost">
@@ -9859,9 +9860,14 @@ function cmQueueHTML(G){
     const rule = !kept ? "" : it.why ? `<div class="cm-qrule">${esc(it.why)}${it.ready_on
       ? ` — it can go from ${esc(cmLongDate(it.ready_on))}` : ""}. Read it here; COPY comes back when the rule lets it go.</div>`
       : `<div class="cm-qrule">${esc(CM_Q_UNDATED_SPINE)}.</div>`;
-    const rec = !kept && !o && last != null && copied.has(last)
-      ? `<div class="cm-qrec"><button class="cm-btn" data-qrec="${esc(it.key)}">RECORD IT</button>
-          <span class="cm-sans">fills the record on the lane — hold it there once it's out</span></div>` : "";
+    /* HOLD · POSTED (card #410, his word 10-09): he posts from the phone,
+       often with edits and never through COPY — so every item that may go
+       carries the record in one act. The hold records the item's first line
+       on its lane (the spine's one writer, no link); the item folds under
+       SENT on the re-read; ADD LINK on the lane takes the permalink later. */
+    const rec = !kept && !o
+      ? `<div class="cm-qrec"><button class="cm-held cm-qposted" data-qpost="${esc(it.key)}"><span class="r2"></span><span class="cc">HOLD · POSTED</span></button>
+          <span class="cm-sans">you posted it — this records it and folds it under SENT; add the link on the lane</span></div>` : "";
     const sum = it.verdict && it.verdict.word ? `<span class="cm-qsum">${esc(it.verdict.word)}</span>` : "";
     return `<details class="cm-qitem" data-qo="${esc(qo)}"${open ? " open" : ""}>
       <summary><span class="cm-qd">${esc(cmDate(it.date))} · ${esc(surf)}</span><span class="cm-qt">${esc(it.title)}</span>
@@ -10753,13 +10759,26 @@ function cmWireQueue(){
     CM.qOpen.set(d.dataset.qo, d.open); }, sig));
   document.querySelectorAll("#cm .cm-qcopy[data-qk]").forEach(b => b.addEventListener("click", () =>
     cmQCopy(b.dataset.qk, +b.dataset.qn), sig));
-  document.querySelectorAll("#cm [data-qrec]").forEach(b => b.addEventListener("click", () => {
-    const it = ((cmG() || {}).queue || []).find(q => q.key === b.dataset.qrec); if(!it) return;
-    CM.rec = { surface: it.surface, title: it.first_line, url:"" };
-    CM.recSay = "filled from the queue — paste the permalink if you have it, then hold RECORD";
-    cmRoadRefresh();
-    $("cmRec")?.scrollIntoView({ block:"nearest", behavior: cmRM() ? "auto" : "smooth" });   // his tap, his scroll
-  }, sig));
+  document.querySelectorAll("#cm .cm-qposted[data-qpost]").forEach(b =>
+    holdToAct(b, { idle:"HOLD · POSTED", busy:"RECORDING", refused:"NOT RECORDED",
+                   released:"released before it took — nothing was recorded" },
+      cc => cmQPosted(b.dataset.qpost, cc), CM.ac.signal));
+}
+/* the queue's own record (card #410): a write, so it rides the held latch and
+   its fetch is not on CM.ac — a write that has left must be heard. The title
+   is the served first line, the same key the spine folds the item by. */
+async function cmQPosted(key, cc){
+  const it = ((cmG() || {}).queue || []).find(q => q.key === key);
+  const say = words => { CM.qSay = { key, words }; const d = document.querySelector(`#cm .cm-qitem[data-qo="${key}"] .cm-say`); if(d) d.textContent = words; };
+  if(!it || !it.first_line){ say("the spine serves no first line for this item — record it on the lane"); return false; }
+  const w = await cmSpineWrite("/api/glass/post", { surface: it.surface, title: it.first_line, url: "" });
+  if(!w.ok){ say(w.error); return false; }
+  cc.textContent = "RECORDED";
+  CM.qSay = null;
+  CM.recSay = `recorded — post ${w.out.post.id} on the ${cmSurfWord(cmG(), w.out.post.surface)} lane · link not captured — said so; ADD LINK takes it later`;
+  CM.strike = (w.out.earned || []).map(c => c.key);
+  if(!(await cmRefetch())){ cmQueueRefresh(); cmRoadRefresh(); say("recorded — the queue re-reads on your next visit"); }
+  return true;
 }
 function cmQueueRefresh(){
   const el = $("cmQueue"), G = cmG(); if(!el || !G) return;
