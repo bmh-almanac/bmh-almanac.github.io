@@ -1613,6 +1613,8 @@ body.hot .act .h .n{color:var(--hot)}
 .pl-duo2,.pl-cols{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
 .pl-col{flex:1 1 300px;min-width:min(300px,100%)}
 .pl-colhead{display:flex;align-items:center;justify-content:space-between;font:700 9px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink);padding-bottom:8px;border-bottom:1px solid var(--line)}
+.pl-fold{width:100%;background:none;border:none;border-bottom:1px solid var(--line);cursor:pointer;min-height:40px;padding:0 0 8px}
+.pl-col.shut .pl-fold{border-bottom:none;padding-bottom:0}
 .pl-colhead b{font:700 10px var(--mono);color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:4px 8px}
 .pl-col.cquick{border-top:2px solid rgba(var(--key),.55)}
 .pl-col.cshop{border-top:2px solid rgba(34,197,94,.5)}
@@ -8941,6 +8943,9 @@ const LP = {
   y: null,               // the weather year being viewed (his tee: plan at a year glance)
   pick: null,            // date awaiting a color
   finOpen: new Set(),    // per-column finished folds
+  /* folded inboxes (his ask 10-10: "need a way to collapse the quick inbox
+     in the planning orb") — remembered on this device only, a convenience */
+  shut: (() => { try{ return new Set(JSON.parse(localStorage.getItem("pl.shut") || "[]")); }catch(_){ return new Set(); } })(),
 };
 function lpToday(){ const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
@@ -9094,11 +9099,12 @@ function plannerRoom(){
   const bucket = (cat, tf, rows, ghost) =>
     `<div class="pl-bucket" data-cat="${cat}" data-tf="${tf}">${rows.map(taskRow).join("") || `<div class="pl-ghost">${ghost}</div>`}</div>`;
   const inboxPanel = (cat, icon, label, ph, cls) => {
-    const rows = byCat[cat] || [];
-    return `<div class="panel pl-col ${cls}">
-      <div class="pl-colhead"><span>${icon} ${label}</span><b>${rows.length}</b></div>
-      <input class="pl-addin" data-cat="${cat}" placeholder="${ph}" autocapitalize="off">
-      ${bucket(cat, "weekly", rows, "nothing waiting")}</div>`;
+    const rows = byCat[cat] || [], shut = LP.shut.has(cat);
+    return `<div class="panel pl-col ${cls}${shut ? " shut" : ""}">
+      <button class="pl-colhead pl-fold" data-cat="${cat}" aria-expanded="${!shut}" title="${shut ? "open" : "fold"} the ${label}">
+        <span>${shut ? "▸" : "▾"} ${icon} ${label}</span><b>${rows.length}</b></button>
+      ${shut ? "" : `<input class="pl-addin" data-cat="${cat}" placeholder="${ph}" autocapitalize="off">
+      ${bucket(cat, "weekly", rows, "nothing waiting")}`}</div>`;
   };
   const colPanel = (cat, icon, cls) => {
     const list = byCat[cat] || [];
@@ -9242,6 +9248,12 @@ function wirePlanner(){
       try{ await lpWrite(`/api/planner/task/${b.dataset.id}/delete`, {});
         await lpRefetch(); renderRoom(); }
       catch(err){ b.disabled = false; b.textContent = "✕"; toast(String(err.message || err)); } }));
+  R.querySelectorAll(".pl-fold").forEach(b =>
+    b.addEventListener("click", e => { e.stopPropagation();
+      const c = b.dataset.cat;
+      LP.shut.has(c) ? LP.shut.delete(c) : LP.shut.add(c);
+      try{ localStorage.setItem("pl.shut", JSON.stringify([...LP.shut])); }catch(_){}
+      renderRoom(); }));
   R.querySelectorAll(".pl-fin").forEach(b =>
     b.addEventListener("click", e => { e.stopPropagation();
       const c = b.dataset.cat;
