@@ -2324,6 +2324,10 @@ body.hot .act .h .n{color:var(--hot)}
 #cm .cm-qverdict{font:400 13px/1.45 var(--sans);color:var(--mid)}
 #cm .cm-qverdict q{color:var(--ink);quotes:"\201C" "\201D"}
 #cm .cm-qcopy{align-self:flex-start;min-width:120px}
+#cm .cm-qbtns{display:flex;flex-wrap:wrap;gap:8px}
+#cm .cm-qedit-ta{width:100%;box-sizing:border-box;min-height:140px;resize:vertical;padding:10px;border-radius:8px;
+  border:1px solid rgba(var(--cm-key),.55);background:rgba(0,0,0,.25);color:var(--ink);font:400 15px/1.5 var(--sans)}
+#cm .cm-qyours{color:rgb(var(--cm-key));font:600 11px/1.2 var(--mono);letter-spacing:.08em}
 #cm .cm-qrec{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-bottom:12px}
 #cm .cm-qrec .cm-held{flex:0 0 auto;min-width:172px;padding:0 14px}   /* card #410: the hold sits beside its line, never stretched across it */
 /* the weeks past the next one fold into one row — opened by his tap only */
@@ -9418,7 +9422,7 @@ const CM = { anims:[], raf:0, rafDial:0, rafTilt:0, timers:new Set(), ac:null, r
              /* card #364: the record control, the missing link, the queue — his
                 half-typed words and his open/copied state survive a re-render */
              rec:{ surface:null, title:"", url:"" }, recSay:"", addFor:null, addUrl:"", addSay:"",
-             qOpen:new Map(), qCopied:new Map(), qSay:null,
+             qOpen:new Map(), qCopied:new Map(), qSay:null, qEdit:null,
              /* card #366: SOMEONE ANSWERED — his half-typed answer survives a re-render too */
              sp:{ open:false, surface:null, kind:"", post:"", who:"", note:"" }, spSay:"", spOpen:new Set(), fOpen:false };
 const cmRM   = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -9857,9 +9861,11 @@ function cmQueueHTML(G){
       return `<li class="cm-qpost">
         <div class="cm-qhead"><b>${p.n}/${it.count}</b><span class="${p.fits ? "" : "over"}">${size}</span>
           <span class="cm-qchip ${v.cls}">${esc(v.word)}</span></div>
-        <div class="cm-qtext">${esc(p.text)}</div>
+        ${cmQEditing(it.key, p.n) ? cmQEditHTML(it, p) : `<div class="cm-qtext">${esc(p.text)}</div>`}
+        ${p.edited ? `<div class="cm-qyours">YOUR WORDS · EDITED ${esc(cmDate(String(p.edited.at).slice(0,10)))}${p.edited.stale ? " · THE DRAFT CHANGED UNDER YOUR EDIT — READ BOTH" : ""}</div>` : ""}
         ${v.why ? `<div class="cm-qverdict">${v.html ? v.why : esc(v.why)}</div>` : ""}
-        ${v.copy ? `<button class="cm-btn cm-qcopy" data-qk="${esc(it.key)}" data-qn="${p.n}">${copied.get(p.n) ? "COPIED" : "COPY"} ${p.n}/${it.count}</button>` : ""}
+        <div class="cm-qbtns">${v.copy ? `<button class="cm-btn cm-qcopy" data-qk="${esc(it.key)}" data-qn="${p.n}">${copied.get(p.n) ? "COPIED" : "COPY"} ${p.n}/${it.count}</button>` : ""}
+          ${!p.out && !cmQEditing(it.key, p.n) ? `<button class="cm-btn cm-qeditbtn" data-qk="${esc(it.key)}" data-qn="${p.n}">EDIT ${p.n}/${it.count}</button>` : ""}</div>
         ${p.out ? `<div class="cm-qrec cm-qsent"><span class="cm-sans">POSTED ${esc(cmDate(String(p.out.at).slice(0,10)))}${p.out.thread ? " · AS ONE THREAD" : ""}</span></div>`
           : !kept && !o ? `<div class="cm-qrec"><button class="cm-held cm-qposted" data-qpost="${esc(it.key)}" data-qn="${p.n}"><span class="r2"></span><span class="cc">HOLD · POSTED ${p.n}/${it.count}</span></button></div>` : ""}
       </li>`; }).join("");
@@ -10771,6 +10777,19 @@ function cmWireQueue(){
     CM.qOpen.set(d.dataset.qo, d.open); }, sig));
   document.querySelectorAll("#cm .cm-qcopy[data-qk]").forEach(b => b.addEventListener("click", () =>
     cmQCopy(b.dataset.qk, +b.dataset.qn), sig));
+  document.querySelectorAll("#cm .cm-qeditbtn[data-qk]").forEach(b => b.addEventListener("click", () => {
+    const it = ((cmG() || {}).queue || []).find(q => q.key === b.dataset.qk);
+    const p = it && it.posts.find(x => x.n === +b.dataset.qn); if(!p) return;
+    CM.qEdit = { key: it.key, n: p.n, text: p.text }; cmQueueRefresh();
+    const ta = document.querySelector("#cm .cm-qedit-ta"); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }, sig));
+  document.querySelectorAll("#cm .cm-qedit-ta").forEach(ta => ta.addEventListener("input", () => {
+    if(CM.qEdit) CM.qEdit.text = ta.value;
+    const n = ta.parentElement.querySelector(".cm-qedit-n"); if(n) n.textContent = n.textContent.replace(/^\d+/, String(ta.value.length));
+  }, sig));
+  document.querySelectorAll("#cm .cm-qsave").forEach(b => b.addEventListener("click", () => cmQEditSave(false), sig));
+  document.querySelectorAll("#cm .cm-qrevert").forEach(b => b.addEventListener("click", () => cmQEditSave(true), sig));
+  document.querySelectorAll("#cm .cm-qcancel").forEach(b => b.addEventListener("click", () => { CM.qEdit = null; cmQueueRefresh(); }, sig));
   document.querySelectorAll("#cm .cm-qposted[data-qpost]").forEach(b =>
     holdToAct(b, { idle:"HOLD · POSTED", busy:"RECORDING", refused:"NOT RECORDED",
                    released:"released before it took — nothing was recorded" },
@@ -10795,6 +10814,29 @@ async function cmQPosted(key, n, thread, cc){
   CM.strike = (w.out.earned || []).map(c => c.key);
   if(!(await cmRefetch())){ cmQueueRefresh(); cmRoadRefresh(); say("recorded — the queue re-reads on your next visit"); }
   return true;
+}
+/* EDIT (card #419, his ask 10-10: "let's make it so i can edit each post as
+   well. may want to put my own touches on things"). His words are saved to
+   the book over the draft — the Glass Barn keeps the draft — and the next
+   read runs the window test and the length on HIS words, so COPY, POSTED and
+   Goose all carry them. What he is typing lives in CM.qEdit, so a re-render
+   mid-word never loses it. */
+function cmQEditing(key, n){ return !!CM.qEdit && CM.qEdit.key === key && CM.qEdit.n === n; }
+function cmQEditHTML(it, p){
+  const words = CM.qEdit.text;
+  return `<textarea class="cm-qedit-ta" data-qk="${esc(it.key)}" data-qn="${p.n}" aria-label="your words for post ${p.n}">${esc(words)}</textarea>
+    <div class="cm-sans cm-qedit-n">${words.length}${it.limit == null ? "" : " / " + it.limit} characters — the spine measures it on save, the way ${esc(cmSurfWord(cmG(), it.surface))} does</div>
+    <div class="cm-qbtns"><button class="cm-btn cm-qsave">SAVE MY WORDS</button><button class="cm-btn cm-qcancel">CANCEL</button>
+      ${p.edited ? `<button class="cm-btn cm-qrevert">BACK TO THE DRAFT</button>` : ""}</div>`;
+}
+async function cmQEditSave(revert){
+  const e = CM.qEdit; if(!e) return;
+  const say = words => { CM.qSay = { key:e.key, words }; cmQueueRefresh(); };
+  const w = await cmSpineWrite("/api/glass/queue/edit", { key:e.key, n:e.n, text: revert ? null : e.text });
+  if(!w.ok){ say(w.error); return; }
+  CM.qEdit = null;
+  CM.qSay = { key:e.key, words: revert ? `post ${e.n} is back to the draft` : `saved — post ${e.n} carries your words; COPY copies them` };
+  if(!(await cmRefetch())) cmQueueRefresh();
 }
 function cmQueueRefresh(){
   const el = $("cmQueue"), G = cmG(); if(!el || !G) return;
