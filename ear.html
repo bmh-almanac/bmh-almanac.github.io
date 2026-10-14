@@ -196,6 +196,61 @@ body{background:var(--void);color:var(--ink);font-family:var(--sans);
 @keyframes ruleIn{from{opacity:0;translate:0 -8px}to{opacity:1;translate:0 0}}
 @media (prefers-reduced-motion: reduce){ .feed .ln.rule{animation:none} }
 
+/* ═══ THE FLAG (card #426, his ask 2026-10-14) ═══════════════════════════════
+   The trail is his ledger; a flag is a mark in its margin where it hit him.
+   The words arrive late (a take is 20 s), so the mark lands first and WAITS —
+   an amber bracket that grows around the words as they land. The delay is
+   shown, never hidden. Two coins flank the orb and exist only while the ear
+   listens: ⚑ marks (one tap, UNDO for a few seconds), TALK keeps his why.
+   Amber is the margin's ink; the orb's moonglass stays the ear's own light. */
+.deck{display:flex;align-items:center;justify-content:center;gap:clamp(14px,5vw,34px)}
+.coin{width:min(19vw,92px);aspect-ratio:1;border-radius:50%;border:0;cursor:pointer;
+  display:grid;place-items:center;align-content:center;gap:5px;position:relative;
+  touch-action:manipulation;color:var(--mid);
+  background:radial-gradient(circle at 36% 30%, rgba(150,170,190,.30),
+    rgba(150,170,190,.12) 55%, rgba(4,6,9,.96));
+  box-shadow:0 0 0 1.5px var(--rim), 0 0 26px -8px var(--rim),
+    inset 0 -10px 18px rgba(0,0,0,.5), inset 0 4px 10px rgba(255,255,255,.1);
+  transition:box-shadow .25s, background .25s, color .25s}
+.coin .g{font:400 clamp(24px,6.4vw,32px)/1 var(--sans)}
+.coin .l{font:700 9.5px/1 var(--mono);letter-spacing:.2em}
+.coin.flag{--rim:rgba(232,163,61,.55);color:var(--amber)}
+.coin.talk{--rim:rgba(var(--key),.4)}
+.coin.flag.hit{animation:flagHit .7s cubic-bezier(.22,.61,.36,1)}
+@keyframes flagHit{0%{background:radial-gradient(circle,rgba(232,163,61,.85),rgba(232,163,61,.25) 60%,rgba(4,6,9,.96))}
+  100%{}}
+.coin.talk.rec{--rim:rgba(232,163,61,.8);color:#10141A;
+  background:radial-gradient(circle at 36% 30%, rgba(232,163,61,.95),
+    rgba(232,163,61,.5) 50%, rgba(4,6,9,.96))}
+/* TALK owns the mic: the orb says so in the margin's ink, not the ear's */
+.big.talking{
+  background:radial-gradient(circle at 36% 30%, rgba(232,163,61,.92),
+    rgba(232,163,61,.5) 46%, rgba(232,163,61,.12) 78%, rgba(4,6,9,.98));
+  box-shadow:0 0 52px -8px rgba(232,163,61,.6), 0 0 0 2px rgba(232,163,61,.55),
+    inset 0 -18px 30px rgba(0,0,0,.5), inset 0 6px 14px rgba(255,255,255,.16)}
+.big.talking .st,.big.talking .st .s2{color:#10141A;text-shadow:none}
+.big.talking .ring{border-color:rgba(232,163,61,.6);border-style:solid}
+/* the margin: rows a flag bound to carry its rule; the mark sits under them */
+.feed .ln.bound{border-left:2px solid rgba(232,163,61,.78);padding-left:10px;
+  transition:border-color .4s, padding .4s}
+.feed .ln.flagln{font:700 12px/1.5 var(--mono);letter-spacing:.12em;color:var(--amber);
+  border-left:2px solid rgba(232,163,61,.78);padding-left:10px}
+.feed .ln.flagln.wait{border-left-style:dashed;animation:flagWait 1.6s ease-in-out infinite}
+@keyframes flagWait{0%,100%{opacity:1}50%{opacity:.5}}
+.feed .ln.flagln.bare{color:var(--dim);border-left-color:var(--etch)}
+.feed .ln.you{font:500 17px/1.5 var(--sans);color:var(--ink);font-style:italic;
+  border-left:2px solid rgba(232,163,61,.78);padding-left:10px}
+.feed .ln.you .t{font-style:normal;color:var(--amber)}
+.undo{position:fixed;left:50%;bottom:24px;translate:-50% 0;z-index:61;display:flex;
+  align-items:center;gap:14px;background:var(--glass2);border:1px solid rgba(232,163,61,.45);
+  border-radius:6px;padding:8px 8px 8px 16px;color:var(--ink);font:600 12px/1.4 var(--sans)}
+.undo button{background:rgba(232,163,61,.14);border:1px solid rgba(232,163,61,.55);
+  border-radius:4px;color:var(--amber);font:700 10px/1 var(--mono);letter-spacing:.16em;
+  padding:0 16px;min-height:44px;cursor:pointer}
+@media (prefers-reduced-motion: reduce){
+  .coin.flag.hit,.feed .ln.flagln.wait{animation:none}
+  .feed .ln.bound{transition:none} }
+
 .toast{position:fixed;left:50%;bottom:24px;translate:-50% 0;background:var(--glass);
   border:1px solid var(--line);border-radius:5px;color:var(--ink);
   font:600 12px/1.4 var(--sans);padding:10px 16px;opacity:0;pointer-events:none;
@@ -220,12 +275,19 @@ body{background:var(--void);color:var(--ink);font-family:var(--sans);
     </button>
   </div>
   <div class="stagewrap"><div class="stage">
-    <button class="big" id="big"><span class="ring" id="ring"></span>
-      <span class="st" id="bst">OFF<span class="s2">TAP TO LISTEN</span></span></button>
+    <div class="deck">
+      <button class="coin flag" id="markbtn" hidden title="this hit me — one tap marks the moment">
+        <span class="g">⚑</span><span class="l">FLAG</span></button>
+      <button class="big" id="big"><span class="ring" id="ring"></span>
+        <span class="st" id="bst">OFF<span class="s2">TAP TO LISTEN</span></span></button>
+      <button class="coin talk" id="talkbtn" hidden title="say why — your words, kept as you said them; nothing answers">
+        <span class="g">◉</span><span class="l" id="talklbl">TALK</span></button>
+    </div>
     <div class="counts" id="counts">the ear is off — nothing is heard, nothing is kept</div>
     <div class="feed" id="feed"><div class="none">the trail prints here — take by take, as words are kept</div></div>
     <div class="law">WORDS ARE KEPT · AUDIO IS DESTROYED ON ARRIVAL · THE SAME TAP IS THE MUTE<br>
       LEAVING THIS PAGE CLOSES THE EAR — A CALL, ANOTHER APP, A DARK SCREEN. IT COMES BACK ON WHEN THE PAGE IS YOURS AGAIN.<br>
+      ⚑ MARKS WHAT HIT YOU · TALK PAUSES THE EAR AND KEEPS YOUR WHY — NOTHING ANSWERS<br>
       PLAYING ON THIS PHONE? THE EAR CANNOT HEAR IT — USE PASTE.</div>
   </div></div>
 </div>
@@ -258,6 +320,8 @@ body{background:var(--void);color:var(--ink);font-family:var(--sans);
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="undo" id="undo" hidden><span id="undotxt">flagged</span>
+  <button id="undobtn">UNDO</button></div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -272,15 +336,33 @@ function toast(m){ const el = $("toast"); el.textContent = m; el.classList.add("
 /* ── the ear ── */
 const E = { on:false, stream:null, mr:null, cycleT:0, wake:null,
             takes:0, kept:0, bytes:0, fails:0, ac:null, an:null, vuRaf:0,
-            lastId:0 };
+            lastId:0,
+            /* THE FLAG (card #426): every arming is a session, every take a
+               number — a tap names the take it fell in, so the spine binds it
+               to the words without guessing from two clocks */
+            sess:"", seq:0, takeT0:0, talking:false, mark:null, marks:[], waitT:0 };
 const TAKE_MS = 20000;                    // one take = 20s; back-to-back = continuous
 const FLAG = "almanac.sc.ear";            // his standing intent survives a reload
 
 function paint(){
-  $("big").classList.toggle("on", E.on);
-  $("bst").innerHTML = E.on
+  $("big").classList.toggle("on", E.on && !E.talking);
+  $("big").classList.toggle("talking", E.talking);
+  $("bst").innerHTML = E.talking
+    ? 'YOUR WORDS<span class="s2">TAP = DONE</span>'
+    : E.on
     ? 'LISTENING<span class="s2">TAP = MUTE</span>'
     : 'OFF<span class="s2">TAP TO LISTEN</span>';
+  /* during TALK the flag coin keeps its slot (hidden, not gone) so the orb
+     never jumps sideways under his eye on the dash */
+  $("markbtn").hidden = !E.on && !E.talking;
+  $("markbtn").style.visibility = E.talking ? "hidden" : "";
+  $("talkbtn").hidden = !E.on && !E.talking;
+  $("talkbtn").classList.toggle("rec", E.talking);
+  $("talklbl").textContent = E.talking ? "DONE" : "TALK";
+  if(E.talking){
+    $("counts").textContent = "the ear is paused — say why. a breath of quiet keeps it";
+    return;
+  }
   $("counts").textContent = E.on || E.takes
     ? `${E.takes} takes · ${E.kept} kept · ${(E.bytes/1048576).toFixed(1)} MB shipped`
       + (E.fails ? ` · ${E.fails} failed` : "")
@@ -297,8 +379,8 @@ function feedAdd(row, ruling){
   const f = $("feed");
   const empty = f.querySelector(".none"); if(empty) empty.remove();
   const el = document.createElement("div");
-  el.className = "ln";
   el.className = "ln" + (ruling ? " rule" : "");
+  el.dataset.id = row.id || ""; el.dataset.at = row.at || "";
   if(ruling) el.style.animationDelay = (Math.min(ruling, 14) * 26) + "ms";
   el.innerHTML = `<span class="t">${eesc((row.at || "").slice(11,16))}</span>`
     + (row.source === "pasted" ? '<span class="t" style="color:var(--amber)">PASTED</span>' : "")
@@ -320,6 +402,7 @@ function pageRow(d, on){
   const bits = [];
   if(d.minutes) bits.push(`${d.minutes} MIN IN EAR`);
   if(d.pasted)  bits.push(d.pasted === 1 ? "1 PASTED" : `${d.pasted} PASTED`);
+  if(d.flags)   bits.push(`⚑ ${d.flags}`);
   bits.push(d.written ? (d.unread ? "ENTRY WAITING" : "ENTRY WRITTEN") : "NO ENTRY YET");
   tune.innerHTML = `<span class="nm">${eesc(d.today ? "today — " + d.name : d.name)}</span>`
     + `<span class="meta">${bits.join(" · ")}</span>`;
@@ -399,6 +482,7 @@ async function turnTo(day){
     const rows = d.rows || [];
     if(!rows.length){ f.innerHTML = '<div class="none">nothing was kept on this page</div>'; }
     else rows.forEach((r, i) => feedAdd(r, i + 1));
+    loadMarks(day);
     $("counts").textContent = isToday
       ? (E.on ? "listening — today" : "today's page")
       : `${rows.length} line(s) kept on ${day}` + (d.page ? " · the night wrote this page"
@@ -422,13 +506,15 @@ async function pullTrail(){
     const d = await fetch(url("/api/listening?days=1"), { headers: hdr() }).then(x => x.json());
     (d.rows || []).filter(m => m.source === "cab-ear" || m.source === "pasted")
       .sort((a, b) => a.id - b.id).forEach(r => feedAdd(r));
+    loadMarks(todayStr());
   }catch(e){}
 }
-async function post(blob){
+async function post(blob, sess, seq){
   E.takes++; E.bytes += blob.size;
   try{
     const r = await fetch(url("/api/listening/sample"), { method:"POST",
-      headers: hdr({ "Content-Type": blob.type || "audio/webm", "X-Device": "fold7-ear" }),
+      headers: hdr({ "Content-Type": blob.type || "audio/webm", "X-Device": "fold7-ear",
+                     "X-Ear-Session": sess, "X-Take-Seq": String(seq) }),
       body: blob });
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
@@ -449,7 +535,9 @@ function cycle(){
     : MediaRecorder.isTypeSupported("audio/ogg;codecs=opus") ? "audio/ogg;codecs=opus" : "";
   const mr = new MediaRecorder(E.stream, mime ? { mimeType: mime, audioBitsPerSecond: 24000 } : {});
   E.mr = mr;
-  mr.addEventListener("dataavailable", ev => { if(ev.data && ev.data.size > 2048) post(ev.data); });
+  const sess = E.sess, seq = ++E.seq;      // this take's name, fixed before it records
+  E.takeT0 = performance.now();
+  mr.addEventListener("dataavailable", ev => { if(ev.data && ev.data.size > 2048) post(ev.data, sess, seq); });
   mr.addEventListener("stop", () => { if(E.on) cycle(); });
   mr.start();
   E.cycleT = setTimeout(() => { try{ mr.state !== "inactive" && mr.stop(); }catch(e){} }, TAKE_MS);
@@ -461,6 +549,7 @@ async function arm(){
       channelCount:1, echoCancellation:false, noiseSuppression:false } });
   }catch(err){ toast("the mic refused — the ear stays off"); return; }
   E.on = true; localStorage.setItem(FLAG, "1");
+  E.sess = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); E.seq = 0;
   try{ E.wake = await navigator.wakeLock?.request("screen"); }catch(e){}
   /* the ring breathes with the ROOM's real level — a measurement, not a mood */
   try{
@@ -497,8 +586,17 @@ function disarm(silent, keepFlag){
   paint();
   if(!silent) toast("the ear is off — nothing is being heard");
 }
-$("big").addEventListener("click", () => { E.on ? disarm() : arm(); });
+$("big").addEventListener("click", () => {
+  if(E.talking) return talkDone("done");
+  E.on ? disarm() : arm(); });
 document.addEventListener("visibilitychange", () => {
+  if(document.hidden && E.talking){
+    /* a call taking the screen ends TALK unsent — the mic is never left open
+       behind a call — and the ear comes back with the page, as always */
+    talkStop(); E.talking = false; E.resume = true; paint();
+    toast("TALK closed with the screen — nothing was kept");
+    return;
+  }
   if(document.hidden){
     /* a call (or any app) taking the screen kills the mic — but his standing
        intent survives: the ear re-arms when the page is his screen again */
@@ -507,7 +605,7 @@ document.addEventListener("visibilitychange", () => {
     E.resume = false; arm();
   }
 });
-addEventListener("pagehide", () => disarm(true, true));
+addEventListener("pagehide", () => { talkStop(); disarm(true, true); });
 $("logopen").addEventListener("click", () => {
   $("logpanel").classList.contains("on") ? closeLog() : openLog(); });
 $("logclose").addEventListener("click", closeLog);
@@ -540,6 +638,199 @@ $("pstsend").addEventListener("click", async () => {
   }catch(err){ toast(err.message || String(err)); }
   finally{ $("pstsend").disabled = false; $("pstsend").textContent = "KEEP IT"; }
 });
+/* ══ THE FLAG (card #426) ═══════════════════════════════════════════════════
+   One tap marks the moment; the spine binds it to the take that was recording
+   and the one before. UNDO rides a strip for six seconds — a reversible mark,
+   so a tap is the right gesture on a moving dash. ══ */
+const MARK_UNDO_MS = 6000, TALK_REUSE_MS = 60000, SILENCE_MS = 1800;
+async function loadMarks(day){
+  try{
+    const d = await fetch(url(`/api/listening/flags?day=${day}`), { headers: hdr() }).then(x => x.json());
+    if((E.viewing || todayStr()) !== day) return;     // he turned the page meanwhile
+    E.marks = d.flags || [];
+    paintMarks();
+    /* a flag still WAITING for its take re-reads until the words land */
+    clearTimeout(E.waitT);
+    if(E.marks.some(m => m.state === "waiting")) E.waitT = setTimeout(() => loadMarks(day), 5000);
+  }catch(e){ /* the margin never breaks the ear */ }
+}
+function paintMarks(){
+  const f = $("feed");
+  f.querySelectorAll(".flagln,.ln.you").forEach(el => el.remove());
+  f.querySelectorAll(".ln.bound").forEach(el => el.classList.remove("bound"));
+  const rows = [...f.querySelectorAll(".ln[data-id]")];      // newest first (column-reverse)
+  for(const m of E.marks){
+    const ids = new Set(m.bound.map(b => String(b.id)));
+    const mine = rows.filter(el => ids.has(el.dataset.id));
+    mine.forEach(el => el.classList.add("bound"));
+    /* the mark sits just under its newest bound line; with nothing bound yet,
+       under the newest line that landed before the tap */
+    const anchor = mine[0] || rows.find(el => el.dataset.at && el.dataset.at <= m.at);
+    const fl = document.createElement("div");
+    fl.className = "ln flagln" + (m.state === "waiting" ? " wait" : m.state === "bare" ? " bare" : "");
+    fl.textContent = `⚑ ${m.time} · FLAGGED` + (m.state === "waiting" ? " · BINDING THE WORDS…"
+      : m.state === "bare" ? " · NO WORDS AROUND IT" : "");
+    if(anchor) anchor.before(fl); else f.prepend(fl);
+    let under = fl;
+    for(const t of m.talk){
+      const y = document.createElement("div"); y.className = "ln you";
+      y.innerHTML = `<span class="t">YOU</span>` + eesc(t.words);
+      under.before(y); under = y;
+    }
+  }
+}
+async function mark(silent){
+  if(!E.on || !E.sess) return null;
+  const offset_ms = Math.round(performance.now() - E.takeT0);
+  try{
+    const r = await fetch(url("/api/listening/flag"), { method:"POST",
+      headers: hdr({"Content-Type":"application/json"}),
+      body: JSON.stringify({ session: E.sess, seq: E.seq, offset_ms, device: "fold7-ear" }) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
+    E.mark = { id: d.id, t: Date.now() };
+    const b = $("markbtn"); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit");
+    try{ navigator.vibrate && navigator.vibrate(14); }catch(e){}
+    if(!silent) showUndo(d.id);
+    loadMarks(todayStr());
+    return d.id;
+  }catch(err){ toast("the flag did not take — " + (err.message || err)); return null; }
+}
+let undoT = 0;
+function showUndo(id){
+  $("undotxt").textContent = "flagged — the words bind as they land";
+  $("undo").hidden = false; $("undo").dataset.id = id;
+  clearTimeout(undoT); undoT = setTimeout(() => { $("undo").hidden = true; }, MARK_UNDO_MS);
+}
+$("undobtn").addEventListener("click", async () => {
+  const id = $("undo").dataset.id; $("undo").hidden = true; clearTimeout(undoT);
+  try{
+    const r = await fetch(url(`/api/listening/flag/${id}/undo`), { method:"POST",
+      headers: hdr({"Content-Type":"application/json"}), body: JSON.stringify({ on: true }) });
+    if(!r.ok) throw new Error("the spine answered " + r.status);
+    if(E.mark && String(E.mark.id) === String(id)) E.mark = null;
+    toast("unflagged");
+    loadMarks(todayStr());
+  }catch(err){ toast("the undo did not take — " + (err.message || err)); }
+});
+$("markbtn").addEventListener("click", () => mark(false));
+
+/* ══ TALK (his ruling 2026-10-14: "just capture my why") ═════════════════════
+   One mic in the cab: TALK pauses the ear first (the take in flight is kept —
+   it ended before he spoke), takes the mic with echo and noise suppression on,
+   and a breath of quiet keeps his words. They go to the spine as audio and are
+   transcribed and kept there WHOLE — they never pass back through this page to
+   be edited. Nothing answers. Then the ear comes back on by itself. ══ */
+const T = { rec:null, raf:0, flag:null, wake:null };
+function talkStop(){
+  const r = T.rec; T.rec = null;
+  cancelAnimationFrame(T.raf); T.raf = 0;
+  if(!r) return null;
+  try{ r.proc.disconnect(); r.src.disconnect(); }catch(e){}
+  try{ r.stream.getTracks().forEach(t => t.stop()); }catch(e){}   // every path — a leaked pill reads as surveillance
+  try{ r.ctx.close(); }catch(e){}
+  try{ T.wake?.release(); }catch(e){} T.wake = null;
+  $("ring").style.transform = "scale(1)";
+  return r;
+}
+async function talkStart(){
+  if(E.talking || !E.on) return;
+  const reuse = E.mark && Date.now() - E.mark.t < TALK_REUSE_MS;
+  T.flag = reuse ? E.mark.id : await mark(true);       // TALK marks the moment if he hadn't
+  if(!T.flag) return;
+  $("undo").hidden = true;
+  disarm(true, true);                                   // the ear lets go of the mic; his intent stays
+  E.talking = true; paint();
+  /* the ear's wake lock left with it — a screen going dark mid-sentence would
+     end TALK unsent, so TALK holds its own until the words are kept */
+  try{ T.wake = await navigator.wakeLock?.request("screen"); }catch(e){}
+  let stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ audio: {
+      channelCount:1, echoCancellation:true, noiseSuppression:true } });
+  }catch(err){
+    E.talking = false; try{ T.wake?.release(); }catch(e){} T.wake = null;
+    toast("the mic refused TALK — the flag stands on its own");
+    return talkResume();
+  }
+  if(!E.talking){ stream.getTracks().forEach(t => t.stop());
+    try{ T.wake?.release(); }catch(e){} T.wake = null; return; }
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  const src = ctx.createMediaStreamSource(stream);
+  const proc = ctx.createScriptProcessor(4096, 1, 1);
+  const an = ctx.createAnalyser(); an.fftSize = 512;
+  const mute = ctx.createGain(); mute.gain.value = 0;      // the zero-gain node is load-bearing
+  src.connect(an); src.connect(proc); proc.connect(mute).connect(ctx.destination);
+  const chunks = [];
+  proc.onaudioprocess = ev => chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));
+  T.rec = { stream, ctx, src, proc, chunks, rate: ctx.sampleRate, t0: performance.now(),
+            spoke:false, lastVoice:0 };
+  const data = new Uint8Array(an.frequencyBinCount);
+  const vu = () => {
+    const rec = T.rec; if(!rec) return;
+    an.getByteTimeDomainData(data);
+    let rms = 0; for(const v of data) rms += (v-128)*(v-128);
+    rms = Math.sqrt(rms/data.length)/128;
+    $("ring").style.transform = `scale(${1 + Math.min(.09, rms*.9)})`;   // his own voice moves the ring
+    const t = performance.now();
+    if(rms > 0.028){ rec.spoke = true; rec.lastVoice = t; }
+    if(rec.spoke && t - rec.lastVoice > SILENCE_MS) return talkDone("silence");
+    if(!rec.spoke && t - rec.t0 > 9000) return talkDone("nothing");
+    if(t - rec.t0 > 90000) return talkDone("cap");
+    T.raf = requestAnimationFrame(vu);
+  };
+  T.raf = requestAnimationFrame(vu);
+}
+function talkWav(chunks, rate){
+  /* Float32 → 16 kHz Int16 RIFF WAV, the same shape companion's TALK sends */
+  const n = chunks.reduce((s, c) => s + c.length, 0);
+  const flat = new Float32Array(n); let off = 0;
+  for(const c of chunks){ flat.set(c, off); off += c.length; }
+  const ratio = rate / 16000, m = Math.floor(n / ratio);
+  const pcm = new Int16Array(m);
+  for(let i = 0; i < m; i++){
+    const v = Math.max(-1, Math.min(1, flat[Math.floor(i*ratio)]));
+    pcm[i] = v < 0 ? v*0x8000 : v*0x7FFF;
+  }
+  const wav = new ArrayBuffer(44 + pcm.length*2), dv = new DataView(wav);
+  const ws = (o, s) => { for(let i = 0; i < s.length; i++) dv.setUint8(o+i, s.charCodeAt(i)); };
+  ws(0,"RIFF"); dv.setUint32(4, 36 + pcm.length*2, true); ws(8,"WAVE");
+  ws(12,"fmt "); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+  dv.setUint32(24,16000,true); dv.setUint32(28,32000,true); dv.setUint16(32,2,true);
+  dv.setUint16(34,16,true); ws(36,"data"); dv.setUint32(40, pcm.length*2, true);
+  new Int16Array(wav, 44).set(pcm);
+  return wav;
+}
+async function talkDone(why){
+  const rec = talkStop();
+  if(!E.talking) return;
+  E.talking = false; paint();
+  if(!rec || !rec.spoke || why === "nothing"){
+    toast("nothing said — the flag stands on its own");
+    return talkResume();
+  }
+  try{
+    const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 30000);
+    const r = await fetch(url(`/api/listening/flag/${T.flag}/talk`), { method:"POST",
+      headers: hdr({"Content-Type":"audio/wav"}), body: talkWav(rec.chunks, rec.rate),
+      signal: ctrl.signal });
+    clearTimeout(tm);
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
+    toast("kept — your words are on the flag");
+  }catch(err){
+    toast(err.name === "AbortError" ? "the transcriber ran past 30s — your words were not kept"
+                                    : (err.message || String(err)));
+  }
+  talkResume();
+}
+function talkResume(){
+  /* the ear comes back on by itself — his standing intent, as after a call */
+  if(localStorage.getItem(FLAG) === "1" && !document.hidden) arm();
+  else paint();
+  loadMarks(todayStr());
+}
+$("talkbtn").addEventListener("click", () => { E.talking ? talkDone("done") : talkStart(); });
 $("tosc").addEventListener("click", () => { location.href = "companion.html"; });
 $("todesk").addEventListener("click", () => { location.href = "desk.html"; });
 /* his standing intent: if the ear was on when this page last closed, it
