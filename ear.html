@@ -358,9 +358,16 @@ function paint(){
   $("markbtn").style.visibility = E.talking ? "hidden" : "";
   $("talkbtn").hidden = !E.on && !E.talking;
   $("talkbtn").classList.toggle("rec", E.talking);
-  $("talklbl").textContent = E.talking ? "DONE" : "TALK";
+  $("talklbl").textContent = E.talking ? "DONE" : T.starting ? "…" : "TALK";
+  $("talkbtn").disabled = T.starting;
+  $("markbtn").disabled = T.starting;
   if(E.talking){
-    $("counts").textContent = "the ear is paused — say why. a breath of quiet keeps it";
+    $("counts").textContent = "the ear is paused — pause what's playing, then say why · DONE keeps it · the orb is the mute";
+    return;
+  }
+  if(T.uploading){
+    $("bst").innerHTML = 'KEEPING<span class="s2">YOUR WORDS</span>';
+    $("counts").textContent = "keeping your words on the flag — the ear comes back on after";
     return;
   }
   $("counts").textContent = E.on || E.takes
@@ -482,7 +489,7 @@ async function turnTo(day){
     const rows = d.rows || [];
     if(!rows.length){ f.innerHTML = '<div class="none">nothing was kept on this page</div>'; }
     else rows.forEach((r, i) => feedAdd(r, i + 1));
-    loadMarks(day);
+    loadMarks(isToday ? null : day);
     $("counts").textContent = isToday
       ? (E.on ? "listening — today" : "today's page")
       : `${rows.length} line(s) kept on ${day}` + (d.page ? " · the night wrote this page"
@@ -506,7 +513,7 @@ async function pullTrail(){
     const d = await fetch(url("/api/listening?days=1"), { headers: hdr() }).then(x => x.json());
     (d.rows || []).filter(m => m.source === "cab-ear" || m.source === "pasted")
       .sort((a, b) => a.id - b.id).forEach(r => feedAdd(r));
-    loadMarks(todayStr());
+    loadMarks();
   }catch(e){}
 }
 async function post(blob, sess, seq){
@@ -543,11 +550,19 @@ function cycle(){
   E.cycleT = setTimeout(() => { try{ mr.state !== "inactive" && mr.stop(); }catch(e){} }, TAKE_MS);
 }
 async function arm(){
-  if(E.on) return;
+  /* ONE arming at a time (card #426's review): E.on is only true after the
+     mic answers, so two taps — or his tap and TALK's resume — used to open two
+     streams and leak the first past the mute */
+  if(E.on || E.arming) return;
+  E.arming = true; E.armCancel = false;
+  let stream;
   try{
-    E.stream = await navigator.mediaDevices.getUserMedia({ audio: {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: {
       channelCount:1, echoCancellation:false, noiseSuppression:false } });
-  }catch(err){ toast("the mic refused — the ear stays off"); return; }
+  }catch(err){ E.arming = false; toast("the mic refused — the ear stays off"); return; }
+  E.arming = false;
+  if(E.armCancel){ stream.getTracks().forEach(t => t.stop()); E.armCancel = false; paint(); return; }
+  E.stream = stream;
   E.on = true; localStorage.setItem(FLAG, "1");
   E.sess = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); E.seq = 0;
   try{ E.wake = await navigator.wakeLock?.request("screen"); }catch(e){}
@@ -572,6 +587,7 @@ async function arm(){
 }
 function disarm(silent, keepFlag){
   if(!keepFlag) localStorage.removeItem(FLAG);
+  if(E.arming) E.armCancel = true;          // a mic still answering is stopped when it does
   if(!E.on){ paint(); return; }
   E.on = false;
   clearTimeout(E.cycleT);
@@ -587,13 +603,18 @@ function disarm(silent, keepFlag){
   if(!silent) toast("the ear is off — nothing is being heard");
 }
 $("big").addEventListener("click", () => {
-  if(E.talking) return talkDone("done");
+  /* THE SAME TAP IS THE MUTE — during TALK too (the review's catch: it used
+     to keep the words and turn the ear back ON). The orb ends TALK unsent and
+     leaves the ear off; DONE on the TALK coin is the keep. */
+  if(E.talking || T.starting) return talkMute();
+  if(T.uploading){ localStorage.removeItem(FLAG); paint();
+    return toast("the ear stays off — your words are still being kept"); }
   E.on ? disarm() : arm(); });
 document.addEventListener("visibilitychange", () => {
-  if(document.hidden && E.talking){
+  if(document.hidden && (E.talking || T.starting)){
     /* a call taking the screen ends TALK unsent — the mic is never left open
        behind a call — and the ear comes back with the page, as always */
-    talkStop(); E.talking = false; E.resume = true; paint();
+    T.starting = false; talkStop(); E.talking = false; E.resume = true; paint();
     toast("TALK closed with the screen — nothing was kept");
     return;
   }
@@ -601,6 +622,7 @@ document.addEventListener("visibilitychange", () => {
     /* a call (or any app) taking the screen kills the mic — but his standing
        intent survives: the ear re-arms when the page is his screen again */
     if(E.on){ disarm(true, true); E.resume = true; }
+    else if(E.arming){ E.armCancel = true; E.resume = true; }
   }else if(E.resume && localStorage.getItem(FLAG) === "1"){
     E.resume = false; arm();
   }
@@ -644,12 +666,16 @@ $("pstsend").addEventListener("click", async () => {
    so a tap is the right gesture on a moving dash. ══ */
 const MARK_UNDO_MS = 6000, TALK_REUSE_MS = 60000, SILENCE_MS = 1800;
 async function loadMarks(day){
+  /* no day = TODAY, and today is the spine's clock (the rows are stamped by
+     the Mac, not this phone); a back page names its own day */
   try{
-    const d = await fetch(url(`/api/listening/flags?day=${day}`), { headers: hdr() }).then(x => x.json());
-    if((E.viewing || todayStr()) !== day) return;     // he turned the page meanwhile
+    const d = await fetch(url("/api/listening/flags" + (day ? `?day=${day}` : "")),
+                          { headers: hdr() }).then(x => x.json());
+    if(day ? E.viewing !== day : E.viewing) return;   // he turned the page meanwhile
     E.marks = d.flags || [];
     paintMarks();
-    /* a flag still WAITING for its take re-reads until the words land */
+    /* a flag still WAITING for its take re-reads until the words land — one
+       loop, never stacked */
     clearTimeout(E.waitT);
     if(E.marks.some(m => m.state === "waiting")) E.waitT = setTimeout(() => loadMarks(day), 5000);
   }catch(e){ /* the margin never breaks the ear */ }
@@ -670,6 +696,9 @@ function paintMarks(){
     fl.className = "ln flagln" + (m.state === "waiting" ? " wait" : m.state === "bare" ? " bare" : "");
     fl.textContent = `⚑ ${m.time} · FLAGGED` + (m.state === "waiting" ? " · BINDING THE WORDS…"
       : m.state === "bare" ? " · NO WORDS AROUND IT" : "");
+    /* UNDO is never only a six-second glance: tap the mark, the strip returns */
+    fl.style.cursor = "pointer"; fl.title = "tap to undo this flag";
+    fl.addEventListener("click", () => showUndo(m.id));
     if(anchor) anchor.before(fl); else f.prepend(fl);
     let under = fl;
     for(const t of m.talk){
@@ -682,9 +711,10 @@ function paintMarks(){
 async function mark(silent){
   if(!E.on || !E.sess) return null;
   const offset_ms = Math.round(performance.now() - E.takeT0);
+  const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 8000);
   try{
     const r = await fetch(url("/api/listening/flag"), { method:"POST",
-      headers: hdr({"Content-Type":"application/json"}),
+      headers: hdr({"Content-Type":"application/json"}), signal: ctrl.signal,
       body: JSON.stringify({ session: E.sess, seq: E.seq, offset_ms, device: "fold7-ear" }) });
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
@@ -692,9 +722,13 @@ async function mark(silent){
     const b = $("markbtn"); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit");
     try{ navigator.vibrate && navigator.vibrate(14); }catch(e){}
     if(!silent) showUndo(d.id);
-    loadMarks(todayStr());
+    loadMarks();
     return d.id;
-  }catch(err){ toast("the flag did not take — " + (err.message || err)); return null; }
+  }catch(err){
+    toast(err.name === "AbortError" ? "the flag did not take — the spine did not answer in 8s"
+                                    : "the flag did not take — " + (err.message || err));
+    return null;
+  }finally{ clearTimeout(tm); }
 }
 let undoT = 0;
 function showUndo(id){
@@ -710,10 +744,13 @@ $("undobtn").addEventListener("click", async () => {
     if(!r.ok) throw new Error("the spine answered " + r.status);
     if(E.mark && String(E.mark.id) === String(id)) E.mark = null;
     toast("unflagged");
-    loadMarks(todayStr());
+    loadMarks(E.viewing || null);
   }catch(err){ toast("the undo did not take — " + (err.message || err)); }
 });
-$("markbtn").addEventListener("click", () => mark(false));
+/* a bump in the road is not a second moment: one flag per 1.5 s */
+$("markbtn").addEventListener("click", () => {
+  if(Date.now() - (E.lastTap || 0) < 1500) return;
+  E.lastTap = Date.now(); mark(false); });
 
 /* ══ TALK (his ruling 2026-10-14: "just capture my why") ═════════════════════
    One mic in the cab: TALK pauses the ear first (the take in flight is kept —
@@ -721,26 +758,39 @@ $("markbtn").addEventListener("click", () => mark(false));
    and a breath of quiet keeps his words. They go to the spine as audio and are
    transcribed and kept there WHOLE — they never pass back through this page to
    be edited. Nothing answers. Then the ear comes back on by itself. ══ */
-const T = { rec:null, raf:0, flag:null, wake:null };
+const T = { rec:null, raf:0, flag:null, wake:null, starting:false, uploading:false };
 function talkStop(){
   const r = T.rec; T.rec = null;
-  cancelAnimationFrame(T.raf); T.raf = 0;
+  clearInterval(T.raf); T.raf = 0;
+  try{ T.wake?.release(); }catch(e){} T.wake = null;
   if(!r) return null;
   try{ r.proc.disconnect(); r.src.disconnect(); }catch(e){}
   try{ r.stream.getTracks().forEach(t => t.stop()); }catch(e){}   // every path — a leaked pill reads as surveillance
   try{ r.ctx.close(); }catch(e){}
-  try{ T.wake?.release(); }catch(e){} T.wake = null;
   $("ring").style.transform = "scale(1)";
   return r;
 }
+function talkMute(){
+  /* the orb during TALK: stop, keep nothing, leave the ear OFF */
+  T.starting = false; talkStop(); E.talking = false;
+  disarm(true);                                   // clears his standing intent too
+  toast("muted — TALK closed unsent, the ear is off");
+}
 async function talkStart(){
-  if(E.talking || !E.on) return;
-  const reuse = E.mark && Date.now() - E.mark.t < TALK_REUSE_MS;
-  T.flag = reuse ? E.mark.id : await mark(true);       // TALK marks the moment if he hadn't
-  if(!T.flag) return;
-  $("undo").hidden = true;
-  disarm(true, true);                                   // the ear lets go of the mic; his intent stays
-  E.talking = true; paint();
+  /* ONE start at a time, latched BEFORE the first await (the review's catch:
+     a second tap during the flag's round trip opened a second mic nothing
+     could close), and every await re-checks that he still wants it */
+  if(E.talking || T.starting || !E.on) return;
+  T.starting = true; paint();
+  try{
+    const reuse = E.mark && Date.now() - E.mark.t < TALK_REUSE_MS;
+    const fid = reuse ? E.mark.id : await mark(true);   // TALK marks the moment if he hadn't
+    if(!fid || !T.starting || !E.on || document.hidden) return;   // muted, hidden or failed meanwhile
+    T.flag = fid;
+    $("undo").hidden = true;
+    disarm(true, true);                                 // the ear lets go of the mic; his intent stays
+    E.talking = true;
+  }finally{ T.starting = false; paint(); }
   /* the ear's wake lock left with it — a screen going dark mid-sentence would
      end TALK unsent, so TALK holds its own until the words are kept */
   try{ T.wake = await navigator.wakeLock?.request("screen"); }catch(e){}
@@ -753,7 +803,8 @@ async function talkStart(){
     toast("the mic refused TALK — the flag stands on its own");
     return talkResume();
   }
-  if(!E.talking){ stream.getTracks().forEach(t => t.stop());
+  if(!E.talking || document.hidden){                  // muted or hidden while the mic answered
+    stream.getTracks().forEach(t => t.stop());
     try{ T.wake?.release(); }catch(e){} T.wake = null; return; }
   const ctx = new (window.AudioContext||window.webkitAudioContext)();
   const src = ctx.createMediaStreamSource(stream);
@@ -764,8 +815,10 @@ async function talkStart(){
   const chunks = [];
   proc.onaudioprocess = ev => chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));
   T.rec = { stream, ctx, src, proc, chunks, rate: ctx.sampleRate, t0: performance.now(),
-            spoke:false, lastVoice:0 };
+            spoke:false, lastVoice:0, floor:[], gate:FLOOR_MIN };
   const data = new Uint8Array(an.frequencyBinCount);
+  /* a TIMER, not an animation frame: rAF only fires while the page paints,
+     and the decision to end his TALK must never wait on a paint */
   const vu = () => {
     const rec = T.rec; if(!rec) return;
     an.getByteTimeDomainData(data);
@@ -773,14 +826,24 @@ async function talkStart(){
     rms = Math.sqrt(rms/data.length)/128;
     $("ring").style.transform = `scale(${1 + Math.min(.09, rms*.9)})`;   // his own voice moves the ring
     const t = performance.now();
-    if(rms > 0.028){ rec.spoke = true; rec.lastVoice = t; }
+    /* THE ROOM SETS THE LINE. Echo cancellation cannot remove a podcast
+       playing on the OTHER phone through the truck speakers, so a fixed level
+       never hears his pause. The first moments after the tap — before he
+       speaks — measure the room; his voice is what rises above it, and quiet
+       is falling back to it. DONE always keeps, whatever the room does. */
+    if(t - rec.t0 < FLOOR_MS || rec.floor.length < 3){ rec.floor.push(rms); return; }
+    if(rec.floor.length){
+      const f = rec.floor.sort((a, b) => a - b)[Math.floor(rec.floor.length / 2)];
+      rec.gate = Math.max(FLOOR_MIN, f * FLOOR_RISE); rec.floor = [];
+    }
+    if(rms > rec.gate){ rec.spoke = true; rec.lastVoice = t; }
     if(rec.spoke && t - rec.lastVoice > SILENCE_MS) return talkDone("silence");
     if(!rec.spoke && t - rec.t0 > 9000) return talkDone("nothing");
-    if(t - rec.t0 > 90000) return talkDone("cap");
-    T.raf = requestAnimationFrame(vu);
+    if(t - rec.t0 > TALK_CAP_MS) return talkDone("cap");
   };
-  T.raf = requestAnimationFrame(vu);
+  T.raf = setInterval(vu, 50);
 }
+const FLOOR_MS = 400, FLOOR_MIN = 0.028, FLOOR_RISE = 1.8, TALK_CAP_MS = 60000;
 function talkWav(chunks, rate){
   /* Float32 → 16 kHz Int16 RIFF WAV, the same shape companion's TALK sends */
   const n = chunks.reduce((s, c) => s + c.length, 0);
@@ -804,31 +867,38 @@ function talkWav(chunks, rate){
 async function talkDone(why){
   const rec = talkStop();
   if(!E.talking) return;
-  E.talking = false; paint();
+  E.talking = false;
   if(!rec || !rec.spoke || why === "nothing"){
-    toast("nothing said — the flag stands on its own");
+    paint(); toast("nothing said — the flag stands on its own");
     return talkResume();
   }
+  T.uploading = true; paint();
+  /* the spine may take up to a minute on its slowest path (the CLI floor,
+     or a queue behind the ear's own take) — the page waits past that, and
+     when it cannot confirm it says so instead of claiming nothing was kept */
+  const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 75000);
   try{
-    const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 30000);
     const r = await fetch(url(`/api/listening/flag/${T.flag}/talk`), { method:"POST",
       headers: hdr({"Content-Type":"audio/wav"}), body: talkWav(rec.chunks, rec.rate),
       signal: ctrl.signal });
-    clearTimeout(tm);
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
     toast("kept — your words are on the flag");
   }catch(err){
-    toast(err.name === "AbortError" ? "the transcriber ran past 30s — your words were not kept"
-                                    : (err.message || String(err)));
-  }
+    toast(err.name === "AbortError"
+      ? "not confirmed — the spine may still keep your words; the trail will show them"
+      : (err.message || String(err)));
+  }finally{ clearTimeout(tm); T.uploading = false; }
   talkResume();
 }
 function talkResume(){
-  /* the ear comes back on by itself — his standing intent, as after a call */
-  if(localStorage.getItem(FLAG) === "1" && !document.hidden) arm();
-  else paint();
-  loadMarks(todayStr());
+  /* the ear comes back on by itself — his standing intent, as after a call.
+     A screen that went dark meanwhile brings it back when the page returns. */
+  if(localStorage.getItem(FLAG) === "1"){
+    if(document.hidden) E.resume = true; else arm();
+  }
+  paint();
+  loadMarks();
 }
 $("talkbtn").addEventListener("click", () => { E.talking ? talkDone("done") : talkStart(); });
 $("tosc").addEventListener("click", () => { location.href = "companion.html"; });
