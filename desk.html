@@ -2586,12 +2586,21 @@ body.hot .act .h .n{color:var(--hot)}
 
 <div class="panelbox" id="connect" hidden>
   <div class="in">
-    <h2>Connect</h2>
+    <h2 id="cfgHead">Connect</h2>
+    <div id="reach" hidden><div style="display:flex;flex-direction:column;gap:13px">
+      <p id="reachTxt">This phone can't reach the spine right now. Your key is still saved here — nothing needs re-entering.</p>
+      <p>Usually Tailscale dozed on this phone. Open the Tailscale app for a second, then come back — this page keeps trying on its own.</p>
+      <button class="btn" id="reachGo" style="padding:13px">RETRY NOW</button>
+      <span class="msg" id="reachMsg"></span>
+      <button class="btn" id="reachKey" style="padding:9px;opacity:.7">USE A DIFFERENT KEY</button>
+    </div></div>
+    <div id="cfgForm" style="display:flex;flex-direction:column;gap:13px">
     <p>Both values stay on this device.</p>
     <label>backend<input id="cfgApi" inputmode="url" placeholder="https://&#8230;"></label>
     <label>token<input id="cfgTok" type="password" placeholder="ALMANAC_TOKEN"></label>
     <button class="btn" id="cfgGo" style="padding:13px">CONNECT</button>
     <span class="msg" id="cfgMsg">Checked against the spine before it is saved.</span>
+    </div>
   </div>
 </div>
 
@@ -12691,6 +12700,7 @@ async function load(keep){
       grab("/api/standing"), grab("/api/standings"), grab("/api/board")]);
     if(seq !== LOAD_SEQ) return;
     State.standing = st; State.standings = sd; State.board = bd; State.err = null;
+    reachOk();
     const at = State.at = new Date();
     /* the rest are not worth failing the desk over — but a miss is RECORDED,
        never swallowed (card #335): each payload stamps the READ that brought
@@ -12733,8 +12743,16 @@ async function load(keep){
     MIRROR = []; paintMirror();   /* no ruling hangs under a dead spine */
     $("cq").textContent = "The spine did not answer.";
     $("crz").textContent = State.err;
+    /* A REFUSAL IS NOT A DEAD LINE (his report 10-14: "s25 is asking for token
+       for almanac again"). The key form used to answer EVERY failed load, so a
+       tunnel that dozed on the phone read as "give me your token" — and the QR
+       only "fixed" it by reloading after Tailscale woke. Now: no key → the
+       form; the spine said 401 → the form, saying it refused the key; anything
+       else with a key saved → the line is down, the key is fine, keep trying. */
     if(!configured()) showConnect();
-    else showConnect("could not reach the spine — if you are away from home, check Tailscale first");
+    else if(/^401\b/.test(State.err))
+      showConnect("the spine refused the key saved on this device — scan the connect QR on the Mac");
+    else showReach(State.err);
   }
 }
 /* NOTHING RE-READS BEHIND HIS BACK. Bryan, 2026-07-29: "the dial keeps
@@ -12798,10 +12816,43 @@ function stampRead(){
 setInterval(stampRead, 20000);
 
 function showConnect(msg){
+  reachStop();
   $("connect").hidden = false;
+  $("cfgHead").textContent = "Connect";
+  $("reach").hidden = true; $("cfgForm").style.display = "flex";
   $("cfgApi").value = API || "";
   if(msg){ $("cfgMsg").textContent = msg; $("cfgMsg").classList.add("bad"); }
 }
+/* THE LINE IS DOWN, THE KEY IS FINE. Retries on its own — a dozing tunnel
+   usually wakes within seconds of the first packet — and on the phone coming
+   back online or back to the front. Never asks for what is already saved. */
+const REACH = { on:false, n:0, t:0 };
+const REACH_WAIT = [3000, 5000, 8000, 13000, 20000, 30000];
+function showReach(err){
+  $("connect").hidden = false;
+  $("cfgHead").textContent = "Can't reach the spine";
+  $("reach").hidden = false; $("cfgForm").style.display = "none";
+  if(!REACH.on){ REACH.on = true; REACH.n = 0; }
+  clearTimeout(REACH.t);
+  const wait = REACH_WAIT[REACH.n];
+  $("reachMsg").classList.toggle("bad", wait === undefined);
+  $("reachMsg").textContent = wait === undefined
+    ? `still no answer after ${REACH.n} tries (${err}) — check Tailscale on this phone, then RETRY NOW`
+    : `try ${REACH.n + 1} did not answer (${err}) — trying again in ${Math.round(wait / 1000)}s`;
+  if(wait !== undefined){ REACH.n++; REACH.t = setTimeout(() => load(), wait); }
+}
+function reachStop(){ REACH.on = false; REACH.n = 0; clearTimeout(REACH.t); }
+function reachOk(){
+  if(!REACH.on) return;
+  reachStop();
+  $("connect").hidden = true;
+  toast("back on the line");
+}
+$("reachGo").addEventListener("click", () => { $("reachMsg").textContent = "trying…"; REACH.n = 0; load(); });
+$("reachKey").addEventListener("click", () => showConnect());
+addEventListener("online", () => { if(REACH.on){ REACH.n = 0; load(); } });
+document.addEventListener("visibilitychange", () => {
+  if(!document.hidden && REACH.on){ REACH.n = 0; load(); } });
 $("cfgGo").addEventListener("click", async () => {
   const a = $("cfgApi").value.trim().replace(/\/$/,""), t = $("cfgTok").value.trim();
   const m = $("cfgMsg"); m.classList.remove("bad"); m.textContent = "checking…";
@@ -12810,7 +12861,7 @@ $("cfgGo").addEventListener("click", async () => {
     if(!r.ok) throw new Error("the spine answered " + r.status);
     localStorage.setItem("almanac_api", API = a);
     localStorage.setItem("almanac_token", TOK = t);
-    $("connect").hidden = true; load(); startRefresh();
+    reachStop(); $("connect").hidden = true; load(); startRefresh();
   }catch(e){ m.classList.add("bad"); m.textContent = "could not reach the spine: " + (e.message||e); }
 });
 
