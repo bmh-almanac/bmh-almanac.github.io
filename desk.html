@@ -8586,7 +8586,8 @@ function shelfRoom(){
         title="${esc(b.title)}"><span>${esc(b.title)}</span></button>`).join("")}</div>`
     : `<p class="nodata" style="margin-top:12px">the shelf fills as you finish — every book stands in its lane.</p>`;
   const openHTML = opened ? `<div class="sh-open"><b>${esc(opened.title)}</b>${opened.author ? " — " + esc(opened.author) : ""}<br>
-      ${opened.passes > 1 ? `finished ${opened.passes} times` : "finished"}${opened.finished_on ? " " + esc(opened.finished_on) : ""}${opened.where === "ears" ? " · in your ears again now" : ""}${opened.via ? " · via " + esc(opened.via) : ""}</div>` : "";
+      ${opened.passes > 1 ? `finished ${opened.passes} times` : "finished"}${opened.finished_on ? " " + esc(opened.finished_on) : ""}${opened.where === "ears" ? " · in your ears again now" : ""}${opened.via ? " · via " + esc(opened.via) : ""}
+      ${opened.confirmed ? "" : `<div class="sh-btns" style="margin-top:8px"><button class="sh-btn ask" data-ok="${opened.id}" title="the cover is my read of what you named — tap if it's the one">THIS ONE ✓</button></div>`}</div>` : "";
   const pileHTML = pile.map(b => `<div class="sh-row">
       <div class="sh-thumb" data-cover="${b.has_cover ? b.id : ""}"></div>
       <div class="sh-rowt"><div class="sh-t">${esc(b.title)}</div>
