@@ -1513,9 +1513,6 @@ body.hot .act .h .n{color:var(--hot)}
 .sh-lane b{font:800 15px/1 var(--sans);color:var(--ink);letter-spacing:0}
 .sh-lane.none b{color:var(--unknown)}
 .sh-lane s{display:inline-block;width:9px;height:9px;border-radius:2px;text-decoration:none}
-.sh-rack{display:flex;align-items:flex-end;gap:5px;margin-top:14px;padding:0 4px 0;min-height:150px;
-  border-bottom:6px solid rgba(199,148,73,.38);overflow-x:auto;scrollbar-width:none}
-.sh-rack::-webkit-scrollbar{display:none}
 .sh-spine{position:relative;flex:0 0 auto;width:34px;border-radius:2px 2px 0 0;overflow:hidden;cursor:pointer;border:0;padding:0;
   background:#1a1f26 center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
 .sh-spine::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.15) 40%,rgba(0,0,0,.55))}
@@ -1524,6 +1521,21 @@ body.hot .act .h .n{color:var(--hot)}
   font:800 10px/1 var(--sans);letter-spacing:.04em;color:#F4F1EA;text-shadow:0 1px 2px rgba(0,0,0,.9);overflow:hidden;white-space:nowrap}
 .sh-spine.on{outline:2px solid var(--amber);outline-offset:1px}
 .sh-spine.again::before{background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(255,164,25,.18) 40%,rgba(0,0,0,.55))}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:34px;margin-top:-6px;
+  padding:0;border:0;background:none;cursor:pointer;text-align:left;color:inherit}
+.sh-hr{display:flex;align-items:center;gap:12px;font:700 8px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.sh-hr i{font-style:normal;color:var(--amber)}
+.sh-lh{display:flex;align-items:center;gap:8px;width:100%;min-height:42px;margin-top:10px;padding:0;border:0;
+  border-top:1px dotted var(--line);background:none;cursor:pointer;text-align:left;
+  font:700 9px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.sh-lh b{font:800 14px/1 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink)}
+.sh-lh s{flex:0 0 auto;width:10px;height:10px;border-radius:2px}
+.sh-lh i{margin-left:auto;font-style:normal;font-size:8px;color:var(--amber)}
+.sh-lh.empty,.sh-lh.empty b{color:var(--unknown);cursor:default}
+/* the bookcase: spines wrap into rows; every row stands on a board (row pitch 152 + 12) */
+.sh-case{display:flex;flex-wrap:wrap;align-items:flex-end;column-gap:5px;row-gap:12px;padding:0 4px 6px;
+  background:repeating-linear-gradient(to bottom,transparent 0 152px,rgba(199,148,73,.42) 152px 158px,transparent 158px 164px)}
+.sh-cell{height:152px;display:flex;align-items:flex-end}
 .sh-open{margin-top:10px;font:400 13px/1.5 var(--sans);color:var(--mid)}
 .sh-open b{color:var(--ink)}
 .sh-row{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dotted var(--line)}
@@ -8540,7 +8552,8 @@ const SH = {
   view: (() => { try{ return localStorage.getItem("learn.view") || "shelf"; }catch(_){ return "shelf"; } })(),
   open: 0,            // the spine tapped open
   arm: 0, armT: 0,    // FINISHED waits for a second tap — the road gets a second look
-  covers: new Map()   // book id → object URL, fetched once per page
+  covers: new Map(),  // book id → object URL, fetched once per page
+  folds: shFoldsLoad()
 };
 const SH_LANE = { history:"199,148,73", business:"92,160,220", growth:"96,190,140", "":"110,110,110" };
 function shSetView(v){ SH.view = v; try{ localStorage.setItem("learn.view", v); }catch(_){} }
@@ -8550,6 +8563,16 @@ function shPassTag(b){
   return b.pass > 1 ? `${shOrd(b.pass)} ${verb}` : (b.format === "read" ? "READING" : "LISTENING");
 }
 function shSpineH(b){ return 118 + (lrHash(b.title) % 34); }
+/* folds are his, per device (his ask 10-16: "make it collapsible as I want a
+   big library"); a refused localStorage keeps them for the page's life */
+function shFoldsLoad(){ try{ return JSON.parse(localStorage.getItem("learn.shelf.folds") || "{}") || {}; }catch(_){ return {}; } }
+function shFold(k){ SH.folds[k] = !SH.folds[k];
+  try{ localStorage.setItem("learn.shelf.folds", JSON.stringify(SH.folds)); }catch(_){} }
+function shHead(key, label, right){
+  const shut = !!SH.folds[key];
+  return `<button class="sh-head" data-fold="${key}" aria-expanded="${!shut}"><span class="cap">${label}</span>
+    <span class="sh-hr">${right || ""}<i>${shut ? "OPEN ▸" : "FOLD ▾"}</i></span></button>`;
+}
 function shelfRoom(){
   const sh = State.learn && State.learn.shelf;
   const w = State.learn && State.learn.wire;
@@ -8571,7 +8594,7 @@ function shelfRoom(){
           <button class="sh-btn${SH.arm === b.id ? " arm" : ""}" data-fin="${b.id}">${SH.arm === b.id ? "TAP AGAIN" : "FINISHED"}</button>
         </div></div>`).join("")}</div>`
     : `<p class="nodata" style="margin-top:10px">nothing in your ears — START a book from the pile.</p>`;
-  /* the diet — what's gone in, by lane, his three in his order */
+  /* the diet — what's gone in, by lane, his three in his order; it stays up when the shelf folds */
   const per = {}; keys.forEach(k => per[k] = 0);
   racked.forEach(b => { if(b.lane in per) per[b.lane]++; });
   const placed = keys.reduce((a, k) => a + per[k], 0);
@@ -8579,15 +8602,25 @@ function shelfRoom(){
       `<i style="width:${per[k] / placed * 100}%;background:rgb(${SH_LANE[k]})"></i>`).join("")}</div>` : "";
   const laneHTML = `<div class="sh-lanes">${keys.map(k => `<span class="sh-lane${per[k] ? "" : " none"}">
       <s style="background:rgb(${SH_LANE[k]})"></s><b>${per[k]}</b>${esc(lanes[k])}</span>`).join("")}</div>`;
-  const opened = racked.find(b => b.id === SH.open);
-  const rackHTML = racked.length ? `<div class="sh-rack">${racked.map(b => `
-      <button class="sh-spine${b.where === "ears" ? " again" : ""}${SH.open === b.id ? " on" : ""}" data-spine="${b.id}"
-        data-cover="${b.has_cover ? b.id : ""}" style="height:${shSpineH(b)}px;--lc:rgb(${SH_LANE[b.lane] || SH_LANE[""]})"
-        title="${esc(b.title)}"><span>${esc(b.title)}</span></button>`).join("")}</div>`
+  /* one bookcase per lane — each folds on its own; a book with no lane gets a case of its own */
+  const caseKeys = keys.concat(racked.some(b => !(b.lane in lanes)) ? [""] : []);
+  const spine = b => `<div class="sh-cell"><button class="sh-spine${b.where === "ears" ? " again" : ""}${SH.open === b.id ? " on" : ""}" data-spine="${b.id}"
+      data-cover="${b.has_cover ? b.id : ""}" style="height:${shSpineH(b)}px;--lc:rgb(${SH_LANE[b.lane] || SH_LANE[""]})"
+      title="${esc(b.title)}"><span>${esc(b.title)}</span></button></div>`;
+  const openLine = b => `<div class="sh-open"><b>${esc(b.title)}</b>${b.author ? " — " + esc(b.author) : ""}<br>
+      ${b.passes > 1 ? `finished ${b.passes} times` : "finished"}${b.finished_on ? " " + esc(b.finished_on) : ""}${b.where === "ears" ? " · in your ears again now" : ""}${b.via ? " · via " + esc(b.via) : ""}
+      ${b.confirmed ? "" : `<div class="sh-btns" style="margin-top:8px"><button class="sh-btn ask" data-ok="${b.id}" title="the cover is my read of what you named — tap if it's the one">THIS ONE ✓</button></div>`}</div>`;
+  const casesHTML = racked.length ? caseKeys.map(k => {
+      const list = racked.filter(b => k ? b.lane === k : !(b.lane in lanes));
+      const label = k ? lanes[k] : "no lane yet";
+      if(!list.length) return `<div class="sh-lh empty"><s style="background:rgb(${SH_LANE[k]})"></s><b>${esc(label)}</b> · nothing in yet</div>`;
+      const shut = !!SH.folds["lane:" + k];
+      const opened = list.find(b => b.id === SH.open);
+      return `<button class="sh-lh" data-fold="lane:${k}" aria-expanded="${!shut}"><s style="background:rgb(${SH_LANE[k] || SH_LANE[""]})"></s>
+          <b>${esc(label)}</b> · ${list.length}<i>${shut ? "OPEN ▸" : "FOLD ▾"}</i></button>`
+        + (shut ? "" : `<div class="sh-case">${list.map(spine).join("")}</div>${opened ? openLine(opened) : ""}`);
+    }).join("")
     : `<p class="nodata" style="margin-top:12px">the shelf fills as you finish — every book stands in its lane.</p>`;
-  const openHTML = opened ? `<div class="sh-open"><b>${esc(opened.title)}</b>${opened.author ? " — " + esc(opened.author) : ""}<br>
-      ${opened.passes > 1 ? `finished ${opened.passes} times` : "finished"}${opened.finished_on ? " " + esc(opened.finished_on) : ""}${opened.where === "ears" ? " · in your ears again now" : ""}${opened.via ? " · via " + esc(opened.via) : ""}
-      ${opened.confirmed ? "" : `<div class="sh-btns" style="margin-top:8px"><button class="sh-btn ask" data-ok="${opened.id}" title="the cover is my read of what you named — tap if it's the one">THIS ONE ✓</button></div>`}</div>` : "";
   const pileHTML = pile.map(b => `<div class="sh-row">
       <div class="sh-thumb" data-cover="${b.has_cover ? b.id : ""}"></div>
       <div class="sh-rowt"><div class="sh-t">${esc(b.title)}</div>
@@ -8601,14 +8634,12 @@ function shelfRoom(){
       <button class="sh-btn ask" id="shGo">ADD TO THE PILE</button>
       <div class="sh-say" id="shSay">the cover is looked up for you — say if it's the wrong one.</div></div>`;
   return `<div class="sh-wrap">${flip}
-    <div class="panel"><div class="cap">in my ears</div>
-      <div class="sh-big">${ears.length ? `${ears.length} book${ears.length === 1 ? "" : "s"} going in` : "the cab is quiet"}</div>
-      ${earsHTML}</div>
-    <div class="panel"><div class="cap">the shelf — what's gone in · ${racked.length}</div>
-      ${dietHTML}${laneHTML}${rackHTML}${openHTML}</div>
-    <div class="panel"><div class="cap">the pile — ${pile.length} waiting · who sent it</div>
-      ${pileHTML || `<p class="nodata" style="margin-top:10px">the pile is empty — the next book from someone you admire lands here.</p>`}
-      ${addHTML}</div>
+    <div class="panel">${shHead("ears", "in my ears", `${ears.length} going in`)}
+      ${SH.folds.ears ? "" : `<div class="sh-big">${ears.length ? `${ears.length} book${ears.length === 1 ? "" : "s"} going in` : "the cab is quiet"}</div>${earsHTML}`}</div>
+    <div class="panel">${shHead("shelf", "the shelf — what's gone in", `${racked.length} book${racked.length === 1 ? "" : "s"}`)}
+      ${dietHTML}${laneHTML}${SH.folds.shelf ? "" : casesHTML}</div>
+    <div class="panel">${shHead("pile", "the pile — who sent it", `${pile.length} waiting`)}
+      ${SH.folds.pile ? "" : (pileHTML || `<p class="nodata" style="margin-top:10px">the pile is empty — the next book from someone you admire lands here.</p>`) + addHTML}</div>
   </div>`;
 }
 async function shCover(el){
@@ -8659,6 +8690,9 @@ function wireShelf(sig){
     }
     SH.arm = 0; clearTimeout(SH.armT);
     shPost(`/api/shelf/${id}/finish`, {}, b);
+  }, sig));
+  R.querySelectorAll("[data-fold]").forEach(b => b.addEventListener("click", () => {
+    shFold(b.dataset.fold); renderRoom();
   }, sig));
   R.querySelectorAll("[data-spine]").forEach(b => b.addEventListener("click", () => {
     const id = +b.dataset.spine; SH.open = SH.open === id ? 0 : id; renderRoom();
@@ -11423,7 +11457,7 @@ function renderRoom(){
      on the eleventh load and the answer arrives at the top of the page. The
      scroll position is his, not the render's. */
   const keep = [];
-  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid,.cm-scroll,.cm-qscroll,.sh-wrap,.sh-rack,.sh-ears").forEach(el => {
+  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid,.cm-scroll,.cm-qscroll,.sh-wrap,.sh-ears").forEach(el => {
     if(el.scrollTop || el.scrollLeft)
       keep.push([el.className, el.scrollTop, el.scrollLeft]);
   });
