@@ -2342,6 +2342,15 @@ body.hot .act .h .n{color:var(--hot)}
 #cm .cm-qyours{color:rgb(var(--cm-key));font:600 11px/1.2 var(--mono);letter-spacing:.08em}
 #cm .cm-qrec{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-bottom:12px}
 #cm .cm-qrec .cm-held{flex:0 0 auto;min-width:172px;padding:0 14px}   /* card #410: the hold sits beside its line, never stretched across it */
+/* NOT POSTING (card #431): his ruling a draft won't go out — a quieter hold
+   than POSTED (nothing is given), and the one line that stands in for a post
+   he ruled out, with its RESTORE */
+#cm .cm-held.cm-qdrop{border-color:var(--etch);background:none;color:var(--mid)}
+#cm .cm-held.cm-qdrop .r2{background:rgba(var(--cm-engrave),.22)}
+#cm .cm-qpost.cm-qnot{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 12px;background:none;
+  border-style:dashed;border-color:var(--etch);font:700 9px/1.4 var(--mono);letter-spacing:.14em;color:var(--mid)}
+#cm .cm-qnot .cm-qnotw{flex:1 1 12em;font:700 10px/1.4 var(--mono);letter-spacing:.14em;color:var(--mid)}
+#cm .cm-qrestore{min-height:44px;padding:0 14px}
 /* the weeks past the next one fold into one row — opened by his tap only */
 #cm .cm-qlater{border-top:1px solid rgba(var(--cm-engrave),.14)}
 #cm .cm-qlater>summary{list-style:none;cursor:pointer;min-height:44px;padding:12px 0;display:flex;align-items:center;
@@ -9858,8 +9867,8 @@ function cmQOpenLoad(){
 function cmQOpenSave(){
   const Q = (cmG() || {}).queue;
   if(Array.isArray(Q) && Q.length){
-    const live = new Set(["sent", "later"]);
-    Q.forEach(it => { live.add(it.key); live.add(it.key + "·out"); });
+    const live = new Set(["sent", "later", "dropped"]);
+    Q.forEach(it => { live.add(it.key); live.add(it.key + "·out"); live.add(it.key + "·dropped"); });
     [...CM.qOpen.keys()].forEach(k => { if(!live.has(k)) CM.qOpen.delete(k); });
   }
   try{ localStorage.setItem("glass.qopen", JSON.stringify(Object.fromEntries(CM.qOpen))); }catch(_){}
@@ -9920,6 +9929,9 @@ function cmQKept(it){ return !(it.out || it.state === "ready" || it.state === "o
 const CM_Q_UNDATED_SPINE = "this spine does not date the queue yet — COPY comes back once it restarts on card #366";
 /* the item's state in words; every date in it is served */
 function cmQState(it){
+  /* NOT POSTING (card #431): his ruling, dated by the spine */
+  if(it.state === "dropped") return { cls:"kept", word: it.dropped && it.dropped.at
+    ? `NOT POSTING · ${cmDate(String(it.dropped.at).slice(0,10))}` : "NOT POSTING" };
   if(it.out) return { cls:"out", word:`OUT · ${cmDate(it.out.at)}` };
   if(it.state === "backlog") return { cls:"kept", word:`BACKLOG · READY ${cmDate(it.ready_on)}` };
   if(it.state !== "ready") return { cls:"kept", word:"UNDATED" };
@@ -9943,15 +9955,39 @@ function cmQueueHTML(G){
   const item = it => {
     const surf = cmSurfWord(G, it.surface), o = it.out, st = cmQState(it);
     const kept = cmQKept(it);
+    /* NOT POSTING (card #431) is offered only by a spine that serves it — one
+       from before the card sends no 'dropped' key, and its queue renders
+       exactly as it always did. live is the posts he IS posting; count stays
+       every post, so each one still reads n/N. */
+    const drops = it.dropped !== undefined, gone = it.state === "dropped";
+    const whole = gone && !!it.dropped && !!it.dropped.whole;
+    const live = it.count_live ?? it.count;
     /* each lane's NEXT opens itself; his own toggles are kept — but an item
-       that goes OUT starts fresh, folded to its date and link */
-    const qo = it.key + (o ? "·out" : "");
+       that goes OUT, or that he rules out, starts fresh, folded */
+    const qo = it.key + (o ? "·out" : gone ? "·dropped" : "");
     const open = CM.qOpen.has(qo) ? CM.qOpen.get(qo) : !!it.next;
     const link = o && /^https:\/\//i.test(o.url || "") ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">LINK</a>`
       : o ? `<span>LINK NOT CAPTURED — ADD IT ON THE LANE</span>` : "";
     const copied = CM.qCopied.get(it.key) || new Map();
     const posts = it.posts.map(p => { const v = cmQLane(it, p);
+      /* a post he ruled out is one line — when, and RESTORE, a tap because it
+         only undoes. Inside an item ruled out whole, the item's RESTORE comes
+         first (the spine says so), so the post offers none of its own. Inside
+         an item that went OUT it offers none either: the record is history,
+         and bringing a post back would read the thread as gone short (the
+         spine refuses it too). */
+      if(p.dropped) return `<li class="cm-qpost cm-qnot"><b>${p.n}/${it.count}</b>
+        <span class="cm-qnotw">NOT POSTING · ${esc(cmDate(String(p.dropped.at).slice(0,10)))}</span>
+        ${whole || o ? "" : `<button class="cm-btn cm-qrestore" data-qk="${esc(it.key)}" data-qn="${p.n}">RESTORE ${p.n}/${it.count}</button>`}</li>`;
       const size = it.limit == null ? `${p.len} CHARS · LONG-FORM` : `${p.len} / ${it.limit}${p.fits ? "" : " · TOO LONG FOR " + surf}`;
+      const posted = !kept && !o ? `<button class="cm-held cm-qposted" data-qpost="${esc(it.key)}" data-qn="${p.n}"><span class="r2"></span><span class="cc">HOLD · POSTED ${p.n}/${it.count}</span></button>` : "";
+      /* HOLD · NOT POSTING n/N (card #431): a ruling, so a hold, beside the
+         POSTED one — under every post still to go, in any item he has not
+         ruled out whole; what went out is history and offers none. A
+         one-post item carries only the item's hold below: two holds that do
+         the same thing would be one too many. */
+      const notp = drops && !gone && it.count > 1 && !p.out && !cmQEditing(it.key, p.n)
+        ? `<button class="cm-held cm-qdrop" data-qdrop="${esc(it.key)}" data-qn="${p.n}"><span class="r2"></span><span class="cc">HOLD · NOT POSTING ${p.n}/${it.count}</span></button>` : "";
       return `<li class="cm-qpost">
         <div class="cm-qhead"><b>${p.n}/${it.count}</b><span class="${p.fits ? "" : "over"}">${size}</span>
           <span class="cm-qchip ${v.cls}">${esc(v.word)}</span></div>
@@ -9959,13 +9995,16 @@ function cmQueueHTML(G){
         ${p.edited ? `<div class="cm-qyours">YOUR WORDS · EDITED ${esc(cmDate(String(p.edited.at).slice(0,10)))}${p.edited.stale ? " · THE DRAFT CHANGED UNDER YOUR EDIT — READ BOTH" : ""}</div>` : ""}
         ${v.why ? `<div class="cm-qverdict">${v.html ? v.why : esc(v.why)}</div>` : ""}
         <div class="cm-qbtns">${v.copy ? `<button class="cm-btn cm-qcopy" data-qk="${esc(it.key)}" data-qn="${p.n}">${copied.get(p.n) ? "COPIED" : "COPY"} ${p.n}/${it.count}</button>` : ""}
-          ${!p.out && !cmQEditing(it.key, p.n) ? `<button class="cm-btn cm-qeditbtn" data-qk="${esc(it.key)}" data-qn="${p.n}">EDIT ${p.n}/${it.count}</button>` : ""}</div>
+          ${!p.out && !gone && !cmQEditing(it.key, p.n) ? `<button class="cm-btn cm-qeditbtn" data-qk="${esc(it.key)}" data-qn="${p.n}">EDIT ${p.n}/${it.count}</button>` : ""}</div>
         ${p.out ? `<div class="cm-qrec cm-qsent"><span class="cm-sans">POSTED ${esc(cmDate(String(p.out.at).slice(0,10)))}${p.out.thread ? " · AS ONE THREAD" : ""}</span></div>`
-          : !kept && !o ? `<div class="cm-qrec"><button class="cm-held cm-qposted" data-qpost="${esc(it.key)}" data-qn="${p.n}"><span class="r2"></span><span class="cc">HOLD · POSTED ${p.n}/${it.count}</span></button></div>` : ""}
+          : posted || notp ? `<div class="cm-qrec">${posted}${notp}</div>` : ""}
       </li>`; }).join("");
     const say = CM.qSay && CM.qSay.key === it.key ? CM.qSay.words : "";
-    /* the rule, said where the COPY would have been — never a verdict of ours */
-    const rule = !kept ? "" : it.why ? `<div class="cm-qrule">${esc(it.why)}${it.ready_on
+    /* the rule, said where the COPY would have been — never a verdict of ours.
+       An item he ruled out says his ruling instead (card #431). */
+    const rule = gone ? `<div class="cm-qrule">Not posting — your ruling${it.dropped && it.dropped.at
+      ? ` of ${esc(cmDate(String(it.dropped.at).slice(0,10)))}` : ""}${whole ? "" : ", post by post"}. The draft stays in the Glass Barn; RESTORE puts it back in the queue as it was.</div>`
+      : !kept ? "" : it.why ? `<div class="cm-qrule">${esc(it.why)}${it.ready_on
       ? ` — it can go from ${esc(cmLongDate(it.ready_on))}` : ""}. Read it here; COPY comes back when the rule lets it go.</div>`
       : `<div class="cm-qrule">${esc(CM_Q_UNDATED_SPINE)}.</div>`;
     /* HOLD · POSTED (card #410, his word 10-09): he posts from the phone,
@@ -9977,26 +10016,38 @@ function cmQueueHTML(G){
        above — he posts one at a time, often edited, and the hold records the
        QUEUE's line so the match survives the edit. A thread that went out
        whole is one hold here, offered only before any post is recorded. */
-    const rec = !kept && !o && it.count > 1 && !it.sent
-      ? `<div class="cm-qrec"><button class="cm-held cm-qposted" data-qpost="${esc(it.key)}" data-qn="1" data-qthread="1"><span class="r2"></span><span class="cc">HOLD · POSTED AS ONE THREAD</span></button>
-          <span class="cm-sans">or hold POSTED under each post as it goes out — either way it folds under SENT when all ${it.count} are out; add the link on the lane</span></div>` : "";
+    /* a thread goes out from the first post he IS posting (card #431) — the
+       line the spine matches the thread by */
+    const lead = drops ? (it.posts.find(p => !p.dropped) || { n: 1 }).n : 1;
+    const rec = !kept && !o && live > 1 && !it.sent
+      ? `<div class="cm-qrec"><button class="cm-held cm-qposted" data-qpost="${esc(it.key)}" data-qn="${lead}" data-qthread="1"><span class="r2"></span><span class="cc">HOLD · POSTED AS ONE THREAD</span></button>
+          <span class="cm-sans">or hold POSTED under each post as it goes out — either way it folds under SENT when all ${live} are out; add the link on the lane</span></div>` : "";
+    /* HOLD · NOT POSTING THIS ONE (card #431): the whole item, beside the
+       thread's hold — offered only before any post of it is out, because
+       what went out stays on the record (a drip is ruled post by post). An
+       item he ruled out offers RESTORE instead, a tap. */
+    const drop = !drops ? "" : gone
+      ? `<div class="cm-qrec"><button class="cm-btn cm-qrestore" data-qk="${esc(it.key)}" data-qn="0">RESTORE${whole ? "" : " EVERY POST"}</button></div>`
+      : !o && !it.sent ? `<div class="cm-qrec"><button class="cm-held cm-qdrop" data-qdrop="${esc(it.key)}" data-qn="0"><span class="r2"></span><span class="cc">HOLD · NOT POSTING THIS ONE</span></button></div>` : "";
     const sum = it.verdict && it.verdict.word ? `<span class="cm-qsum">${esc(it.verdict.word)}</span>` : "";
+    const cut = drops && !gone && live < it.count ? ` · ${it.count - live} NOT POSTING` : "";
     return `<details class="cm-qitem" data-qo="${esc(qo)}" data-qdef="${it.next ? 1 : 0}"${open ? " open" : ""}>
       <summary><span class="cm-qd">${esc(cmDate(it.date))} · ${esc(surf)}</span><span class="cm-qt">${esc(it.title)}</span>
-        <span class="cm-qn">${it.sent && !o ? `${it.sent}/${it.count} OUT · NEXT ${it.next_post}` : `${it.count} POST${it.count === 1 ? "" : "S"}`}</span><span class="cm-qstate ${st.cls}">${esc(st.word)}</span>${sum}${link}</summary>
+        <span class="cm-qn">${it.sent && !o ? `${it.sent}/${live} OUT · NEXT ${it.next_post}` : `${it.count} POST${it.count === 1 ? "" : "S"}`}${cut}</span><span class="cm-qstate ${st.cls}">${esc(st.word)}</span>${sum}${link}</summary>
       ${rule}<ol class="cm-qlist">${posts}</ol>
-      <div class="cm-say" role="status">${esc(say)}</div>${rec}
+      <div class="cm-say" role="status">${esc(say)}</div>${rec}${drop}
     </details>`; };
   /* THE FOLD is the spine's call (item.fold, queue_folds): each lane's NEXT
      and its newest OUT, then the next few as one row each; older OUT items
-     fold under SENT, the rest of the quarter under LATER — opened by his tap */
+     fold under SENT, the rest of the quarter under LATER, and what he is not
+     posting under DROPPED (card #431) — opened by his tap */
   const F = G.queue_folds || { later: Q.filter(it => cmFold(it) === "later").length, sent: 0 };
   const group = (k, label) => { const items = Q.filter(it => cmFold(it) === k); if(!items.length) return "";
     const lo = CM.qOpen.has(k) ? CM.qOpen.get(k) : false;
     return `<details class="cm-qlater" data-qo="${k}" data-qdef="0"${lo ? " open" : ""}>
       <summary>${label} · ${esc(String(F[k] ?? items.length))}</summary>${items.map(item).join("")}</details>`; };
   return `<section class="cm-queue" id="cmQueue" aria-label="the queue">${cap}
-    <div class="cm-qscroll" id="cmQScroll">${group("sent", "SENT")}${Q.filter(it => !cmFold(it)).map(item).join("")}${group("later", "LATER")}</div></section>`;
+    <div class="cm-qscroll" id="cmQScroll">${group("sent", "SENT")}${Q.filter(it => !cmFold(it)).map(item).join("")}${group("later", "LATER")}${group("dropped", "DROPPED")}</div></section>`;
 }
 /* ── WHO ANSWERED THE BEACON (card #366) ──────────────────────────────────
    His words 09-30: "we will put out the beacon and see if we spark interest
@@ -10894,6 +10945,40 @@ function cmWireQueue(){
     holdToAct(b, { idle:"HOLD · POSTED", busy:"RECORDING", refused:"NOT RECORDED",
                    released:"released before it took — nothing was recorded" },
       cc => cmQPosted(b.dataset.qpost, +b.dataset.qn || 1, b.dataset.qthread === "1", cc), CM.ac.signal));
+  /* NOT POSTING (card #431): a HOLD, because it is a ruling; RESTORE a tap,
+     because it only undoes one. data-qn 0 is the whole item. The hold rests
+     on its own words (n/N or THIS ONE), never a generic label. */
+  document.querySelectorAll("#cm .cm-qdrop[data-qdrop]").forEach(b => {
+    const idle = b.querySelector(".cc").textContent;
+    holdToAct(b, { idle, busy:"RULING", refused:"NOT RULED",
+                   released:"released before it took — nothing was ruled" },
+      cc => cmQDrop(b.dataset.qdrop, +b.dataset.qn || null, false, cc), CM.ac.signal); });
+  document.querySelectorAll("#cm .cm-qrestore[data-qk]").forEach(b => b.addEventListener("click", () => {
+    if(b.disabled) return;
+    b.disabled = true; b.textContent = "RESTORING";
+    cmQDrop(b.dataset.qk, +b.dataset.qn || null, true, null);
+  }, sig));
+}
+/* NOT POSTING (card #431, his ask 10-16: "there are a couple of generated
+   posts that I won't be posting...we need a way for me to delete ones i
+   don't like"). The spine's one writer keeps his ruling beside the Glass
+   Barn, which keeps every draft — so a ruling is never a loss, and RESTORE
+   serves it back exactly as it was. A write, so its fetch is not on CM.ac:
+   a ruling that has left must be heard. A refusal is the spine's words. */
+async function cmQDrop(key, n, restore, cc){
+  const say = words => { CM.qSay = { key, words }; cmQueueRefresh(); };
+  const w = await cmSpineWrite("/api/glass/drop", n ? { key, n, restore } : { key, restore });
+  if(!w.ok){ say(w.error); return false; }
+  if(cc) cc.textContent = "NOT POSTING";
+  const of = w.out.item ? w.out.item.count : "";
+  const words = n ? (restore ? `post ${n}/${of} is back in the queue`
+                             : `post ${n}/${of} — not posting; the draft stays in the Glass Barn and RESTORE brings it back`)
+                  : (restore ? "back in the queue, as it was" : "not posting — it folds under DROPPED, and RESTORE brings it back");
+  /* a whole item moves into the DROPPED fold (or back out of it), where its
+     own line would say this out of sight — so the toast says it */
+  if(n) CM.qSay = { key, words }; else { CM.qSay = null; toast(words); }
+  if(!(await cmRefetch())){ cmQueueRefresh(); toast("ruled — the queue re-reads on your next visit"); }
+  return true;
 }
 /* the queue's own record (card #410): a write, so it rides the held latch and
    its fetch is not on CM.ac — a write that has left must be heard. The title
