@@ -1643,9 +1643,19 @@ body.hot .act .h .n{color:var(--hot)}
 .pl-tx{flex:1;font:400 13px/1.45 var(--sans);color:var(--ink);min-width:0}
 .pl-task.done .pl-tx{color:var(--dim)}
 .pl-dt{display:block;font:700 8px/1.6 var(--mono);letter-spacing:.1em;color:var(--etch);font-style:normal}
-.pl-subc{font:700 8px/1 var(--mono);color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:4px 7px;flex:0 0 auto}
+.pl-subc{font:700 8px/1 var(--mono);color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:4px 7px;flex:0 0 auto;background:none;cursor:pointer;min-height:28px}
 .pl-retime{min-height:34px;padding:0 9px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--dim);font:700 8px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;flex:0 0 auto}
 .pl-del{min-width:34px;min-height:34px;border:none;background:none;color:var(--etch);font-size:12px;cursor:pointer;flex:0 0 auto}
+/* an item's own tasks (card #429): a drawer under the row, one open at a time */
+.pl-subc[aria-expanded="true"]{color:var(--ink);border-color:rgba(var(--key),.45)}
+.pl-subs{padding:2px 0 8px 30px;border-bottom:1px dotted var(--line)}
+.pl-sub{display:flex;align-items:center;gap:6px;min-height:34px}
+.pl-sub label{flex:1;display:flex;align-items:center;gap:8px;min-width:0;font:400 12.5px/1.4 var(--sans);color:var(--mid);cursor:pointer}
+.pl-sub.on label span{color:var(--dim);text-decoration:line-through}
+.pl-subck{width:18px;height:18px;accent-color:rgb(var(--key));flex:0 0 auto}
+.pl-subdel{min-width:34px;min-height:34px;border:none;background:none;color:var(--etch);font-size:11px;cursor:pointer}
+/* its own class, never .pl-addin: wirePlanner files a .pl-addin Enter as a new list item */
+.pl-subin{width:100%;min-height:36px;background:var(--glass2);border:1px solid var(--line);border-radius:3px;color:var(--ink);font:400 13px var(--sans);padding:0 10px;margin:6px 0 0}
 .pl-fin{display:block;width:100%;text-align:left;min-height:40px;margin-top:10px;border:none;border-top:1px solid var(--line);background:none;color:var(--dim);font:700 9px/1 var(--mono);letter-spacing:.14em;cursor:pointer}
 
 /* ── THE BULLETIN — the hotshot room's regulatory ticker ──────────── */
@@ -8932,6 +8942,7 @@ const LP = {
   y: null,               // the weather year being viewed (his tee: plan at a year glance)
   pick: null,            // date awaiting a color
   finOpen: new Set(),    // per-column finished folds
+  subOpen: null,         // the one item whose tasks are open (card #429) — one drawer at a time keeps the list readable on the Fold
   /* folded inboxes (his ask 10-10: "need a way to collapse the quick inbox
      in the planning orb") — remembered on this device only, a convenience */
   shut: (() => { try{ return new Set(JSON.parse(localStorage.getItem("pl.shut") || "[]")); }catch(_){ return new Set(); } })(),
@@ -9070,18 +9081,33 @@ function plannerRoom(){
   const TFL = { weekly:"week", monthly:"month", quarterly:"quarter", annual:"year" };
   const mmdd = iso => iso ? esc(String(iso).slice(5,10).replace("-","/")) : "";
   const taskRow = t => {
-    const subs = t.subtasks || [];
+    const subs = (t.subtasks || []).filter(s => s && typeof s === "object");
+    const isOpen = LP.subOpen === t.id;
+    /* an item's own tasks (card #429): the chip is the one-tap door to them,
+       drawn only when there are some — a row with none looks as it always did */
     const subChip = subs.length
-      ? `<span class="pl-subc">${subs.filter(s => s && s.done).length}/${subs.length}</span>` : "";
+      ? `<button class="pl-subc" data-id="${t.id}" aria-expanded="${isOpen}" title="its tasks">${subs.filter(s => s.done).length} of ${subs.length}</button>` : "";
     /* HIS HAND ON THE LISTS (card #232): a real checkbox finishes it; the
        text is the door to its moves (tap or right-click); the row drags on
        the desk. The chip keeps its quick cycle. */
-    return `<div class="pl-task" data-id="${t.id}" data-cat="${esc(t.category)}" data-tf="${esc(t.timeframe)}" draggable="true">
+    const row = `<div class="pl-task" data-id="${t.id}" data-cat="${esc(t.category)}" data-tf="${esc(t.timeframe)}" draggable="true">
       <input type="checkbox" class="pl-done" data-id="${t.id}" title="done">
       <span class="pl-tx" data-id="${t.id}" title="tap for its moves — reorder, another bucket, another list">${esc(t.text)}<i class="pl-dt">${mmdd(t.created_at)}</i></span>${subChip}
       <button class="pl-retime" data-id="${t.id}" data-tf="${esc(t.timeframe)}"
         title="move to the next bucket">${esc(TFL[t.timeframe] || t.timeframe)}</button>
       <button class="pl-del" data-id="${t.id}" title="remove">✕</button></div>`;
+    if(!isOpen) return row;
+    /* the drawer is a SIBLING of the row, never a .pl-task, so the drag order
+       (plWireDrag reads .pl-task rows only) never sees it. The ✕ sits outside
+       the label, so a tap on remove can never also tick the box.
+       No maxlength on the field: the browser would silently cut a long
+       dictated task at 200. The spine refuses it in words instead, and the
+       field keeps his text so he can trim it and press Enter again. */
+    const full = subs.length >= 30;
+    return row + `<div class="pl-subs" data-id="${t.id}">
+      ${subs.map(s => `<div class="pl-sub${s.done ? " on" : ""}"><label><input type="checkbox" class="pl-subck" data-id="${t.id}" data-sid="${esc(String(s.id))}" ${s.done ? "checked" : ""}><span>${esc(s.text)}</span></label><button class="pl-subdel" data-id="${t.id}" data-sid="${esc(String(s.id))}" title="remove this task">✕</button></div>`).join("")}
+      <input class="pl-subin" id="plSubIn${t.id}" data-id="${t.id}" autocapitalize="off" placeholder="${full ? "30 tasks — the most one item carries" : "add a task to this… and press enter"}" ${full ? "disabled" : ""}>
+    </div>`;
   };
   /* every bucket is a CONTAINER (data-cat, data-tf) so a drop lands somewhere:
      the inboxes are one flat weekly bucket each; the columns carry four */
@@ -9214,7 +9240,7 @@ function wirePlanner(){
      or a right-click opens the house menu; the drag is the desk's shortcut */
   R.querySelectorAll(".pl-task").forEach(row => {
     const open = ev => {
-      if(ev.target.closest(".pl-done, .pl-retime, .pl-del")) return;
+      if(ev.target.closest(".pl-done, .pl-retime, .pl-del, .pl-subc")) return;
       ev.preventDefault(); ev.stopPropagation();
       const t = ((State.planner.tasks || {}).open || []).find(x => x.id === Number(row.dataset.id));
       if(t) plMenu(ev, t);
@@ -9237,6 +9263,46 @@ function wirePlanner(){
       try{ await lpWrite(`/api/planner/task/${b.dataset.id}/delete`, {});
         await lpRefetch(); renderRoom(); }
       catch(err){ b.disabled = false; b.textContent = "✕"; toast(String(err.message || err)); } }));
+  /* an item's own tasks (card #429, his ask 10-16): the chip opens and shuts
+     the drawer; Enter adds, the box checks, ✕ removes. Never optimistic —
+     every write lands, then the served truth redraws the room. */
+  R.querySelectorAll(".pl-subc").forEach(b =>
+    b.addEventListener("click", e => { e.stopPropagation(); closeMove();
+      const id = Number(b.dataset.id);
+      LP.subOpen = LP.subOpen === id ? null : id;
+      renderRoom();
+      const i = LP.subOpen === id && $("plSubIn" + id);
+      i && i.focus({preventScroll: true}); }));
+  R.querySelectorAll(".pl-subin").forEach(inp =>
+    inp.addEventListener("keydown", async e => {
+      if(e.key === "Escape"){ e.stopPropagation(); LP.subOpen = null; renderRoom(); return; }
+      if(e.key !== "Enter" || inp.readOnly) return;
+      e.stopPropagation();
+      const text = (inp.value || "").trim();
+      if(!text) return;
+      /* readOnly, not disabled: the caret stays put, so KEEP HIS HANDS in
+         renderRoom hands it back for the next task */
+      inp.readOnly = true;
+      const id = Number(inp.dataset.id);
+      try{ await lpWrite(`/api/planner/task/${id}/subtasks`, { op: "add", text });
+        await lpRefetch(); renderRoom();
+        const i = $("plSubIn" + id); i && i.focus({preventScroll: true}); }
+      catch(err){ inp.readOnly = false; plSubErr(err); }
+    }));
+  R.querySelectorAll(".pl-subck").forEach(cb =>
+    cb.addEventListener("change", async e => { e.stopPropagation();
+      cb.disabled = true;
+      try{ await lpWrite(`/api/planner/task/${cb.dataset.id}/subtasks`,
+          { op: "check", sid: Number(cb.dataset.sid), done: cb.checked });
+        await lpRefetch(); renderRoom(); }
+      catch(err){ cb.checked = !cb.checked; cb.disabled = false; plSubErr(err); } }));
+  R.querySelectorAll(".pl-subdel").forEach(b =>
+    b.addEventListener("click", async e => { e.stopPropagation();
+      b.disabled = true; b.textContent = "…";
+      try{ await lpWrite(`/api/planner/task/${b.dataset.id}/subtasks`,
+          { op: "remove", sid: Number(b.dataset.sid) });
+        await lpRefetch(); renderRoom(); }
+      catch(err){ b.disabled = false; b.textContent = "✕"; plSubErr(err); } }));
   R.querySelectorAll(".pl-fold").forEach(b =>
     b.addEventListener("click", e => { e.stopPropagation();
       const c = b.dataset.cat;
@@ -9262,7 +9328,11 @@ function plMenu(ev, t){
   m.className = "movemenu";
   document.body.appendChild(m);
   MOVEMENU = m;
+  const subs = (t.subtasks || []).filter(s => s && typeof s === "object");
+  const n = subs.length, d = subs.filter(s => s.done).length;
+  const subsOpen = LP.subOpen === t.id;
   m.innerHTML = `<div class="mh">${esc(t.text)}<span>${esc(t.category)} · ${esc(plTfWord(t.timeframe))}</span></div>
+    <button class="mi" data-act="subs">${subsOpen ? "close its tasks" : "its tasks"}${n ? `<i>${d} of ${n}</i>` : ""}</button>
     <div class="msep">its place</div>
     <button class="mi" data-at="top">to the top</button>
     <button class="mi" data-at="up">up one</button>
@@ -9281,6 +9351,16 @@ function plMenu(ev, t){
     closeMove();
     const {at, tf, cat, act} = b.dataset;
     if(act === "x") return;
+    /* tapping the text stays the door to the item's moves (card #232); its
+       tasks are the first thing on that door, so a row with no tasks yet is
+       reachable on the Fold in two taps, and a row with tasks in one tap via
+       its chip. The same entry shuts the drawer — an empty item has no chip. */
+    if(act === "subs"){
+      LP.subOpen = subsOpen ? null : t.id; renderRoom();
+      const i = LP.subOpen === t.id && $("plSubIn" + t.id);
+      i && i.focus({preventScroll: true});
+      return;
+    }
     if(act === "remove"){
       try{ await lpWrite(`/api/planner/task/${t.id}/delete`, {}); await lpRefetch(); renderRoom(); }
       catch(err){ toast(String(err.message || err)); }
@@ -9289,6 +9369,11 @@ function plMenu(ev, t){
     await plMove(t.id, { at, timeframe: tf, category: cat });
   }));
 }
+/* the shell ships before he restarts the spine (no restart without his
+   word), and until then the new door answers 404 — he should read why, not
+   'not found' (card #429) */
+function plSubErr(err){ const m = String(err.message || err);
+  toast(/not found|HTTP 404/i.test(m) ? "the spine learns an item's tasks on its next restart" : m); }
 /* one write, then the served truth — never optimistic */
 async function plMove(id, body){
   try{
