@@ -497,11 +497,23 @@ body.hot .gread .n{color:var(--hot)}
   color:var(--ink);text-shadow:0 0 60px rgba(var(--key),.4)}
 body.hot .centre .n{color:var(--hot);text-shadow:0 0 70px rgba(var(--hot-rgb),.55)}
 .centre .u{font:700 10px/1 var(--mono);letter-spacing:.28em;color:var(--dim)}
-.centre .weeks{margin-top:9px;display:flex;gap:3px;justify-content:center;flex-wrap:wrap}
-.centre .weeks i{width:14px;height:6px;border-radius:1px;background:rgba(var(--wash),.12)}
-.centre .weeks i.gone{background:rgba(var(--wash),.3)}
-.centre .weeks i.now{background:rgba(var(--key),1);box-shadow:0 0 10px -2px rgba(var(--key),1)}
-body.hot .centre .weeks i.now{background:var(--hot);box-shadow:0 0 10px -2px var(--hot)}
+/* LOADS TO GO's slot row (card #428) where the 10/1 week ticks stood: filled =
+   delivered this month, outlined = booked and not yet run, dashed = still to go */
+.centre .n.word{font-size:clamp(24px,2.6vw,40px);letter-spacing:.02em}
+.centre .n.unk{color:var(--unknown);text-shadow:none}
+.centre .slots{margin-top:9px;display:flex;gap:3px;justify-content:center;align-items:center;
+  flex-wrap:wrap;max-width:46ch}
+.centre .slots i{box-sizing:border-box;width:13px;height:13px;border-radius:2px;
+  border:1px dashed rgba(var(--wash),.32)}
+.centre .slots i.d{background:rgba(var(--key),1);border:1px solid rgba(var(--key),1);
+  box-shadow:0 0 8px -3px rgba(var(--key),1)}
+.centre .slots i.b{border:2px solid rgba(var(--key),1)}
+body.hot .centre .slots i.d{background:var(--hot);border-color:var(--hot);box-shadow:0 0 8px -3px var(--hot)}
+body.hot .centre .slots i.b{border-color:var(--hot)}
+.centre .slots .more{margin-left:4px;font:700 10px/1 var(--mono);color:var(--dim)}
+.centre .slotkey{margin-top:6px;font:600 9px/1.4 var(--mono);letter-spacing:.1em;color:var(--etch)}
+.centre .days{margin-top:7px;font:700 9px/1 var(--mono);letter-spacing:.22em;color:var(--dim);
+  text-transform:uppercase}
 .centre .sub{margin-top:8px;font:400 11.5px/1.45 var(--sans);color:var(--mid);max-width:46ch}
 
 /* THE ROAD PULSE (2026-08-04): the operation's own row — $/mile from the spine,
@@ -4734,15 +4746,20 @@ document.addEventListener("keydown", e => {
 });
 
 /* ── THE STANDING (hotshot) ───────────────────────────────────────── */
-/* THE LINE is SERVED (his ruling 2026-08-04: every clock counts to 10/1).
-   The page computes no days — a client-side date here and a served date in
-   the money strip is how T−48 and 58 shared one screen. */
+/* LOADS TO GO is SERVED (card #428, his ruling 2026-10-16): it took the centre
+   panel from the dead 10/1 clock ("dead days dies"). judgement.loads_to_go
+   carries the figure, its basis in words, the days left and the slot counts;
+   the page counts no loads and no days. A client-side date here beside a
+   served one in the money strip is how T−48 and 58 once shared one screen,
+   and renderer_guard holds that line. The figure stands big; COVERED is a
+   word; unknown is —— with its reason under it, never a 0. */
 function standingRoom(){
   const j = State.standing && State.standing.judgement;
   const p = (j && j.parts) || {};
   const s = State.standings;
-  const line = (j && j.line) || {};
-  const dl = line.days, weeks = dl == null ? null : Math.ceil(dl/7);
+  const lt = (j && j.loads_to_go) || null;
+  const sl = (lt && lt.slots) || {};
+  const box = (cls, n) => `<i${cls ? ` class="${cls}"` : ""}></i>`.repeat(Math.max(0, +n || 0));
   const figs = [
     ["earned","earned",p.earned], ["road","road",p.road_mtd],
     ["contribution","contribution",p.contribution], ["nut","the nut",p.nut],
@@ -4772,13 +4789,22 @@ function standingRoom(){
       <div class="wk" id="wk" hidden></div>
     </div>
     <div class="panel centre" style="grid-column:2;grid-row:1">
-      <div class="lab">MILEAGE INSIGHTS · PUBLIC LAUNCH</div>
-      <div class="n">${dl == null ? "——" : dl}</div>
-      <div class="u">DAYS TO ${esc(line.label || "10/1")}</div>
-      <div class="weeks">${Array.from({length:13},(_,i) =>
-        `<i class="${weeks == null ? "" : i < 13-weeks ? "gone" : i === 13-weeks ? "now" : ""}"></i>`).join("")}</div>
-      <div class="sub">${weeks == null ? "the spine has not answered with the line"
-        : weeks + " week" + (weeks===1?"":"s") + " out. The date is the heartbeat — it does not move because the month got hard."}</div>
+      <div class="lab">LOADS TO GO · THIS MONTH</div>
+      <div class="n${!lt || lt.state === "unknown" ? " unk" : lt.state === "covered" ? " word" : ""}"
+        title="${esc((lt && (lt.why || lt.basis)) || "")}">${
+        !lt || lt.state === "unknown" ? "——" : lt.state === "covered" ? "COVERED" : esc(lt.figure)}</div>
+      <div class="u">${esc(((lt && lt.unit) || "the spine has not answered").toUpperCase())}</div>
+      <div class="slots" title="${esc((lt && lt.slots_words) || "")}">${
+        /* filled = delivered this month, outlined = booked and not yet run,
+           empty = still to go; every count is served, the "+N" too */
+        lt ? box("d", sl.delivered) + box("b", sl.booked) + box("", sl.drawn)
+          + (sl.beyond ? `<span class="more">+${esc(sl.beyond)}</span>` : "")
+          + (lt.state === "unknown" ? `<span class="more">——</span>` : "") : ""}</div>
+      ${lt && lt.slots_words ? `<div class="slotkey">${esc(lt.slots_words)}</div>` : ""}
+      <div class="sub">${!lt ? "the spine has not answered with loads to go"
+        : esc(lt.state === "unknown" ? lt.why : lt.state === "covered" ? "" : lt.basis)}${
+        lt && lt.note ? `<br>${esc(lt.note)}` : ""}</div>
+      ${lt && lt.days_words ? `<div class="days">${esc(lt.days_words)}</div>` : ""}
       <div class="rows" style="width:100%;margin-top:10px">
         <div class="rw"><span style="width:78px">collected</span><span class="b"><i style="width:${
           p.earned ? Math.min(100, Math.round(100*(p.collected||0)/p.earned)) : 0}%"></i></span>
@@ -6758,9 +6784,16 @@ function finStrip(){
               weeks: cl.weeks_fuel,          /* SERVED, not derived from months */
               verdict: rw.verdict };
   /* THE CLOCK IS DEAD HERE (his word 2026-08-14): its T−N read
-     survival.days_left while the hotshot tab serves judgement.line.days — the
+     survival.days_left while the hotshot tab served the 10/1 countdown — the
      recorded day they disagreed on one screen (see the standing room's
-     comment) retires with the second source. The countdown has ONE home. */
+     comment) retired with the second source. That countdown is dead
+     everywhere now (card #428, 10-16). No page counts days, but the month's
+     days left still have TWO producers: HOTSHOT reads judgement.loads_to_go
+     (inventory._calendar), and this strip's "N left" below reads
+     the_month.days_left (script_runner's money summary). They agree only
+     because both count the days after today (days in month minus today's
+     date). Change one and the T-48-vs-58 split is back. Giving them one home
+     is a follow-up card; until it lands, keep the two formulas the same. */
   const ps = payState();
   /* THE ROAD ESTIMATE IS DEAD (2026-08-01). The line is nut + road ACTUALLY
      spent — $0 road on the 1st, growing as CSVs land. Served, never derived,
