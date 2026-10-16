@@ -9497,7 +9497,7 @@ const CM = { anims:[], raf:0, rafDial:0, rafTilt:0, timers:new Set(), ac:null, r
              /* card #364: the record control, the missing link, the queue — his
                 half-typed words and his open/copied state survive a re-render */
              rec:{ surface:null, title:"", url:"" }, recSay:"", addFor:null, addUrl:"", addSay:"",
-             qOpen:new Map(), qCopied:new Map(), qSay:null, qEdit:null,
+             qOpen:cmQOpenLoad(), qCopied:new Map(), qSay:null, qEdit:null,
              /* card #366: SOMEONE ANSWERED — his half-typed answer survives a re-render too */
              sp:{ open:false, surface:null, kind:"", post:"", who:"", note:"" }, spSay:"", spOpen:new Set(), fOpen:false };
 const cmRM   = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -9845,6 +9845,25 @@ function cmRoadHTML(G){
   </section>`;
 }
 
+/* THE QUEUE REMEMBERS HIS FOLDS (his ask 10-16: "need to keep the chapters
+   collapsed that I have already collapsed so i know where i left off with
+   posting"). Only what his tap made differ from the queue's own default is
+   kept — each lane's NEXT opens itself, SENT/LATER start shut, an item that
+   goes OUT starts fresh on its own ·out key — on THIS device (localStorage,
+   like learn.folds and pl.shut). Folds of items no longer served are pruned. */
+function cmQOpenLoad(){
+  try{ return new Map(Object.entries(JSON.parse(localStorage.getItem("glass.qopen") || "{}"))); }
+  catch(_){ return new Map(); }
+}
+function cmQOpenSave(){
+  const Q = (cmG() || {}).queue;
+  if(Array.isArray(Q) && Q.length){
+    const live = new Set(["sent", "later"]);
+    Q.forEach(it => { live.add(it.key); live.add(it.key + "·out"); });
+    [...CM.qOpen.keys()].forEach(k => { if(!live.has(k)) CM.qOpen.delete(k); });
+  }
+  try{ localStorage.setItem("glass.qopen", JSON.stringify(Object.fromEntries(CM.qOpen))); }catch(_){}
+}
 /* ── THE QUEUE (card #364): his launch drafts, read by the spine from the
    Glass Barn. Every count, length, fit and verdict is served; the page only
    reads them out. COPY puts the exact served words on the clipboard — the
@@ -9962,7 +9981,7 @@ function cmQueueHTML(G){
       ? `<div class="cm-qrec"><button class="cm-held cm-qposted" data-qpost="${esc(it.key)}" data-qn="1" data-qthread="1"><span class="r2"></span><span class="cc">HOLD · POSTED AS ONE THREAD</span></button>
           <span class="cm-sans">or hold POSTED under each post as it goes out — either way it folds under SENT when all ${it.count} are out; add the link on the lane</span></div>` : "";
     const sum = it.verdict && it.verdict.word ? `<span class="cm-qsum">${esc(it.verdict.word)}</span>` : "";
-    return `<details class="cm-qitem" data-qo="${esc(qo)}"${open ? " open" : ""}>
+    return `<details class="cm-qitem" data-qo="${esc(qo)}" data-qdef="${it.next ? 1 : 0}"${open ? " open" : ""}>
       <summary><span class="cm-qd">${esc(cmDate(it.date))} · ${esc(surf)}</span><span class="cm-qt">${esc(it.title)}</span>
         <span class="cm-qn">${it.sent && !o ? `${it.sent}/${it.count} OUT · NEXT ${it.next_post}` : `${it.count} POST${it.count === 1 ? "" : "S"}`}</span><span class="cm-qstate ${st.cls}">${esc(st.word)}</span>${sum}${link}</summary>
       ${rule}<ol class="cm-qlist">${posts}</ol>
@@ -9974,7 +9993,7 @@ function cmQueueHTML(G){
   const F = G.queue_folds || { later: Q.filter(it => cmFold(it) === "later").length, sent: 0 };
   const group = (k, label) => { const items = Q.filter(it => cmFold(it) === k); if(!items.length) return "";
     const lo = CM.qOpen.has(k) ? CM.qOpen.get(k) : false;
-    return `<details class="cm-qlater" data-qo="${k}"${lo ? " open" : ""}>
+    return `<details class="cm-qlater" data-qo="${k}" data-qdef="0"${lo ? " open" : ""}>
       <summary>${label} · ${esc(String(F[k] ?? items.length))}</summary>${items.map(item).join("")}</details>`; };
   return `<section class="cm-queue" id="cmQueue" aria-label="the queue">${cap}
     <div class="cm-qscroll" id="cmQScroll">${group("sent", "SENT")}${Q.filter(it => !cmFold(it)).map(item).join("")}${group("later", "LATER")}</div></section>`;
@@ -10848,8 +10867,14 @@ async function cmQCopy(key, n){
 function cmWireQueue(){
   if(!CM.ac) return;
   const sig = { signal: CM.ac.signal };
+  /* a fold that matches the queue's default is forgotten, so it follows the
+     default again; one that differs is his, and is kept on this device. The
+     toggle the browser fires for a fold rendered open lands here too, and is
+     a no-op: it matches what was rendered */
   document.querySelectorAll("#cm #cmQueue details[data-qo]").forEach(d => d.addEventListener("toggle", () => {
-    CM.qOpen.set(d.dataset.qo, d.open); }, sig));
+    if(d.open === (d.dataset.qdef === "1")) CM.qOpen.delete(d.dataset.qo);
+    else CM.qOpen.set(d.dataset.qo, d.open);
+    cmQOpenSave(); }, sig));
   document.querySelectorAll("#cm .cm-qcopy[data-qk]").forEach(b => b.addEventListener("click", () =>
     cmQCopy(b.dataset.qk, +b.dataset.qn), sig));
   document.querySelectorAll("#cm .cm-qeditbtn[data-qk]").forEach(b => b.addEventListener("click", () => {
