@@ -6976,14 +6976,14 @@ function followupStrip(){
       : "nothing due"} · ${money(f.outstanding_total||0)} outstanding</div>
     ${due.map(r => `<div class="fur due">
       <span class="who">${esc(r.broker)} · inv ${esc(String(r.invoice))}</span>
-      <span class="amt">${money(r.rate)}</span>
+      <span class="amt">${r.rate == null ? "rate unknown" : money(r.rate)}</span>
       <span class="when">due ${esc(r.due_date)} · ${r.days_over}d over${
         r.last_ack ? ` · last chased ${esc(r.last_ack.slice(0,10))}` : ""}</span>
       <button class="ack" data-fua="${r.sheet_row}">FOLLOWED UP</button>
     </div>`).join("")}
     ${next ? `<div class="fur">
       <span class="who">${esc(next.broker)} · inv ${esc(String(next.invoice))}</span>
-      <span class="amt">${money(next.rate)}</span>
+      <span class="amt">${next.rate == null ? "rate unknown" : money(next.rate)}</span>
       <span class="when">next — due ${esc(next.due_date)} (in ${next.days_until}d)</span>
     </div>` : ""}
   </div>`;
@@ -7303,7 +7303,7 @@ function finLane(ld, ro){
       <b class="${nut == null ? "" : nut < 0 ? "dn" : ""}">${
         nut == null ? "——" : (nut < 0 ? "−" : "+") + money(Math.abs(nut))}</b></div>`;
   return `<div class="lane" data-row="${ld.sheet_row}">
-    <div class="lh"><span class="lr">${money(ld.rate || 0)}</span>
+    <div class="lh"><span class="lr">${ld.rate == null ? "——" : money(ld.rate)}</span>
       <div class="lb">${esc(ld.broker || "—")}</div>
       <div class="lm">${esc(ld.pickup_city||"?")} &rarr; ${esc(ld.delivery_city||"?")}${
         ld.delivery_state ? ", " + esc(ld.delivery_state) : ""}<br>${esc(ld.delivery_date||"")}</div></div>
@@ -7497,7 +7497,7 @@ function finTable(ro){
   </tr></thead><tbody>${rows.map(l => `<tr>
     <td>${esc(l.broker||"—")}<span style="color:var(--etch)"> · ${esc(l.delivery_city||"")}</span></td>
     <td>${esc(l.delivery_date||"")}</td>
-    <td class="m">${money(l.rate)}</td>
+    <td class="${l.rate == null ? "unk" : "m"}">${l.rate == null ? "——" : money(l.rate)}</td>
     <td class="${l.assigned_cost?"m":"unk"}" title="${esc([l.held_expired_basis, l.held_offroad_basis].filter(Boolean).join("\n"))}">${
       l.assigned_cost ? money(l.assigned_cost) : "——"}${
       /* the hold the bank never charged rides the row by NAME (card #315) — a
