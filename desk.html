@@ -10970,7 +10970,10 @@ async function cmQDrop(key, n, restore, cc){
   const w = await cmSpineWrite("/api/glass/drop", n ? { key, n, restore } : { key, restore });
   if(!w.ok){ say(w.error); return false; }
   if(cc) cc.textContent = "NOT POSTING";
-  const of = w.out.item ? w.out.item.count : "";
+  /* the count from the spine's answer, else the queue already on the page —
+     never a bare "6/" when an answer carries no item */
+  const held = ((cmG() || {}).queue || []).find(q => q.key === key);
+  const of = (w.out.item && w.out.item.count) || (held && held.count) || "";
   const words = n ? (restore ? `post ${n}/${of} is back in the queue`
                              : `post ${n}/${of} — not posting; the draft stays in the Glass Barn and RESTORE brings it back`)
                   : (restore ? "back in the queue, as it was" : "not posting — it folds under DROPPED, and RESTORE brings it back");
