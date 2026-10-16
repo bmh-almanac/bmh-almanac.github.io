@@ -1478,6 +1478,64 @@ body.hot .act .h .n{color:var(--hot)}
 .lrow.short .t{color:var(--hot)}
 .lrow.dim{opacity:.5}
 
+/* ── THE SHELF (card #438) — the books going into his head. Covers face-out
+   for what is in his ears (amber: the room's own law — amber is sound), the
+   finished stand spine-out in their lane, the pile says who sent it. ──── */
+.sh-wrap{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+.sh-wrap::-webkit-scrollbar{display:none}
+.sh-flip{flex:0 0 auto;align-self:flex-start;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;
+  background:var(--glass2);color:var(--dim);font:700 8px/1 var(--mono);letter-spacing:.14em;cursor:pointer}
+.sh-flip b{color:var(--ink)}
+.sh-big{font:800 22px/1.05 var(--sans);color:var(--ink);letter-spacing:-.01em;margin-top:6px}
+.sh-ears{display:flex;gap:14px;margin-top:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.sh-ears::-webkit-scrollbar{display:none}
+.sh-book{flex:0 0 min(150px, calc(50% - 7px));min-width:0;display:flex;flex-direction:column;gap:7px}
+.sh-cover{position:relative;width:100%;aspect-ratio:2/3;border-radius:4px;overflow:hidden;background:#1a1f26 center/cover no-repeat;
+  box-shadow:0 14px 30px -12px rgba(0,0,0,.85), 0 0 0 1px var(--line)}
+.sh-cover::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--amber);
+  box-shadow:0 0 14px 1px rgba(255,164,25,.55)}
+.sh-cover .sh-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;
+  font:700 13px/1.3 var(--sans);color:var(--mid)}
+.sh-pass{position:absolute;top:8px;left:8px;padding:5px 7px;border-radius:3px;background:rgba(7,8,10,.82);
+  font:800 9px/1 var(--mono);letter-spacing:.12em;color:var(--amber)}
+.sh-t{font:700 14px/1.25 var(--sans);color:var(--ink)}
+.sh-a{font:700 8px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--etch)}
+.sh-btns{display:flex;gap:6px;flex-wrap:wrap}
+.sh-btn{min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:transparent;
+  color:var(--mid);font:700 9px/1 var(--mono);letter-spacing:.14em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.sh-btn.arm{color:var(--amber);border-color:rgba(255,164,25,.6)}
+.sh-btn.ask{color:var(--ink);border-color:rgba(var(--key),.55)}
+.sh-btn:disabled{opacity:.5}
+.sh-diet{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-top:12px;background:rgba(var(--wash),.06)}
+.sh-diet i{display:block;height:100%}
+.sh-lanes{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px}
+.sh-lane{font:700 8px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:6px}
+.sh-lane b{font:800 15px/1 var(--sans);color:var(--ink);letter-spacing:0}
+.sh-lane.none b{color:var(--unknown)}
+.sh-lane s{display:inline-block;width:9px;height:9px;border-radius:2px;text-decoration:none}
+.sh-rack{display:flex;align-items:flex-end;gap:5px;margin-top:14px;padding:0 4px 0;min-height:150px;
+  border-bottom:6px solid rgba(199,148,73,.38);overflow-x:auto;scrollbar-width:none}
+.sh-rack::-webkit-scrollbar{display:none}
+.sh-spine{position:relative;flex:0 0 auto;width:34px;border-radius:2px 2px 0 0;overflow:hidden;cursor:pointer;border:0;padding:0;
+  background:#1a1f26 center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.sh-spine::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.15) 40%,rgba(0,0,0,.55))}
+.sh-spine::after{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--lc)}
+.sh-spine span{position:absolute;inset:10px 0 6px;writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;
+  font:800 10px/1 var(--sans);letter-spacing:.04em;color:#F4F1EA;text-shadow:0 1px 2px rgba(0,0,0,.9);overflow:hidden;white-space:nowrap}
+.sh-spine.on{outline:2px solid var(--amber);outline-offset:1px}
+.sh-spine.again::before{background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(255,164,25,.18) 40%,rgba(0,0,0,.55))}
+.sh-open{margin-top:10px;font:400 13px/1.5 var(--sans);color:var(--mid)}
+.sh-open b{color:var(--ink)}
+.sh-row{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dotted var(--line)}
+.sh-thumb{flex:0 0 40px;height:60px;border-radius:2px;background:#1a1f26 center/cover no-repeat;box-shadow:0 0 0 1px var(--line)}
+.sh-rowt{flex:1;min-width:0}
+.sh-via{font:700 8px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--key),1);margin-top:3px}
+.sh-add{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.sh-add input,.sh-add select{min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:3px;background:var(--panel2);
+  color:var(--ink);font:400 14px/1 var(--sans)}
+.sh-add .sh-two{display:flex;gap:8px}
+.sh-add .sh-two>*{flex:1;min-width:0}
+.sh-say{font:700 8px/1.6 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--etch)}
 /* ── THE LEARN ROOM — ARC. Amber = sound; violet = the far band. ──── */
 .lr-scopep{flex:0 0 auto}
 #lrScope{display:block;width:100%;height:84px;margin-top:6px}
@@ -3197,7 +3255,12 @@ function paintField(){
     [qa==null?"—":String(qa),"IN QA", qa==null?"spine unavailable":`<b>${qa}</b> IN QA · ${open} OPEN`],
     [r==null?"—":String(r.unread),"UNREAD", r==null?"spine unavailable":`<b>${r.unread}</b> UNREAD · CH 19`],
     [needs==null?"—":String(needs),"STANDING", needs==null?"spine unavailable":`<b>${needs}</b> STANDING TO SETTLE`],
-    (()=>{ /* the orb carries the band's weather — the story starts in orbit */
+    (()=>{ /* the orb carries what's going into his head — the shelf (card #438);
+             the band's weather only when the spine predates it */
+      const sh = l && l.shelf;
+      if(sh){ const c = sh.counts || {};
+        return [String(c.ears || 0), "IN MY EARS",
+          `<b>${c.shelf || 0}</b> ON THE SHELF`]; }   /* short: a phone's orb line collides past ~18 */
       if(l==null || !l.wire) return ["—","BAND","spine unavailable"];
       const fr = l.wire.fresh || [];
       const landed = fr.filter(s => (s.age_days||0) < 1).length;
@@ -8467,9 +8530,153 @@ function lrMeter(score){
   return `<span class="lr-meter${lit >= 9 ? " s9" : ""}" title="tap — the meter shows its work">
     <i style="--lit:${lit}"></i><b>S${lit}</b></span>`;
 }
+/* ═══ THE SHELF (card #438) — the books going into his head ══════════════
+   His words 2026-10-16: "learn orb isn't working for me ... start by tracking
+   the books that i am reading/listening to in the cab ... grab the book cover
+   picture ... A backlog place to capture reads ... books from people i admire."
+   The LEARN room opens here now; the wire is one tap away, untouched. Covers
+   come from the spine's own cache behind the bearer — never a third party. */
+const SH = {
+  view: (() => { try{ return localStorage.getItem("learn.view") || "shelf"; }catch(_){ return "shelf"; } })(),
+  open: 0,            // the spine tapped open
+  arm: 0, armT: 0,    // FINISHED waits for a second tap — the road gets a second look
+  covers: new Map()   // book id → object URL, fetched once per page
+};
+const SH_LANE = { history:"199,148,73", business:"92,160,220", growth:"96,190,140", "":"110,110,110" };
+function shSetView(v){ SH.view = v; try{ localStorage.setItem("learn.view", v); }catch(_){} }
+function shOrd(n){ return n === 1 ? "1ST" : n === 2 ? "2ND" : n === 3 ? "3RD" : n + "TH"; }
+function shPassTag(b){
+  const verb = b.format === "read" ? "READ" : "LISTEN";
+  return b.pass > 1 ? `${shOrd(b.pass)} ${verb}` : (b.format === "read" ? "READING" : "LISTENING");
+}
+function shSpineH(b){ return 118 + (lrHash(b.title) % 34); }
+function shelfRoom(){
+  const sh = State.learn && State.learn.shelf;
+  const w = State.learn && State.learn.wire;
+  const flip = `<button class="sh-flip" id="shToWire">THE WIRE · <b>${w && w.fresh ? w.fresh.length : "—"}</b> FRESH ▸</button>`;
+  if(!sh) return `<div class="sh-wrap">${flip}<div class="panel"><span class="nodata">the spine has not answered with the shelf.</span></div></div>`;
+  const ears = sh.ears || [], pile = sh.pile || [], done = sh.done || [];
+  const lanes = sh.lanes || {}, keys = Object.keys(lanes);
+  /* the shelf = every book finished at least once — the one in your ears again included */
+  const racked = done.concat(ears.filter(b => b.passes > 0));
+  const earsHTML = ears.length ? `<div class="sh-ears">${ears.map(b => `
+      <div class="sh-book">
+        <div class="sh-cover" data-cover="${b.has_cover ? b.id : ""}">
+          ${b.has_cover ? "" : `<div class="sh-ph">${esc(b.title)}</div>`}
+          <span class="sh-pass">${esc(shPassTag(b))}</span></div>
+        <div class="sh-t">${esc(b.title)}</div>
+        <div class="sh-a">${esc(b.author || "author not known")}${b.lane_label ? " · " + esc(b.lane_label) : ""}</div>
+        <div class="sh-btns">
+          ${b.confirmed ? "" : `<button class="sh-btn ask" data-ok="${b.id}" title="the cover is my read of what you named — tap if it's the one">THIS ONE ✓</button>`}
+          <button class="sh-btn${SH.arm === b.id ? " arm" : ""}" data-fin="${b.id}">${SH.arm === b.id ? "TAP AGAIN" : "FINISHED"}</button>
+        </div></div>`).join("")}</div>`
+    : `<p class="nodata" style="margin-top:10px">nothing in your ears — START a book from the pile.</p>`;
+  /* the diet — what's gone in, by lane, his three in his order */
+  const per = {}; keys.forEach(k => per[k] = 0);
+  racked.forEach(b => { if(b.lane in per) per[b.lane]++; });
+  const placed = keys.reduce((a, k) => a + per[k], 0);
+  const dietHTML = placed ? `<div class="sh-diet">${keys.filter(k => per[k]).map(k =>
+      `<i style="width:${per[k] / placed * 100}%;background:rgb(${SH_LANE[k]})"></i>`).join("")}</div>` : "";
+  const laneHTML = `<div class="sh-lanes">${keys.map(k => `<span class="sh-lane${per[k] ? "" : " none"}">
+      <s style="background:rgb(${SH_LANE[k]})"></s><b>${per[k]}</b>${esc(lanes[k])}</span>`).join("")}</div>`;
+  const opened = racked.find(b => b.id === SH.open);
+  const rackHTML = racked.length ? `<div class="sh-rack">${racked.map(b => `
+      <button class="sh-spine${b.where === "ears" ? " again" : ""}${SH.open === b.id ? " on" : ""}" data-spine="${b.id}"
+        data-cover="${b.has_cover ? b.id : ""}" style="height:${shSpineH(b)}px;--lc:rgb(${SH_LANE[b.lane] || SH_LANE[""]})"
+        title="${esc(b.title)}"><span>${esc(b.title)}</span></button>`).join("")}</div>`
+    : `<p class="nodata" style="margin-top:12px">the shelf fills as you finish — every book stands in its lane.</p>`;
+  const openHTML = opened ? `<div class="sh-open"><b>${esc(opened.title)}</b>${opened.author ? " — " + esc(opened.author) : ""}<br>
+      ${opened.passes > 1 ? `finished ${opened.passes} times` : "finished"}${opened.finished_on ? " " + esc(opened.finished_on) : ""}${opened.where === "ears" ? " · in your ears again now" : ""}${opened.via ? " · via " + esc(opened.via) : ""}</div>` : "";
+  const pileHTML = pile.map(b => `<div class="sh-row">
+      <div class="sh-thumb" data-cover="${b.has_cover ? b.id : ""}"></div>
+      <div class="sh-rowt"><div class="sh-t">${esc(b.title)}</div>
+        <div class="sh-a">${esc(b.author || "author not known")}${b.lane_label ? " · " + esc(b.lane_label) : ""}</div>
+        ${b.via ? `<div class="sh-via">via ${esc(b.via)}</div>` : ""}</div>
+      <button class="sh-btn" data-go="${b.id}">START</button></div>`).join("");
+  const addHTML = `<div class="sh-add">
+      <input id="shT" placeholder="a book to read next" autocomplete="off">
+      <div class="sh-two"><input id="shV" placeholder="who sent it" autocomplete="off">
+        <select id="shL"><option value="">lane…</option>${keys.map(k => `<option value="${k}">${esc(lanes[k])}</option>`).join("")}</select></div>
+      <button class="sh-btn ask" id="shGo">ADD TO THE PILE</button>
+      <div class="sh-say" id="shSay">the cover is looked up for you — say if it's the wrong one.</div></div>`;
+  return `<div class="sh-wrap">${flip}
+    <div class="panel"><div class="cap">in my ears</div>
+      <div class="sh-big">${ears.length ? `${ears.length} book${ears.length === 1 ? "" : "s"} going in` : "the cab is quiet"}</div>
+      ${earsHTML}</div>
+    <div class="panel"><div class="cap">the shelf — what's gone in · ${racked.length}</div>
+      ${dietHTML}${laneHTML}${rackHTML}${openHTML}</div>
+    <div class="panel"><div class="cap">the pile — ${pile.length} waiting · who sent it</div>
+      ${pileHTML || `<p class="nodata" style="margin-top:10px">the pile is empty — the next book from someone you admire lands here.</p>`}
+      ${addHTML}</div>
+  </div>`;
+}
+async function shCover(el){
+  const id = +el.dataset.cover; if(!id) return;
+  let u = SH.covers.get(id);
+  if(!u){
+    try{
+      const r = await fetch(url(`/api/shelf/cover/${id}`), { headers: hdr() });
+      if(!r.ok) return;                       // the placeholder title stays — honest
+      u = URL.createObjectURL(await r.blob());
+      SH.covers.set(id, u);
+    }catch(_){ return; }
+  }
+  el.style.backgroundImage = `url("${u}")`;
+}
+async function shPost(path, body, btn){
+  const old = btn && btn.textContent;
+  if(btn){ btn.disabled = true; btn.textContent = "writing…"; }
+  try{
+    const r = await fetch(url(path), { method: "POST",
+      headers: hdr({ "Content-Type": "application/json" }), body: JSON.stringify(body || {}) });
+    const out = await r.json().catch(() => ({}));
+    if(!r.ok || out.error) throw new Error((out.error || ("HTTP " + r.status))
+      + (out.candidates && out.candidates.length ? " — " + out.candidates.join(" · ") : ""));
+    await lrRefetch(); lrMutate();
+    return out;
+  }catch(e){
+    if(btn){ btn.disabled = false; btn.textContent = old; }
+    toast(String(e.message || e));
+    return null;
+  }
+}
+function wireShelf(sig){
+  const R = $("room");
+  R.querySelectorAll("[data-cover]").forEach(shCover);
+  const tw = $("shToWire");
+  tw && tw.addEventListener("click", () => lrMutate(() => shSetView("wire")), sig);
+  R.querySelectorAll("[data-ok]").forEach(b => b.addEventListener("click", () =>
+    shPost(`/api/shelf/${b.dataset.ok}/confirm`, {}, b), sig));
+  R.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () =>
+    shPost(`/api/shelf/${b.dataset.go}/start`, {}, b), sig));
+  R.querySelectorAll("[data-fin]").forEach(b => b.addEventListener("click", () => {
+    const id = +b.dataset.fin;
+    if(SH.arm !== id){
+      SH.arm = id; clearTimeout(SH.armT);
+      SH.armT = setTimeout(() => { SH.arm = 0; if(SH.view !== "wire") renderRoom(); }, 4000);
+      renderRoom(); return;
+    }
+    SH.arm = 0; clearTimeout(SH.armT);
+    shPost(`/api/shelf/${id}/finish`, {}, b);
+  }, sig));
+  R.querySelectorAll("[data-spine]").forEach(b => b.addEventListener("click", () => {
+    const id = +b.dataset.spine; SH.open = SH.open === id ? 0 : id; renderRoom();
+  }, sig));
+  const go = $("shGo");
+  go && go.addEventListener("click", async () => {
+    const t = $("shT").value.trim(); if(!t){ $("shT").focus(); return; }
+    $("shSay").textContent = "looking it up…";
+    const out = await shPost("/api/shelf/add", { title: t, via: $("shV").value.trim(), lane: $("shL").value }, go);
+    const say = $("shSay");
+    if(say) say.textContent = out ? (out.has_cover ? `on the pile — ${out.title}` : `on the pile — no cover found for ${out.title}`)
+      : "not added — the reason is in the toast.";
+  }, sig);
+}
 function learnRoom(){
+  if(SH.view !== "wire") return whyBar() + shelfRoom();
   const l = State.learn, w = l && l.wire;
-  if(!w) return whyBar() + `<div class="panel" style="flex:1"><div class="gen">
+  const back = `<button class="sh-flip" id="lrToShelf">◂ THE SHELF · <b>${l && l.shelf ? (l.shelf.counts || {}).ears || 0 : "—"}</b> IN MY EARS</button>`;
+  if(!w) return whyBar() + back + `<div class="panel" style="flex:1"><div class="gen">
     <span class="nodata">the spine has not answered with the forefront.</span></div></div>`;
   const fresh = w.fresh || [], dial = w.dial || [];
   const list = LR.station ? fresh.filter(s => s.station === LR.station) : fresh;
@@ -8557,7 +8764,7 @@ function learnRoom(){
         `<button class="lr-rate${LR.rate === r ? " on" : ""}" data-r="${r}">${r}×</button>`).join("")}</span>
       <button class="lr-tune" id="lrTune" title="sweep the band now">TUNE</button>
     </div></div>`;
-  return whyBar()
+  return whyBar() + back
     + `<div class="panel lr-scopep"><div class="cap">the band — ${dial.length} stations · ${fresh.length} fresh · ${esc(sweep)}</div>
        <div class="lr-cold" id="lrCold">${esc(cold)}</div>
        <canvas id="lrScope" height="84"></canvas></div>`
@@ -8884,6 +9091,9 @@ async function lrDoor(id, verb, btn){
 function wireLearn(){
   LR.ac = new AbortController();
   const sig = { signal: LR.ac.signal }, R = $("room");
+  if(SH.view !== "wire"){ wireShelf(sig); return; }
+  const tb = $("lrToShelf");
+  tb && tb.addEventListener("click", () => lrMutate(() => shSetView("shelf")), sig);
   const w = State.learn && State.learn.wire; if(!w) return;
   const fresh = w.fresh || [];
   /* the landing — ENTRY-keyed, high-water gated; re-renders draw the still */
@@ -11212,7 +11422,7 @@ function renderRoom(){
      on the eleventh load and the answer arrives at the top of the page. The
      scroll position is his, not the render's. */
   const keep = [];
-  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid,.cm-scroll,.cm-qscroll").forEach(el => {
+  R.querySelectorAll(".fin,.finbody,.exp,.lanes,.scroll,.rgrid,.cm-scroll,.cm-qscroll,.sh-wrap,.sh-rack,.sh-ears").forEach(el => {
     if(el.scrollTop || el.scrollLeft)
       keep.push([el.className, el.scrollTop, el.scrollLeft]);
   });
