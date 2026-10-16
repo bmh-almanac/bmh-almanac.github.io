@@ -2578,12 +2578,14 @@ body.hot .act .h .n{color:var(--hot)}
     </div>
   </div>
   <div class="cuerow">
-    <button class="daycue" id="daycue" hidden>&#9662; THE DAY</button>
     <!-- FILL & SIGN one tap from the field (his ask 10-04: "put a fill and sign
          button maybe next to the load pill it would be easier to access when
          broker agreements need to be signed"). No row: the picker, the path a
          broker agreement already takes (card #382). A load's own rate con is
-         still signed from its card. -->
+         still signed from its card. The load pill beside it is gone (his ruling
+         10-16: "let's kill ... the load pill ... should be fill and sign pill
+         centered under the daily routine, then the drop down") — it only
+         scrolled to the load book, which sits right under this row. -->
     <a class="daycue signcue" id="signcue" href="./sign.html" target="_blank" rel="noopener"
        title="sign a broker agreement or any document from your phone">&#9997;&#65039; FILL &amp; SIGN</a>
   </div>
@@ -3282,7 +3284,7 @@ function paintField(){
    Hidden when today is quiet AND fresh; when the log is stale enough that
    today may be unknowable, it says that instead of vanishing. */
 function paintDay(){
-  const room = $("dayroom"), cue = $("daycue");
+  const room = $("dayroom");
   if(!room) return;
   /* a background repaint must not yank the book out from under his thumb */
   const ae = document.activeElement;
@@ -3318,7 +3320,7 @@ function paintDay(){
   const syncErr = (L && L.sync_error) || (d && d.sync_error);
   if(syncErr) errs.push("the log pull failed — " + syncErr);
   const show = act.length > 0 || hasDay || haul.length > 0 || errs.length > 0 || !!(dayOk && d.quiet && stale);
-  room.hidden = cue.hidden = !show;
+  room.hidden = !show;
   if(!show){ room.innerHTML = ""; return; }
   const dayWord = new Date(planIso + "T12:00").toLocaleDateString("en-US",
     {weekday:"long", month:"short", day:"numeric"}).toUpperCase();
@@ -3367,20 +3369,10 @@ function paintDay(){
     });
   }
 
-  /* 2 · ON THE HOOK — every load in flight, beside whatever is dated today */
-  if(haul.length){
-    h += `<div class="cap2"${h ? ' style="margin-top:18px"' : ""}>ON THE HOOK · ${esc(dayWord)}</div>`;
-    if(!hasDay) h += clockNote + `<div class="basis">${esc(d.basis || "")}</div>`;
-    haul.forEach(hl => {
-      const days = hl.days_to_delivery;
-      const when = hl.delivery_date_raw || hl.delivery_date || "delivery date unknown";
-      const cnt = days == null ? "" : ` · ${days} DAY${days === 1 ? "" : "S"} OUT`;
-      const road = hl.road_mi != null ? ` · ~${hl.road_mi} mi / ${hl.road_h} h of road left`
-                 : hl.road_why ? ` · road: ${hl.road_why}` : "";
-      h += `<div class="stopline"><span class="seq">→</span>
-        <span>#${esc(hl.load_number) || "——"} DELIVERS ${esc(when)}${esc(cnt)}${hl.delivery_time ? ` · ${esc(hl.delivery_time)}` : ""}${esc(road)}</span></div>`;
-    });
-  }
+  /* 2 · ON THE HOOK — cut (his ruling 10-16: "let's kill the 'on the hook...from
+     where you sit'"). It said one line per load — delivers, days out, road left —
+     that THE LOAD's card and THE ROAD AHEAD below already carry in full, every
+     stop and every leg. `haul` still decides whether the room shows. */
   if(dayOk && d.quiet && stale)
     h += (d.words || []).map(w => `<div class="warn">${esc(w)}</div>`).join("");
 
@@ -3415,9 +3407,6 @@ function paintDay(){
   if(keepRoad && nr){ nr.replaceWith(keepRoad); try{ ROADMAP.invalidateSize(); }catch(_){} }
   else paintRoad();
   wireRoadMode(room);
-  const nStops = hasDay ? (d.stops || []).length + (d.unplaced || []).length : 0;
-  cue.textContent = hasDay ? `▾ THE DAY — ${nStops} stop${nStops === 1 ? "" : "s"}`
-    : sel ? `▾ THE LOAD — #${esc(sel.load_number) || "——"}` : errs.length ? "▾ THE DAY — did not answer" : "▾ THE DAY";
   wireBolBtns(room);
   const fs = $("fieldLoadSel");
   if(fs) fs.addEventListener("change", e => {
@@ -3425,7 +3414,7 @@ function paintDay(){
     State.fieldLoad = Number(fs.value);
     const l = act.find(x => x.id === State.fieldLoad);
     const card = $("fieldCard");
-    if(l && card){ card.innerHTML = haulCard(l, {road:true}); wireBolBtns(card); wireRoadMode(card); cue.textContent = `▾ THE LOAD — #${esc(l.load_number) || "——"}`; }
+    if(l && card){ card.innerHTML = haulCard(l, {road:true}); wireBolBtns(card); wireRoadMode(card); }
   });
   const rp = $("dreplan");
   if(rp) rp.addEventListener("click", e => {
@@ -12769,10 +12758,6 @@ async function loadDay(fresh, force){
   loadRoad(fix).catch(() => {});
 }
 $("signcue").addEventListener("click", e => e.stopPropagation());   // a field control: the link opens, the field does not hear it
-$("daycue").addEventListener("click", e => {
-  e.stopPropagation();      // law on the field's controls (ruled 08-03)
-  $("dayroom").scrollIntoView({ behavior: "smooth", block: "start" });
-});
 
 async function load(keep){
   /* the boot fires load() twice (the Load Log pull re-reads) and a refresh
