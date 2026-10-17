@@ -268,6 +268,63 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
 .lg-foot{flex:0 0 auto;padding-top:9px;color:var(--etch);
   font:600 8.5px/1.5 var(--mono);letter-spacing:.1em}
 
+/* ── THE TOPICS (card #444) — PREP NEXT's own door with the choice handed back.
+   Not a second verb: it still opens one topic to TALK through; he picks which.
+   A sheet up from the bench, where a thumb already is in the cab. He picks by
+   what a topic SAYS, so the question rides whole and big; the key is a chip. ── */
+.sc-modes.pad{flex-wrap:wrap;row-gap:4px}
+.sc-modes.pad .sc-mode{min-height:40px;padding:8px 14px;font-size:10.5px}
+.sc-tpsheet{position:fixed;left:0;right:0;bottom:0;z-index:45;max-width:860px;margin:0 auto;
+  max-height:86svh;display:flex;flex-direction:column;background:var(--glass2);
+  border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;backdrop-filter:blur(10px);
+  padding:12px 14px max(12px,env(safe-area-inset-bottom));
+  translate:0 100%;transition:translate .26s cubic-bezier(.22,.61,.36,1)}
+.sc-tpsheet.on{translate:0 0}
+.sc-tphead{flex:0 0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding-bottom:8px;border-bottom:1px solid var(--line)}
+.sc-tphead h3{font:700 13px/1 var(--mono);letter-spacing:.2em;color:rgb(var(--key));margin:0;
+  text-shadow:0 0 18px rgba(var(--key),.4)}
+.sc-tphead .ct{order:3;flex-basis:100%;font:700 10px/1.3 var(--mono);letter-spacing:.12em;
+  color:var(--dim);margin-top:-6px}
+.sc-tphead .x{margin-left:auto;background:none;border:0;color:var(--mid);cursor:pointer;
+  font:700 10px/1 var(--mono);letter-spacing:.14em;min-height:40px;padding:0 4px 0 12px}
+.sc-tphead .x:hover{color:var(--ink)}
+.sc-tparcs{flex:0 0 auto;display:flex;gap:6px;overflow-x:auto;padding:10px 0 8px;
+  scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent);
+          mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent)}
+.sc-tparcs::-webkit-scrollbar{display:none}
+.sc-tparcs button{flex:0 0 auto;font:700 10px/1 var(--mono);letter-spacing:.12em;color:var(--mid);
+  background:transparent;border:1px solid var(--line);border-radius:3px;corner-shape:bevel;
+  min-height:40px;padding:0 12px;cursor:pointer}
+.sc-tparcs button:hover{color:var(--ink);border-color:rgba(var(--key),.45)}
+.sc-tparcs .n{color:rgb(var(--key));margin-left:7px}
+.sc-tplist{position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.sc-tplist::-webkit-scrollbar{display:none}
+.sc-tparc{position:sticky;top:0;z-index:1;margin:0;background:var(--glass2);
+  font:700 11px/1 var(--mono);letter-spacing:.18em;color:var(--mid);padding:14px 2px 9px;
+  border-bottom:1px solid var(--line)}
+.sc-tparc .n{color:var(--etch)}
+.sc-tprow{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:start;width:100%;
+  text-align:left;background:none;border:0;border-top:1px dotted var(--line);
+  padding:14px 4px;min-height:64px;color:var(--ink);cursor:pointer;font:inherit;
+  transition:background .2s,opacity .2s}
+.sc-tparc + .sc-tprow{border-top:0}
+.sc-tprow .k{font:700 11px/1 var(--mono);letter-spacing:.06em;color:rgb(var(--key));
+  border:1px solid rgba(var(--key),.45);border-radius:3px;padding:6px 0;min-width:48px;
+  text-align:center;margin-top:1px}
+.sc-tprow .q{font:600 16px/1.38 var(--sans);color:var(--ink)}
+.sc-tprow .tag{grid-column:2;font:700 9.5px/1.3 var(--mono);letter-spacing:.14em;color:rgb(var(--key))}
+.sc-tprow:hover,.sc-tprow:active{background:rgba(var(--key),.07)}
+.sc-tprow:focus-visible{outline:2px solid var(--mid);outline-offset:-2px}
+.sc-tprow.done{cursor:default;opacity:.5}
+.sc-tprow.done:hover{background:none}
+.sc-tprow.done .k{color:var(--etch);border-color:var(--line)}
+.sc-tprow.done .q{color:var(--dim);font-weight:400}
+.sc-tprow.done .tag{color:var(--dim)}
+.sc-tprow.opening{background:rgba(var(--key),.14)}
+.sc-tplist.busy .sc-tprow:not(.opening){opacity:.35;pointer-events:none}
+.sc-tpnone{color:var(--dim);font:400 14px/1.5 var(--sans);font-style:italic;padding:16px 2px}
+
 /* ── toast + connect ── */
 .sc-toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));
   translate:-50% 0;background:var(--glass2);border:1px solid var(--line);border-radius:5px;
@@ -293,13 +350,19 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
   .sc-row.atl .bd .w{transition:none}
   .sc-row.atl .bd .w.now{text-shadow:none}
   body.sc-keyed .sc-wire{opacity:1}
-  .sc-logpanel,.sc-scrim,.lg-row{transition:none}
+  .sc-logpanel,.sc-scrim,.lg-row,.sc-tpsheet,.sc-tprow{transition:none}
   .lg-row.unheard .lamp{animation:none}
 }
 @media (max-width:420px){
   .sc-head{font-size:17px}
   .sc-carrier{height:34px}
   .sc-well,.sc-keybtn{min-width:72px;padding:0 10px}
+  /* the five modes measured 414px in a 347px row at 375 (card #444's probe):
+     the page laid out 429 wide, BRAINSTORM sat clipped, and every fixed panel
+     (THE LOG, THE TOPICS) hung its close past the glass. Tighter here, and a
+     wrap so GOOSE · OFF or a narrower phone can never widen the page again. */
+  .sc-modes:not(.sub){flex-wrap:wrap;gap:4px}
+  .sc-modes:not(.sub) .sc-mode{padding:8px 7px;letter-spacing:.1em}
 }
 </style>
 </head>
@@ -334,8 +397,9 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
     <button class="sc-mode" data-mode="atlas" role="radio" id="modeAtlas" title="the chief of staff — the loads, the money, the web, your folders; a change goes to your phone">GOOSE</button>
     <button class="sc-mode" data-mode="brainstorm" role="radio" title="the pad — think out loud, it argues back; every few lines it offers your own words to keep">BRAINSTORM</button>
   </div>
-  <div class="sc-modes sub" id="padtools" role="group" aria-label="pad tools" hidden>
+  <div class="sc-modes sub pad" id="padtools" role="group" aria-label="pad tools" hidden>
     <button class="sc-mode" id="prepNext" title="the prep — the next topic opens as a run with its dossier; on the road it speaks (card #405)">PREP NEXT</button>
+    <button class="sc-mode" id="pickTopic" aria-haspopup="dialog" aria-expanded="false" title="every topic, by arc — tap the one you want to talk through; it opens prepped and speaks (card #444)">PICK A TOPIC</button>
     <span class="sc-atlasnote" id="padnote"></span>
   </div>
   <div class="sc-modes sub" id="subdials" role="group" aria-label="atlas dials" hidden>
@@ -373,6 +437,16 @@ body.sc-keyed .sc-wire{opacity:.55;transition:opacity .28s}
     <div id="logoff" hidden></div>
   </div>
   <div class="lg-foot">OFF THE DIAL IS A PAGE FURTHER BACK — EVERY TURN KEPT</div>
+</div>
+
+<div class="sc-scrim" id="tpscrim" hidden></div>
+<div class="sc-tpsheet" id="tpsheet" role="dialog" aria-modal="true" aria-label="the topics — pick one to talk through" hidden>
+  <div class="sc-tphead">
+    <h3>THE TOPICS</h3><span class="ct" id="tpcount"></span>
+    <button class="x" id="tpclose" aria-label="close the topics">CLOSE ✕</button>
+  </div>
+  <div class="sc-tparcs" id="tparcs" role="group" aria-label="jump to an arc"></div>
+  <div class="sc-tplist" id="tplist"></div>
 </div>
 <div class="sc-toast" id="toast"></div>
 <div class="sc-conn" id="conn" hidden>
@@ -539,7 +613,7 @@ const MODE_QUIET = {
   chat:      "a fresh run — say anything. off the clock, no ledger, quick voice.",
   therapist: "a fresh run — say what's on you. this room is walled from the work.",
   atlas:     "a fresh run — talk to me, Goose. it runs the radar: looks things up, reads your loads and folders, and files any change for your phone. the stick stays yours.",
-  brainstorm:"a fresh pad — say the half-formed thing. it pushes back, and every few lines it offers your own words back to keep. no ledger. silent, unless PREP NEXT opened it — then it speaks.",
+  brainstorm:"a fresh pad — say the half-formed thing. it pushes back, and every few lines it offers your own words back to keep. no ledger. silent, unless a topic opened it — PREP NEXT or PICK A TOPIC — then it speaks.",
 };
 /* ══ THE PREP (card #405) — a pad opened with its dossier speaks on the road ══ */
 function currentRun(){ return S.runs.find(r => r.id === S.run) || (S.archived || []).find(r => r.id === S.run); }
@@ -549,17 +623,126 @@ function paintPad(){
   const t = currentRun();
   n.textContent = (t && t.topic) ? `${t.topic} · prepped — it speaks` : "";
 }
+/* One open for both doors: no key = the spine picks (PREP NEXT), a key = his
+   pick (THE TOPICS). Throws only when nothing opened; a run that opened but
+   would not tune is said as exactly that, so he never opens it twice. One open
+   at a time across both doors (the review's measure: two quick PREP NEXT taps
+   were two runs and two angle spawns). */
+let prepping = false;
+async function prepTopic(key){
+  if(prepping) throw new Error("one topic is already opening — give it a second");
+  prepping = true;
+  try{
+    const r = await fetch(url("/api/brainstorm/open"), { method:"POST",
+      headers: hdr({"Content-Type":"application/json"}), body: JSON.stringify(key ? {key} : {}) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || !d.tid) throw new Error(d.error || ("the spine answered " + r.status));
+    const prev = S.run;
+    try{ await loadRuns(); setMode("brainstorm"); await tune(d.tid); }
+    catch(e){
+      // tune() points S.run at the new run before its read; a failed read must
+      // not leave his next line going to a run the glass is not showing
+      S.run = prev; try{ renderLog(); paintPad(); }catch(_){}
+      toast(`${d.key} opened, but the pad did not tune to it — it is in THE LOG (${e.message||e})`);
+      thud(); return d;
+    }
+    toast(`${d.key} — ${d.question}`);
+    return d;
+  }finally{ prepping = false; }
+}
 function wirePad(){
   $("prepNext").addEventListener("click", async () => {
-    try{
-      const r = await fetch(url("/api/brainstorm/open"), { method:"POST",
-        headers: hdr({"Content-Type":"application/json"}), body:"{}" });
-      const d = await r.json().catch(() => ({}));
-      if(!r.ok || !d.tid) throw new Error(d.error || ("the spine answered " + r.status));
-      await loadRuns(); setMode("brainstorm"); await tune(d.tid);
-      toast(`${d.key} — ${d.question}`);
-    }catch(err){ toast("no topic opened — " + (err.message||err)); thud(); }
+    try{ await prepTopic(); }
+    catch(err){ toast("no topic opened — " + (err.message||err)); thud(); }
   });
+  $("pickTopic").addEventListener("click", () => { tpIsOpen() ? closeTopics() : openTopics(); });
+  $("tpclose").addEventListener("click", closeTopics);
+  $("tpscrim").addEventListener("click", closeTopics);
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && tpIsOpen()) closeTopics(); });
+}
+
+/* ══ THE TOPICS (card #444) — PREP NEXT with the choice handed back ══
+   His words 10-17: "no way i am going to remember all the topics i want to
+   brainstorm." Every topic by arc (newest arc first — the spine's order), the
+   whole question to read; a tap on an open one is PREP NEXT's own open with
+   his key in the body. Said and skipped stand in their arc, marked, never a
+   button. Read fresh on every open: he adds topics from the Mac. */
+const ARC_NAME = { war_room:"WAR ROOM", stage3:"STAGE 3", bet:"THE BET" };
+const arcName = a => ARC_NAME[a] || String(a || "").replace(/_/g, " ").toUpperCase();
+function tpIsOpen(){ return !$("tpsheet").hidden; }
+let tpT = 0;                 // the close's hide timer — a quick reopen cancels it
+async function openTopics(){
+  clearTimeout(tpT);
+  $("tpscrim").hidden = false; $("tpsheet").hidden = false;
+  requestAnimationFrame(() => { $("tpscrim").classList.add("on"); $("tpsheet").classList.add("on"); });
+  $("pickTopic").setAttribute("aria-expanded", "true");
+  $("tpclose").focus();
+  const list = $("tplist");
+  list.classList.remove("busy"); list.scrollTop = 0;
+  list.innerHTML = `<div class="sc-tpnone">reading the list…</div>`;
+  $("tparcs").textContent = ""; $("tpcount").textContent = "";
+  try{ renderTopics(await grab("/api/brainstorm/topics")); }
+  catch(e){
+    list.innerHTML = `<div class="sc-tpnone">the list did not come — ${esc(e.message||e)}. PREP NEXT still opens the next one.</div>`;
+    thud();
+  }
+}
+function closeTopics(){
+  $("tpsheet").classList.remove("on"); $("tpscrim").classList.remove("on");
+  $("pickTopic").setAttribute("aria-expanded", "false");
+  clearTimeout(tpT);
+  tpT = setTimeout(() => { $("tpsheet").hidden = true; $("tpscrim").hidden = true; }, 280);
+}
+function renderTopics(d){
+  const list = $("tplist"), jump = $("tparcs");
+  list.textContent = ""; jump.textContent = "";
+  const arcs = d.arcs || [];
+  $("tpcount").textContent = `${d.open} TO TALK THROUGH · ${d.said} SAID`;
+  if(!arcs.length){
+    list.innerHTML = `<div class="sc-tpnone">no topics yet — add one on the Mac: brainstorm.py add</div>`;
+    return;
+  }
+  const onDial = new Set(S.runs.filter(r => r.topic).map(r => r.topic));
+  for(const a of arcs){
+    const sec = document.createElement("section");
+    const h = document.createElement("h4"); h.className = "sc-tparc";
+    h.innerHTML = `${esc(arcName(a.arc))} <span class="n">· ${a.open} OPEN${a.said ? ` · ${a.said} SAID` : ""}</span>`;
+    sec.append(h);
+    for(const t of a.topics) sec.append(topicRow(t, t.key === d.next, onDial.has(t.key)));
+    list.append(sec);
+    const j = document.createElement("button"); j.type = "button";
+    j.innerHTML = `${esc(arcName(a.arc))}<span class="n">${a.open}</span>`;
+    j.setAttribute("aria-label", `${arcName(a.arc)} — ${a.open} open`);
+    j.addEventListener("click", () => {
+      const how = reduce() ? "auto" : "smooth";
+      list.scrollTo({ top: sec.offsetTop, behavior: how });
+      j.scrollIntoView({ inline: "nearest", block: "nearest", behavior: how });
+    });
+    jump.append(j);
+  }
+}
+function topicRow(t, isNext, onDial){
+  const open = t.state === "open";
+  const row = document.createElement(open ? "button" : "div");
+  row.className = "sc-tprow" + (open ? "" : " done");
+  const tag = !open ? (t.state === "said" ? "SAID ✓" : "SKIPPED")
+    : [isNext && "PREP NEXT'S PICK", onDial && "ON THE DIAL"].filter(Boolean).join(" · ");
+  row.innerHTML = `<span class="k">${esc(t.key)}</span><span class="q">${esc(t.question)}</span>`
+    + `<span class="tag"${tag ? "" : " hidden"}>${esc(tag)}</span>`;
+  if(open){ row.type = "button"; row.addEventListener("click", () => pickTopic(t, row)); }
+  return row;
+}
+async function pickTopic(t, row){
+  const list = $("tplist");
+  if(list.classList.contains("busy")) return;      // one open at a time — a second tap is not a second run
+  list.classList.add("busy"); row.classList.add("opening");
+  const tag = row.querySelector(".tag"); tag.hidden = false; tag.textContent = "OPENING…";
+  try{ await prepTopic(t.key); closeTopics(); }
+  catch(err){
+    toast(`${t.key} did not open — ` + (err.message||err)); thud();
+    list.classList.remove("busy"); row.classList.remove("opening");
+    tag.textContent = "DID NOT OPEN — TAP TO TRY AGAIN";
+  }
 }
 function setMode(m, first){
   if(!MODE_PLACEHOLDER[m]) m = "atlas";      // an unknown dial lands on the chief of staff
@@ -639,7 +822,10 @@ function wireDials(){
   });
 }
 function wireModes(){
-  for(const b of document.querySelectorAll(".sc-mode"))
+  /* only the dials that NAME a mode (card #444's probe): PREP NEXT, PICK A
+     TOPIC, DEEP and WEB wear .sc-mode for the look, and a tap on one used to
+     reach setMode(undefined) — which lands on GOOSE. */
+  for(const b of document.querySelectorAll(".sc-mode[data-mode]"))
     b.addEventListener("click", () => { if(b.dataset.mode !== S.mode){ buzz([10]); setMode(b.dataset.mode); } });
   setMode(S.mode, true);
 }
