@@ -8854,7 +8854,7 @@ const SH = {
   covers: new Map(),  // book id → object URL, fetched once per page
   folds: shFoldsLoad()
 };
-const SH_LANE = { history:"199,148,73", business:"92,160,220", growth:"96,190,140", "":"110,110,110" };
+const SH_LANE = { history:"199,148,73", business:"92,160,220", growth:"96,190,140", fiction:"196,104,150", "":"110,110,110" };
 function shSetView(v){ SH.view = v; try{ localStorage.setItem("learn.view", v); }catch(_){} }
 function shOrd(n){ return n === 1 ? "1ST" : n === 2 ? "2ND" : n === 3 ? "3RD" : n + "TH"; }
 function shPassTag(b){
