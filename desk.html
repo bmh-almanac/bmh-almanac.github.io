@@ -1669,6 +1669,7 @@ body.hot .act .h .n{color:var(--hot)}
 .sh-row{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dotted var(--line)}
 .sh-thumb{flex:0 0 40px;height:60px;border-radius:2px;background:#1a1f26 center/cover no-repeat;box-shadow:0 0 0 1px var(--line)}
 .sh-rowt{flex:1;min-width:0}
+.sh-again{font:800 8px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-top:3px}
 .sh-via{font:700 8px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--key),1);margin-top:3px}
 .sh-add{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .sh-add input,.sh-add select{min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:3px;background:var(--panel2);
@@ -8931,7 +8932,8 @@ function shelfRoom(){
       <div class="sh-thumb" data-cover="${b.has_cover ? b.id : ""}"></div>
       <div class="sh-rowt"><div class="sh-t">${esc(b.title)}</div>
         <div class="sh-a">${esc(b.author || "author not known")}${b.lane_label ? " · " + esc(b.lane_label) : ""}</div>
-        ${b.via ? `<div class="sh-via">via ${esc(b.via)}</div>` : ""}</div>
+        ${b.via ? `<div class="sh-via">via ${esc(b.via)}</div>` : ""}
+        ${b.again ? `<div class="sh-again">AGAIN · ${esc(shOrd(b.passes + 1))} PASS — finished ${b.passes === 1 ? "once" : b.passes + " times"}</div>` : ""}</div>
       <div class="sh-btns"><button class="sh-btn" data-go="${b.id}" data-fmt="listen">🎧 LISTEN</button>
         <button class="sh-btn" data-go="${b.id}" data-fmt="read">📖 READ</button></div></div>`).join("");
   const addHTML = `<div class="sh-add">
