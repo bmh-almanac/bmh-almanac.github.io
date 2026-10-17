@@ -244,22 +244,119 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
 .consider .btn.go{color:var(--amber);border-color:rgba(var(--key),.4)}
 .consider .att{margin-top:6px;font:700 8.5px/1 var(--mono);letter-spacing:.16em;color:var(--dim)}
 
-/* THE MIRROR — his own ruling, surfacing. Deliberately NOT the amber key:
-   amber on this card means "here is the thing to do", and this is not a task,
-   it is a reflection. So it reads as ink on the same page — a hairline rule
-   above it the way a ledger separates a margin note from the entry. */
-.mirror{margin-top:13px;padding-top:11px;border-top:1px solid var(--line)}
-.mirror .mlbl{display:block;font:700 8px/1 var(--mono);letter-spacing:.19em;
-  color:var(--etch);margin-bottom:8px}
-.mirror .mrule{font:400 13.5px/1.5 var(--sans);color:var(--ink);font-style:italic;
-  text-wrap:balance}
-.mirror .mwhen{font:700 8.5px/1 var(--mono);letter-spacing:.14em;color:var(--etch);
-  margin-left:7px;font-style:normal;white-space:nowrap}
-.mirror .mnow{margin-top:7px;font:400 11.5px/1.5 var(--mono);color:var(--dim)}
-.mirror .mgo{margin-top:9px;font:700 8.5px/1 var(--mono);letter-spacing:.16em;
-  color:var(--etch);background:none;border:0;padding:4px 0;cursor:pointer}
-.mirror .mgo:hover{color:var(--ink)}
+/* ══ THE Q4 BAND (card #437) — Q4 IS ONE HAUL ══════════════════════════
+   His three for the quarter, strapped on the flatbed: picked up Oct 1,
+   delivered Dec 31. The road across the top is the quarter; the pickup sits
+   where today is. His ruling 10-16: "bold text that i can easily read ... my
+   ADHD couldn't take the small lettering and heavy wording ... 3 snappy
+   reminders." So: big bold sans, one figure each, no mono caps, no italics.
+   It seats at the TOP of the canon card (it must stand out the moment the
+   desk opens — the old mirror slot at the card's foot sat below a phone's
+   fold) as its own slab, bleeding to the card's edges. Every word and every
+   number is SERVED by /api/quarter; the page types none and counts nothing.
+   SIGNATURE: on the desk's first paint the pickup drives from Oct 1 to today,
+   the three lines drop in behind it, and each figure rolls up to its value. */
+.qband{position:relative;margin:-15px -19px 14px;padding:14px 19px 14px;
+  border-radius:9px 9px 0 0;border-bottom:1px solid var(--line);overflow:hidden;
+  background:
+    radial-gradient(130% 120% at 0% 0%,rgba(255,164,25,.17),transparent 58%),
+    radial-gradient(90% 120% at 100% 100%,rgba(30,144,255,.10),transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.035),transparent)}
+.qhead{display:flex;align-items:center;gap:12px}
+.qq{font:900 34px/.9 var(--sans);letter-spacing:-.02em;
+  background:linear-gradient(135deg,#FFD166 0%,var(--amber) 45%,var(--hot) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 10px rgba(255,120,30,.35))}
+.qroad{position:relative;flex:1 1 auto;height:10px;margin:14px 6px 0 2px;border-radius:6px;
+  background:rgba(150,170,190,.16)}
+.qroad .qlane{position:absolute;left:4px;right:22px;top:4px;height:2px;opacity:.55;
+  background:repeating-linear-gradient(90deg,rgba(233,237,240,.75) 0 7px,transparent 7px 15px)}
+.qroad .qdone{position:absolute;left:0;top:0;bottom:0;width:var(--qpct);border-radius:6px;
+  background:linear-gradient(90deg,rgba(255,209,102,.55),var(--amber) 70%,var(--hot))}
+.qroad .qtruck{position:absolute;left:var(--qpct);bottom:3px;font-size:25px;line-height:1;
+  transform:translateX(-62%) scaleX(-1);transform-origin:50% 100%}
+.qroad .qdust{position:absolute;left:var(--qpct);bottom:2px;font-size:14px;line-height:1;opacity:0;
+  transform:translateX(-170%) scaleX(-1);pointer-events:none}
+.qroad .qflag{position:absolute;right:-6px;bottom:2px;font-size:19px;line-height:1}
+.qleft{display:flex;flex-direction:column;align-items:flex-end;line-height:1;white-space:nowrap}
+.qleft b{font:900 24px/1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+.qleft span{margin-top:3px;font:800 12px/1 var(--sans);color:var(--mid)}
+
+.qline{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:10px;width:100%;
+  margin-top:9px;padding:10px 13px 10px 11px;border-radius:13px;cursor:pointer;
+  border:1px solid rgba(var(--qh),.34);color:var(--ink);text-align:left;font:inherit;
+  background:linear-gradient(95deg,rgba(var(--qh),.24),rgba(var(--qh),.07) 62%,rgba(var(--qh),.02));
+  box-shadow:inset 5px 0 0 rgb(var(--qh)),0 10px 24px -18px rgba(var(--qh),.9);
+  transition:transform .15s,box-shadow .2s}
+.qline:first-of-type{margin-top:13px}
+.qline:hover{box-shadow:inset 5px 0 0 rgb(var(--qh)),0 12px 28px -14px rgba(var(--qh),1)}
+.qline:active{transform:scale(.975)}
+.qline:focus-visible{outline:2px solid rgb(var(--qh));outline-offset:2px}
+.qic{font-size:23px;line-height:1;text-align:center}
+.qw{font:850 21px/1.08 var(--sans);letter-spacing:.005em;text-wrap:balance}
+.qwhy{display:block;margin-top:5px;font:600 13px/1.35 var(--sans);color:var(--hot);letter-spacing:0}
+.qfig{display:flex;flex-direction:column;align-items:flex-end;line-height:1;min-width:52px}
+.qfig b{font:900 32px/1 var(--sans);color:rgb(var(--qh));font-variant-numeric:tabular-nums;
+  text-shadow:0 0 18px rgba(var(--qh),.45)}
+.qfig small{margin-top:4px;font:800 12px/1 var(--sans);color:var(--mid);white-space:nowrap}
+.qline.covered .qfig b{color:#7CDB8A;text-shadow:0 0 18px rgba(124,219,138,.5)}
+.qline.unknown .qfig b{color:var(--unknown);text-shadow:none}
+.qask{margin-top:12px;font:850 21px/1.2 var(--sans);text-wrap:balance}
+.qerr{margin-top:10px;font:700 14px/1.4 var(--sans);color:var(--hot)}
+
+/* THE MIRROR folds in (amendment 10-16): one bold chip when a check fires;
+   its words open on a tap, LET IT GO inside. A chip, not a panel — the
+   mirror still draws NOTHING when there is nothing. */
+.qlook{display:flex;align-items:center;gap:7px;margin:12px auto 0;padding:8px 14px;
+  border-radius:20px;border:1px solid rgba(255,164,25,.55);background:rgba(255,164,25,.12);
+  color:var(--amber);font:800 14px/1 var(--sans);letter-spacing:.02em;cursor:pointer}
+.qlook[aria-expanded="true"]{background:rgba(255,164,25,.22)}
+.qlook .qchev{transition:transform .2s}
+.qlook[aria-expanded="true"] .qchev{transform:rotate(180deg)}
+.mirror{margin-top:11px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.18);
+  border:1px solid var(--line)}
+.mirror .mlbl{display:block;font:800 12px/1 var(--sans);letter-spacing:.06em;
+  color:var(--amber);margin-bottom:8px}
+.mirror .mrule{font:600 15.5px/1.45 var(--sans);color:var(--ink);text-wrap:balance}
+.mirror .mwhen{font:700 12px/1 var(--sans);color:var(--dim);margin-left:7px;white-space:nowrap}
+.mirror .mnow{margin-top:8px;font:500 14px/1.45 var(--sans);color:var(--mid)}
+.mirror .mgo{margin-top:10px;font:800 13px/1 var(--sans);letter-spacing:.04em;
+  color:var(--ink);background:none;border:1px solid var(--line);border-radius:16px;
+  padding:7px 12px;cursor:pointer}
+.mirror .mgo:hover{border-color:var(--mid)}
 .mirror.letting .mrule,.mirror.letting .mnow{opacity:.3;transition:opacity .3s}
+
+/* the arrival — only on the first paint of a load, and never for a reader
+   who asked for stillness */
+.qband.arrive .qdone{animation:qfill 1.25s cubic-bezier(.22,.9,.24,1) both}
+.qband.arrive .qtruck{animation:qdrive 1.25s cubic-bezier(.22,.9,.24,1) both}
+.qband.arrive .qdust{animation:qdust 1.25s ease-out both}
+.qband.arrive .qline{animation:qdrop .5s cubic-bezier(.2,1.4,.4,1) both;
+  animation-delay:calc(.55s + var(--qi) * .14s)}
+.qband.arrive .qflag{animation:qwave .6s ease-in-out 1.2s 2}
+@keyframes qfill{from{width:0}}
+@keyframes qdrive{
+  0%{left:0}
+  86%{transform:translateX(-62%) scaleX(-1) rotate(0)}
+  93%{transform:translateX(-62%) scaleX(-1) rotate(-6deg)}
+  100%{transform:translateX(-62%) scaleX(-1) rotate(0)}}
+@keyframes qdust{0%{left:0;opacity:0}15%{opacity:.85}80%{opacity:.6}100%{opacity:0}}
+@keyframes qdrop{from{opacity:0;transform:translateY(-10px) scale(.97)}}
+@keyframes qwave{50%{transform:rotate(-12deg)}}
+@media (prefers-reduced-motion: reduce){
+  .qband.arrive .qdone,.qband.arrive .qtruck,.qband.arrive .qdust,
+  .qband.arrive .qline,.qband.arrive .qflag{animation:none}
+  .qline,.qlook .qchev{transition:none}
+}
+/* paper: the same hues, a shade deeper so a bright figure reads on cream */
+:root.paper .qband{background:
+    radial-gradient(130% 120% at 0% 0%,rgba(143,90,0,.13),transparent 58%),
+    linear-gradient(180deg,rgba(255,255,255,.4),transparent)}
+:root.paper .qroad{background:rgba(70,56,32,.14)}
+:root.paper .qroad .qlane{background:repeating-linear-gradient(90deg,rgba(70,56,32,.55) 0 7px,transparent 7px 15px)}
+:root.paper .qfig b{filter:brightness(.72) saturate(1.25);text-shadow:none}
+:root.paper .qline.covered .qfig b{color:#2E8B3E;filter:none}
+:root.paper .mirror{background:rgba(255,255,255,.4)}
 
 /* THE DAY (card #171, his ruling 2026-09-02: "the original should be the
    header and then I scroll down to a whole section that will drive my
@@ -378,9 +475,16 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
   .consider{width:min(620px,92%);padding:9px 13px 8px}
   .consider .lbl{font-size:7px;padding:4px 8px}
   .consider .q{margin-top:8px;font-size:13.5px;line-height:1.35}
-  .mirror{margin-top:10px;padding-top:9px}
-  .mirror .mrule{font-size:12px;line-height:1.4}
-  .mirror .mnow{font-size:10.5px}
+  /* the band keeps its size on a phone — its words are the point (his
+     ruling 10-16: about 20px bold, nothing small); only its chrome tightens */
+  .qband{margin:-9px -13px 11px;padding:12px 13px 12px}
+  .qq{font-size:30px}
+  .qhead{gap:9px}
+  .qline{gap:9px;padding:9px 11px 9px 10px;grid-template-columns:26px 1fr auto}
+  .qic{font-size:21px}
+  .qw{font-size:20px}
+  .qfig b{font-size:30px}
+  .qfig{min-width:46px}
   .consider .rz{margin-top:5px;font-size:10.5px}
   .consider .acts{margin-top:8px;gap:6px}
   .consider .acts .btn{padding:6px 10px;font-size:9.5px}
@@ -1494,6 +1598,9 @@ body.hot .act .h .n{color:var(--hot)}
   box-shadow:0 14px 30px -12px rgba(0,0,0,.85), 0 0 0 1px var(--line)}
 .sh-cover::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--amber);
   box-shadow:0 0 14px 1px rgba(255,164,25,.55)}
+/* reading is not sound — the room's amber law; a book in his hands rests on plain ink */
+.sh-cover.read::after{background:var(--ink);box-shadow:none;opacity:.7}
+.sh-cover.read .sh-pass{color:var(--ink)}
 .sh-cover .sh-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;
   font:700 13px/1.3 var(--sans);color:var(--mid)}
 .sh-pass{position:absolute;top:8px;left:8px;padding:5px 7px;border-radius:3px;background:rgba(7,8,10,.82);
@@ -2654,18 +2761,17 @@ body.hot .act .h .n{color:var(--hot)}
       <div class="s">one service &middot; one database<br>everything above is served</div></div></div>
     <div id="orbs"></div>
     <div class="consider" id="consider">
+      <!-- THE Q4 BAND (card #437): his quarter's three, first thing on the
+           card. It also holds THE MIRROR (card #244) now — a chip when a
+           check fires, its words a tap away (his amendment 10-16: "i never
+           look at this"). Drawn by paintBand(); hidden until the spine
+           answers, so it never flashes an empty frame. -->
+      <div class="qband" id="qband" hidden></div>
       <span class="lbl" id="clbl">THE SPINE PUT THIS IN FRONT OF YOU</span>
       <div class="q" id="cq">reading&#8230;</div>
       <div class="rz" id="crz"></div>
       <div class="acts"><button class="btn go" id="cgo">OPEN IT</button><button class="btn go" id="cair" hidden>ON AIR</button></div>
       <div class="cml" id="cml" hidden></div>
-      <!-- THE MIRROR (card #244). Not an alert and not another orb — the
-           ledger reading his own earlier handwriting back to him. It is a
-           MARGIN NOTE: a hairline rule, his ruling in the hand it was written
-           in, the date set small like a date in a margin, and today's fact
-           under it. It renders ONLY when there is something; a "nothing to
-           report" panel is the thing that makes him stop reading it. -->
-      <div class="mirror" id="mirror" hidden></div>
     </div>
   </div>
   <div class="cuerow">
@@ -3271,8 +3377,8 @@ function paintField(){
              the band's weather only when the spine predates it */
       const sh = l && l.shelf;
       if(sh){ const c = sh.counts || {};
-        return [String(c.ears || 0), "IN MY EARS",
-          `<b>${c.shelf || 0}</b> ON THE SHELF`]; }   /* short: a phone's orb line collides past ~18 */
+        return [String(c.ears || 0), "GOING IN",
+          `🎧 <b>${c.listening || 0}</b> · 📖 <b>${c.reading || 0}</b>`]; }   /* short: a phone's orb line collides past ~18 */
       if(l==null || !l.wire) return ["—","BAND","spine unavailable"];
       const fr = l.wire.fresh || [];
       const landed = fr.filter(s => (s.age_days||0) < 1).length;
@@ -4321,7 +4427,10 @@ function paintConsider(){
        constitutional and irreversible, and letting a naming go is neither).
        It expires on its own, so a thing he silenced on a bad week speaks
        again on a better one. The line dims only AFTER the spine's 200 —
-       nothing on this desk animates on hope. */
+       nothing on this desk animates on hope.
+   SINCE CARD #437 it lives inside THE Q4 BAND: one bold chip ("1 TO LOOK
+   AT") when a check fires, its words opened on a tap — his plain-words
+   naming first, then his ruling, then today's fact, LET IT GO inside. */
 let MIRROR = [];
 async function loadMirror(){
   try{ MIRROR = (await grab("/api/notice")).notices || []; }
@@ -4329,18 +4438,33 @@ async function loadMirror(){
   paintMirror();
 }
 function paintMirror(){
-  const el = $("mirror"); if(!el) return;
+  const lk = $("qlook"), el = $("mirror");
+  /* the chip is drawn by the band; when the count moved, the band redraws
+     (paintBand calls back here, and its own early return ends the loop) */
+  if(!!lk !== MIRROR.length > 0 || (lk && lk.dataset.n !== String(MIRROR.length))){
+    paintBand(); return;
+  }
+  if(!el) return;
   const n = MIRROR[0];
-  if(!n){ el.hidden = true; el.innerHTML = ""; return; }
+  const was = !el.hidden;
+  if(!n || !QB.look){
+    el.hidden = true; el.innerHTML = "";
+    if(lk) lk.setAttribute("aria-expanded", "false");
+    if(was && !stage.classList.contains("entered")) separate();
+    return;
+  }
   el.hidden = false;
+  lk.setAttribute("aria-expanded", "true");
   el.classList.remove("letting");
   el.innerHTML =
-    `<span class="mlbl">YOU RULED</span>` +
-    `<div class="mrule">&ldquo;${esc(n.ruling)}&rdquo;` +
-      `<span class="mwhen">${esc(n.ruled_when)}</span></div>` +
+    `<div class="mrule">${esc(n.naming || "")}</div>` +
+    `<span class="mlbl" style="margin-top:10px">YOU RULED <span class="mwhen">${esc(n.ruled_when)}</span></span>` +
+    `<div class="mnow">&ldquo;${esc(n.ruling)}&rdquo;</div>` +
     `<div class="mnow">${esc(n.observed)}</div>` +
     `<button class="mgo" id="mgo">LET IT GO</button>`;
-  $("mgo").onclick = async () => {
+  if(!was && !stage.classList.contains("entered")) separate();
+  $("mgo").onclick = async e => {
+    e.stopPropagation();
     try{
       const r = await fetch(url(`/api/notice/${encodeURIComponent(n.slug)}/quiet`),
         { method:"POST", headers: hdr({"Content-Type":"application/json"}),
@@ -4353,6 +4477,125 @@ function paintMirror(){
     }catch(err){ toast("not let go — " + (err.message||err)); }
   };
 }
+
+/* ── THE Q4 BAND (card #437) ──────────────────────────────────────────
+   Q4 is one haul: his three strapped on the flatbed, picked up on the
+   quarter's first day, delivered on its last. /api/quarter serves the words
+   (his, from one table), the clock (day, days left, how far along) and each
+   line's reading from its owner — this page counts no days and no loads.
+   A reading nobody could take is a dash with its reason in words, never a 0;
+   a quarter he has not named shows his ask, never last quarter's lines.
+   Each line is a door: the trucking line opens HOTSHOT, the other two the
+   GLASS, where the posts and the sparks live. */
+const QB = { data: null, err: null, arrived: false, look: false, raf: 0, settle: 0, hiddenAt: 0 };
+const QB_READ = {   /* the reading's room, its mark and its color — the orb it opens */
+  loads_to_go: { room: "standing", icon: "🔧", hue: "255,110,50" },
+  posts_week:  { room: "glass",    icon: "📣", hue: "30,144,255" },
+  sparks:      { room: "glass",    icon: "🤝", hue: "120,200,120" }
+};
+const QB_HUES = ["255,110,50", "30,144,255", "120,200,120", "190,160,60", "150,90,220"];
+const QB_ARRIVE_AFTER = 10 * 60 * 1000;   /* back after ten minutes away = opening the app again */
+async function loadBand(){
+  try{ QB.data = await grab("/api/quarter"); QB.err = null; }
+  catch(e){ QB.err = String(e.message || e); }   /* the last good band stays; a band never read says why */
+  paintBand();
+}
+function qbFigure(r){
+  if(!r) return "";
+  if(r.state === "covered")
+    return `<span class="qfig"><b>✓</b><small>${esc(r.unit || "covered")}</small></span>`;
+  if(r.figure == null)
+    return `<span class="qfig"><b>—</b><small>unknown</small></span>`;
+  return `<span class="qfig"><b data-n="${+r.figure}">${+r.figure}</b><small>${esc(r.unit || "")}</small></span>`;
+}
+function paintBand(){
+  const el = $("qband"); if(!el) return;
+  const b = QB.data;
+  if(!b && !QB.err){ el.hidden = true; return; }
+  let html;
+  if(!b){
+    html = `<div class="qerr">Your quarter did not answer — ${esc(QB.err)}</div>`;
+  }else{
+    const pct = Math.max(0, Math.min(100, +b.pct || 0));
+    const left = b.days_left === 0
+      ? `<div class="qleft"><b>🏁</b><span>last day</span></div>`
+      : `<div class="qleft"><b>${+b.days_left}</b><span>${b.days_left === 1 ? "day" : "days"} left</span></div>`;
+    const head = `<div class="qhead"><span class="qq">${esc(b.label)}</span>` +
+      `<div class="qroad" style="--qpct:${pct}%" role="img" aria-label="day ${+b.day} of ${+b.days} in ${esc(b.label)}">` +
+      `<i class="qlane"></i><i class="qdone"></i><span class="qdust">💨</span>` +
+      `<span class="qtruck">🛻</span><span class="qflag">🏁</span></div>${left}</div>`;
+    const lines = (b.lines || []).map((ln, i) => {
+      const k = QB_READ[ln.reads] || {}, r = ln.reading;
+      const cls = !r ? "" : r.state === "covered" ? " covered" : r.figure == null ? " unknown" : "";
+      const why = r && r.figure == null && r.state !== "covered" && r.why
+        ? `<span class="qwhy">${esc(r.why)}</span>` : "";
+      return `<button class="qline${cls}" style="--qh:${k.hue || QB_HUES[i % QB_HUES.length]};--qi:${i}"` +
+        ` data-room="${k.room || ""}"${ln.said ? ` title="${esc(ln.said)}"` : ""}>` +
+        `<span class="qic" aria-hidden="true">${k.icon || "⭐"}</span>` +
+        `<span class="qw">${esc(ln.words)}${why}</span>${qbFigure(r)}</button>`;
+    }).join("");
+    const ask = b.state === "ask" && b.ask ? `<div class="qask">${esc(b.ask)}</div>` : "";
+    html = head + lines + ask;
+  }
+  const n = MIRROR.length;
+  html += n ? `<button class="qlook" id="qlook" data-n="${n}" aria-expanded="false" aria-controls="mirror">` +
+      `👀 ${n} TO LOOK AT <span class="qchev" aria-hidden="true">▾</span></button>` +
+      `<div class="mirror" id="mirror" hidden></div>` : "";
+  if(!n) QB.look = false;
+  const grew = el.hidden;
+  if(el.dataset.h === html && !grew){ paintMirror(); return; }   /* same band: no redraw, no replay */
+  el.dataset.h = html;
+  el.hidden = false;
+  /* THE ARRIVAL — the first paint of an open, never a refresh, never for a
+     reader who asked for stillness; the class leaves once it has played so
+     a later redraw lands still */
+  const arrive = !!b && !QB.arrived && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(b) QB.arrived = true;
+  el.classList.toggle("arrive", arrive);
+  el.innerHTML = html;
+  el.querySelectorAll(".qline").forEach(btn => btn.addEventListener("click", e => {
+    e.stopPropagation();
+    const i = D.findIndex(d => d.room === btn.dataset.room);
+    if(i >= 0) enter(i);
+  }));
+  const lk = $("qlook");
+  if(lk) lk.addEventListener("click", e => { e.stopPropagation(); QB.look = !QB.look; paintMirror(); });
+  cancelAnimationFrame(QB.raf); clearTimeout(QB.settle);
+  if(arrive){
+    qbCount(el);
+    QB.settle = setTimeout(() => el.classList.remove("arrive"), 2600);
+  }
+  paintMirror();
+  if(grew && !stage.classList.contains("entered")) separate();
+}
+/* each figure rolls up from 0 as its line lands (the line's own delay) */
+function qbCount(el){
+  const figs = [...el.querySelectorAll(".qfig b[data-n]")]
+    .map(f => ({ f, n: +f.dataset.n, i: +(f.closest(".qline").style.getPropertyValue("--qi") || 0) }))
+    .filter(x => x.n > 0);
+  if(!figs.length) return;
+  figs.forEach(x => x.f.textContent = "0");
+  const t0 = performance.now();
+  const step = now => {
+    let live = false;
+    for(const x of figs){
+      const k = Math.min(1, Math.max(0, (now - t0 - 700 - x.i * 140) / 700));
+      if(k < 1) live = true;
+      x.f.textContent = String(Math.round(x.n * (1 - Math.pow(1 - k, 3))));
+    }
+    if(live) QB.raf = requestAnimationFrame(step);
+  };
+  QB.raf = requestAnimationFrame(step);
+}
+/* opening the app again: a phone wakes the page rather than reloading it,
+   so ten minutes away re-reads the band and lets the pickup drive again */
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){ QB.hiddenAt = Date.now(); return; }
+  if(!QB.hiddenAt || Date.now() - QB.hiddenAt < QB_ARRIVE_AFTER || !configured()) return;
+  QB.hiddenAt = 0;
+  if(ACTIVE === null){ QB.arrived = false; $("qband") && ($("qband").dataset.h = ""); }
+  loadBand().catch(() => {});
+});
 
 /* ── entering a domain ────────────────────────────────────────────── */
 function enter(i, direct){
@@ -8582,9 +8825,11 @@ function shelfRoom(){
   const lanes = sh.lanes || {}, keys = Object.keys(lanes);
   /* the shelf = every book finished at least once — the one in your ears again included */
   const racked = done.concat(ears.filter(b => b.passes > 0));
-  const earsHTML = ears.length ? `<div class="sh-ears">${ears.map(b => `
+  /* two ways in, two panels (his ruling 10-16: "Reading and Listening are 2 different
+     ways to train the brain") — reading is the one he practises, so it has its own place */
+  const going = (list, empty) => list.length ? `<div class="sh-ears">${list.map(b => `
       <div class="sh-book">
-        <div class="sh-cover" data-cover="${b.has_cover ? b.id : ""}">
+        <div class="sh-cover${b.format === "read" ? " read" : ""}" data-cover="${b.has_cover ? b.id : ""}">
           ${b.has_cover ? "" : `<div class="sh-ph">${esc(b.title)}</div>`}
           <span class="sh-pass">${esc(shPassTag(b))}</span></div>
         <div class="sh-t">${esc(b.title)}</div>
@@ -8593,13 +8838,18 @@ function shelfRoom(){
           ${b.confirmed ? "" : `<button class="sh-btn ask" data-ok="${b.id}" title="the cover is my read of what you named — tap if it's the one">THIS ONE ✓</button>`}
           <button class="sh-btn${SH.arm === b.id ? " arm" : ""}" data-fin="${b.id}">${SH.arm === b.id ? "TAP AGAIN" : "FINISHED"}</button>
         </div></div>`).join("")}</div>`
-    : `<p class="nodata" style="margin-top:10px">nothing in your ears — START a book from the pile.</p>`;
+    : `<p class="nodata" style="margin-top:10px">${empty}</p>`;
+  const heard = ears.filter(b => b.format !== "read"), held = ears.filter(b => b.format === "read");
   /* the diet — what's gone in, by lane, his three in his order; it stays up when the shelf folds */
   const per = {}; keys.forEach(k => per[k] = 0);
   racked.forEach(b => { if(b.lane in per) per[b.lane]++; });
   const placed = keys.reduce((a, k) => a + per[k], 0);
   const dietHTML = placed ? `<div class="sh-diet">${keys.filter(k => per[k]).map(k =>
       `<i style="width:${per[k] / placed * 100}%;background:rgb(${SH_LANE[k]})"></i>`).join("")}</div>` : "";
+  const wi = sh.went_in || {}, wiN = (wi.listen || 0) + (wi.read || 0) + (wi.unknown || 0);
+  const wentHTML = wiN ? `<div class="sh-lanes"><span class="sh-lane${wi.listen ? "" : " none"}">🎧 <b>${wi.listen || 0}</b>heard</span>
+      <span class="sh-lane${wi.read ? "" : " none"}">📖 <b>${wi.read || 0}</b>read</span>
+      ${wi.unknown ? `<span class="sh-lane none"><b>${wi.unknown}</b>not said yet</span>` : ""}</div>` : "";
   const laneHTML = `<div class="sh-lanes">${keys.map(k => `<span class="sh-lane${per[k] ? "" : " none"}">
       <s style="background:rgb(${SH_LANE[k]})"></s><b>${per[k]}</b>${esc(lanes[k])}</span>`).join("")}</div>`;
   /* one bookcase per lane — each folds on its own; a book with no lane gets a case of its own */
@@ -8626,7 +8876,8 @@ function shelfRoom(){
       <div class="sh-rowt"><div class="sh-t">${esc(b.title)}</div>
         <div class="sh-a">${esc(b.author || "author not known")}${b.lane_label ? " · " + esc(b.lane_label) : ""}</div>
         ${b.via ? `<div class="sh-via">via ${esc(b.via)}</div>` : ""}</div>
-      <button class="sh-btn" data-go="${b.id}">START</button></div>`).join("");
+      <div class="sh-btns"><button class="sh-btn" data-go="${b.id}" data-fmt="listen">🎧 LISTEN</button>
+        <button class="sh-btn" data-go="${b.id}" data-fmt="read">📖 READ</button></div></div>`).join("");
   const addHTML = `<div class="sh-add">
       <input id="shT" placeholder="a book to read next" autocomplete="off">
       <div class="sh-two"><input id="shV" placeholder="who sent it" autocomplete="off">
@@ -8634,10 +8885,12 @@ function shelfRoom(){
       <button class="sh-btn ask" id="shGo">ADD TO THE PILE</button>
       <div class="sh-say" id="shSay">the cover is looked up for you — say if it's the wrong one.</div></div>`;
   return `<div class="sh-wrap">${flip}
-    <div class="panel">${shHead("ears", "in my ears", `${ears.length} going in`)}
-      ${SH.folds.ears ? "" : `<div class="sh-big">${ears.length ? `${ears.length} book${ears.length === 1 ? "" : "s"} going in` : "the cab is quiet"}</div>${earsHTML}`}</div>
+    <div class="panel">${shHead("ears", "🎧 in my ears — listening", `${heard.length} going in`)}
+      ${SH.folds.ears ? "" : `<div class="sh-big">${heard.length ? `${heard.length} book${heard.length === 1 ? "" : "s"} in my ears` : "the cab is quiet"}</div>${going(heard, "nothing in your ears — LISTEN to a book from the pile.")}`}</div>
+    <div class="panel">${shHead("hands", "📖 in my hands — reading", `${held.length} going in`)}
+      ${SH.folds.hands ? "" : `<div class="sh-big">${held.length ? `${held.length} book${held.length === 1 ? "" : "s"} in my hands` : "nothing open"}</div>${going(held, "nothing in your hands — READ a book from the pile. Reading is a practice.")}`}</div>
     <div class="panel">${shHead("shelf", "the shelf — what's gone in", `${racked.length} book${racked.length === 1 ? "" : "s"}`)}
-      ${dietHTML}${laneHTML}${SH.folds.shelf ? "" : casesHTML}</div>
+      ${dietHTML}${laneHTML}${wentHTML}${SH.folds.shelf ? "" : casesHTML}</div>
     <div class="panel">${shHead("pile", "the pile — who sent it", `${pile.length} waiting`)}
       ${SH.folds.pile ? "" : (pileHTML || `<p class="nodata" style="margin-top:10px">the pile is empty — the next book from someone you admire lands here.</p>`) + addHTML}</div>
   </div>`;
@@ -8680,7 +8933,7 @@ function wireShelf(sig){
   R.querySelectorAll("[data-ok]").forEach(b => b.addEventListener("click", () =>
     shPost(`/api/shelf/${b.dataset.ok}/confirm`, {}, b), sig));
   R.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () =>
-    shPost(`/api/shelf/${b.dataset.go}/start`, {}, b), sig));
+    shPost(`/api/shelf/${b.dataset.go}/start`, { format: b.dataset.fmt || "listen" }, b), sig));
   R.querySelectorAll("[data-fin]").forEach(b => b.addEventListener("click", () => {
     const id = +b.dataset.fin;
     if(SH.arm !== id){
@@ -8710,7 +8963,7 @@ function wireShelf(sig){
 function learnRoom(){
   if(SH.view !== "wire") return whyBar() + shelfRoom();
   const l = State.learn, w = l && l.wire;
-  const back = `<button class="sh-flip" id="lrToShelf">◂ THE SHELF · <b>${l && l.shelf ? (l.shelf.counts || {}).ears || 0 : "—"}</b> IN MY EARS</button>`;
+  const back = `<button class="sh-flip" id="lrToShelf">◂ THE SHELF · <b>${l && l.shelf ? (l.shelf.counts || {}).ears || 0 : "—"}</b> GOING IN</button>`;
   if(!w) return whyBar() + back + `<div class="panel" style="flex:1"><div class="gen">
     <span class="nodata">the spine has not answered with the forefront.</span></div></div>`;
   const fresh = w.fresh || [], dial = w.dial || [];
@@ -13181,7 +13434,9 @@ async function load(keep){
        leaves MIRROR empty, which draws nothing: a dark mirror is SILENT, and
        silence here is indistinguishable from clear by design — the spine is
        where a blind check announces itself (/api/notice?why=1). */
-    await loadMirror().catch(() => {});
+    /* THE Q4 BAND (card #437) rides beside it, for the same reason: the
+       band, the canon and the chip land in one paint */
+    await Promise.all([loadMirror().catch(() => {}), loadBand().catch(() => {})]);
     deriveTemp(); paintField(); stampRead();
     /* the day card rides AFTER the field paints — a hung geolocation
        prompt must never hold the desk (errors swallowed, fan-out law) */
