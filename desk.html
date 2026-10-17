@@ -250,14 +250,17 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
    where today is. His ruling 10-16: "bold text that i can easily read ... my
    ADHD couldn't take the small lettering and heavy wording ... 3 snappy
    reminders." So: big bold sans, one figure each, no mono caps, no italics.
-   It seats at the TOP of the canon card (it must stand out the moment the
-   desk opens — the old mirror slot at the card's foot sat below a phone's
-   fold) as its own slab, bleeding to the card's edges. Every word and every
-   number is SERVED by /api/quarter; the page types none and counts nothing.
-   SIGNATURE: on the desk's first paint the pickup drives from Oct 1 to today,
-   the three lines drop in behind it, and each figure rolls up to its value. */
-.qband{position:relative;margin:-15px -19px 14px;padding:14px 19px 14px;
-  border-radius:9px 9px 0 0;border-bottom:1px solid var(--line);overflow:hidden;
+   It seats at the FOOT of the canon card, under the morning practice — his
+   ruling 10-17: the canon read and the daily minimum come first, "with a
+   reminder of what i am working on this quarter" — as its own slab bleeding
+   to the card's edges. Every word and every number is SERVED by
+   /api/quarter; the page types none and counts nothing.
+   SIGNATURE: the first time the band comes into view on an open, the pickup
+   drives from Oct 1 to today, the three lines drop in behind it, and each
+   figure pops in at its served value. On a phone the band starts below the fold, so
+   the drive waits (paused at its first frame) until he scrolls to it. */
+.qband{position:relative;margin:14px -19px -14px;padding:14px 19px 14px;
+  border-radius:0 0 9px 9px;border-top:1px solid var(--line);overflow:hidden;
   background:
     radial-gradient(130% 120% at 0% 0%,rgba(255,164,25,.17),transparent 58%),
     radial-gradient(90% 120% at 100% 100%,rgba(30,144,255,.10),transparent 60%),
@@ -273,16 +276,16 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
   background:repeating-linear-gradient(90deg,rgba(233,237,240,.75) 0 7px,transparent 7px 15px)}
 .qroad .qdone{position:absolute;left:0;top:0;bottom:0;width:var(--qpct);border-radius:6px;
   background:linear-gradient(90deg,rgba(255,209,102,.55),var(--amber) 70%,var(--hot))}
-.qroad .qtruck{position:absolute;left:var(--qpct);bottom:3px;font-size:25px;line-height:1;
+.qroad .qtruck{position:absolute;left:clamp(10px,var(--qpct),calc(100% - 22px));bottom:3px;z-index:1;font-size:25px;line-height:1;
   transform:translateX(-62%) scaleX(-1);transform-origin:50% 100%}
-.qroad .qdust{position:absolute;left:var(--qpct);bottom:2px;font-size:14px;line-height:1;opacity:0;
+.qroad .qdust{position:absolute;left:clamp(10px,var(--qpct),calc(100% - 22px));bottom:2px;font-size:14px;line-height:1;opacity:0;
   transform:translateX(-170%) scaleX(-1);pointer-events:none}
 .qroad .qflag{position:absolute;right:-6px;bottom:2px;font-size:19px;line-height:1}
 .qleft{display:flex;flex-direction:column;align-items:flex-end;line-height:1;white-space:nowrap}
 .qleft b{font:900 24px/1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
 .qleft span{margin-top:3px;font:800 12px/1 var(--sans);color:var(--mid)}
 
-.qline{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:10px;width:100%;
+.qline{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;
   margin-top:9px;padding:10px 13px 10px 11px;border-radius:13px;cursor:pointer;
   border:1px solid rgba(var(--qh),.34);color:var(--ink);text-align:left;font:inherit;
   background:linear-gradient(95deg,rgba(var(--qh),.24),rgba(var(--qh),.07) 62%,rgba(var(--qh),.02));
@@ -293,8 +296,8 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
 .qline:active{transform:scale(.975)}
 .qline:focus-visible{outline:2px solid rgb(var(--qh));outline-offset:2px}
 .qic{font-size:23px;line-height:1;text-align:center}
-.qw{font:850 21px/1.08 var(--sans);letter-spacing:.005em;text-wrap:balance}
-.qwhy{display:block;margin-top:5px;font:600 13px/1.35 var(--sans);color:var(--hot);letter-spacing:0}
+.qw{min-width:0;overflow-wrap:break-word;font:850 21px/1.08 var(--sans);letter-spacing:.005em;text-wrap:balance}
+.qwhy{display:block;margin-top:5px;font:600 13px/1.35 var(--sans);color:var(--hot);letter-spacing:0;overflow-wrap:anywhere}
 .qfig{display:flex;flex-direction:column;align-items:flex-end;line-height:1;min-width:52px}
 .qfig b{font:900 32px/1 var(--sans);color:rgb(var(--qh));font-variant-numeric:tabular-nums;
   text-shadow:0 0 18px rgba(var(--qh),.45)}
@@ -334,6 +337,15 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
 .qband.arrive .qline{animation:qdrop .5s cubic-bezier(.2,1.4,.4,1) both;
   animation-delay:calc(.55s + var(--qi) * .14s)}
 .qband.arrive .qflag{animation:qwave .6s ease-in-out 1.2s 2}
+/* the figure POPS in as its line lands — the served value from its first
+   frame; a roll-up counted through numbers the spine never said, and for
+   loads to go a passing 0 is the 'covered' lie (review, 10-17) */
+.qband.arrive .qfig b{animation:qpop .5s cubic-bezier(.2,1.7,.4,1) both;
+  animation-delay:calc(.85s + var(--qi) * .14s);transform-origin:100% 60%}
+/* armed but not yet seen: every arrival animation holds its first frame */
+.qband.arrive:not(.go) .qdone,.qband.arrive:not(.go) .qtruck,.qband.arrive:not(.go) .qdust,
+.qband.arrive:not(.go) .qline,.qband.arrive:not(.go) .qflag,
+.qband.arrive:not(.go) .qfig b{animation-play-state:paused}
 @keyframes qfill{from{width:0}}
 @keyframes qdrive{
   0%{left:0}
@@ -343,9 +355,10 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
 @keyframes qdust{0%{left:0;opacity:0}15%{opacity:.85}80%{opacity:.6}100%{opacity:0}}
 @keyframes qdrop{from{opacity:0;transform:translateY(-10px) scale(.97)}}
 @keyframes qwave{50%{transform:rotate(-12deg)}}
+@keyframes qpop{from{opacity:0;transform:scale(.35)}}
 @media (prefers-reduced-motion: reduce){
   .qband.arrive .qdone,.qband.arrive .qtruck,.qband.arrive .qdust,
-  .qband.arrive .qline,.qband.arrive .qflag{animation:none}
+  .qband.arrive .qline,.qband.arrive .qflag,.qband.arrive .qfig b{animation:none}
   .qline,.qlook .qchev{transition:none}
 }
 /* paper: the same hues, a shade deeper so a bright figure reads on cream */
@@ -477,14 +490,22 @@ div.readage{font:600 9px/1.4 var(--mono);letter-spacing:.08em;text-transform:upp
   .consider .q{margin-top:8px;font-size:13.5px;line-height:1.35}
   /* the band keeps its size on a phone — its words are the point (his
      ruling 10-16: about 20px bold, nothing small); only its chrome tightens */
-  .qband{margin:-9px -13px 11px;padding:12px 13px 12px}
-  .qq{font-size:30px}
+  /* compact chrome, full-size words: on a 375x812 phone the card's top
+     rests at ~575 (the orbs' 480px sky), so every px here is scroll */
+  .qband{margin:11px -13px -8px;padding:9px 13px 11px}
+  .qq{font-size:29px}
   .qhead{gap:9px}
-  .qline{gap:9px;padding:9px 11px 9px 10px;grid-template-columns:26px 1fr auto}
-  .qic{font-size:21px}
-  .qw{font-size:20px}
-  .qfig b{font-size:30px}
-  .qfig{min-width:46px}
+  .qroad{margin-top:9px}
+  .qleft{flex-direction:row;align-items:baseline;gap:4px}
+  .qleft b{font-size:21px}
+  .qleft span{font-size:11.5px;margin-top:0}
+  .qline{gap:9px;margin-top:7px;padding:7px 11px 7px 10px;grid-template-columns:24px minmax(0,1fr) auto}
+  .qline:first-of-type{margin-top:10px}
+  .qic{font-size:20px}
+  .qw{font-size:20px;line-height:1.04}
+  .qfig b{font-size:28px}
+  .qfig small{margin-top:2px;font-size:11.5px}
+  .qfig{min-width:44px}
   .consider .rz{margin-top:5px;font-size:10.5px}
   .consider .acts{margin-top:8px;gap:6px}
   .consider .acts .btn{padding:6px 10px;font-size:9.5px}
@@ -2761,17 +2782,19 @@ body.hot .act .h .n{color:var(--hot)}
       <div class="s">one service &middot; one database<br>everything above is served</div></div></div>
     <div id="orbs"></div>
     <div class="consider" id="consider">
-      <!-- THE Q4 BAND (card #437): his quarter's three, first thing on the
-           card. It also holds THE MIRROR (card #244) now — a chip when a
-           check fires, its words a tap away (his amendment 10-16: "i never
-           look at this"). Drawn by paintBand(); hidden until the spine
-           answers, so it never flashes an empty frame. -->
-      <div class="qband" id="qband" hidden></div>
       <span class="lbl" id="clbl">THE SPINE PUT THIS IN FRONT OF YOU</span>
       <div class="q" id="cq">reading&#8230;</div>
       <div class="rz" id="crz"></div>
       <div class="acts"><button class="btn go" id="cgo">OPEN IT</button><button class="btn go" id="cair" hidden>ON AIR</button></div>
       <div class="cml" id="cml" hidden></div>
+      <!-- THE Q4 BAND (card #437): his quarter's three, at the card's foot —
+           his ruling 10-17: "having the Cannon read and the daily minimum
+           routine should be the first thing i see each day with a reminder of
+           what i am working on this quarter". It also holds THE MIRROR (card
+           #244) now — a chip when a check fires, its words a tap away (his
+           amendment 10-16: "i never look at this"). Drawn by paintBand();
+           hidden until the spine answers, so it never flashes an empty frame. -->
+      <div class="qband" id="qband" hidden></div>
     </div>
   </div>
   <div class="cuerow">
@@ -2906,7 +2929,8 @@ const READ_REST = [
   ["held","/api/push/held"], ["watch","/api/watch"], ["hotshot","/api/hotshot"],
   ["hand","/api/hand"], ["sidech","/api/threads"],
   ["diet","/api/listening?days=1"], ["brief","/api/brief"],
-  ["planner","/api/planner"], ["glass","/api/glass"]
+  ["planner","/api/planner"], ["glass","/api/glass"],
+  ["quarter","/api/quarter"]   /* THE Q4 BAND (card #437) */
 ];
 const READ_BROUGHT = new WeakSet();
 let LOAD_SEQ = 0;
@@ -4463,18 +4487,22 @@ function paintMirror(){
     `<div class="mnow">${esc(n.observed)}</div>` +
     `<button class="mgo" id="mgo">LET IT GO</button>`;
   if(!was && !stage.classList.contains("entered")) separate();
-  $("mgo").onclick = async e => {
+  const mgo = $("mgo");
+  mgo.onclick = async e => {
     e.stopPropagation();
+    if(mgo.disabled) return;
+    mgo.disabled = true;   /* one tap, one POST — a double tap on a slow tunnel must not reach the next naming */
     try{
       const r = await fetch(url(`/api/notice/${encodeURIComponent(n.slug)}/quiet`),
         { method:"POST", headers: hdr({"Content-Type":"application/json"}),
           body: JSON.stringify({ days: 7 }) });
       if(!r.ok) throw new Error("the spine answered " + r.status);
       el.classList.add("letting");
-      MIRROR = MIRROR.slice(1);
+      /* by identity, never by position: a re-read in flight may have moved the list */
+      MIRROR = MIRROR.filter(x => x.slug !== n.slug);
       toast("let go for a week — it speaks again after that.");
       setTimeout(paintMirror, 320);
-    }catch(err){ toast("not let go — " + (err.message||err)); }
+    }catch(err){ mgo.disabled = false; toast("not let go — " + (err.message||err)); }
   };
 }
 
@@ -4483,11 +4511,13 @@ function paintMirror(){
    quarter's first day, delivered on its last. /api/quarter serves the words
    (his, from one table), the clock (day, days left, how far along) and each
    line's reading from its owner — this page counts no days and no loads.
-   A reading nobody could take is a dash with its reason in words, never a 0;
-   a quarter he has not named shows his ask, never last quarter's lines.
-   Each line is a door: the trucking line opens HOTSHOT, the other two the
-   GLASS, where the posts and the sparks live. */
-const QB = { data: null, err: null, arrived: false, look: false, raf: 0, settle: 0, hiddenAt: 0 };
+   It rides READ_REST like every secondary read (card #335): the last call
+   wins, a miss is counted on the READ stamp, and a failed re-read keeps the
+   last band up and SAYS so, with its age. A reading nobody could take is a
+   dash with its reason in words, never a 0; a quarter he has not named shows
+   his ask, never last quarter's lines. Each line is a door: the trucking
+   line opens HOTSHOT, the other two the GLASS, where posts and sparks live. */
+const QB = { arrived: false, look: false, settle: 0, io: null, hiddenAt: 0 };
 const QB_READ = {   /* the reading's room, its mark and its color — the orb it opens */
   loads_to_go: { room: "standing", icon: "🔧", hue: "255,110,50" },
   posts_week:  { room: "glass",    icon: "📣", hue: "30,144,255" },
@@ -4495,10 +4525,12 @@ const QB_READ = {   /* the reading's room, its mark and its color — the orb it
 };
 const QB_HUES = ["255,110,50", "30,144,255", "120,200,120", "190,160,60", "150,90,220"];
 const QB_ARRIVE_AFTER = 10 * 60 * 1000;   /* back after ten minutes away = opening the app again */
-async function loadBand(){
-  try{ QB.data = await grab("/api/quarter"); QB.err = null; }
-  catch(e){ QB.err = String(e.message || e); }   /* the last good band stays; a band never read says why */
-  paintBand();
+/* a refusal reads as the spine's own words, never a status line with JSON */
+function qbWhy(err){
+  const s = String(err || "");
+  const m = s.match(/^(\d{3}) ([\s\S]*)$/);
+  if(m){ try{ const j = JSON.parse(m[2]); if(j && j.error) return j.error; }catch(_){} return `the spine answered ${m[1]}`; }
+  return /failed to fetch|networkerror|load failed/i.test(s) ? "the spine did not answer" : s;
 }
 function qbFigure(r){
   if(!r) return "";
@@ -4506,24 +4538,24 @@ function qbFigure(r){
     return `<span class="qfig"><b>✓</b><small>${esc(r.unit || "covered")}</small></span>`;
   if(r.figure == null)
     return `<span class="qfig"><b>—</b><small>unknown</small></span>`;
-  return `<span class="qfig"><b data-n="${+r.figure}">${+r.figure}</b><small>${esc(r.unit || "")}</small></span>`;
+  return `<span class="qfig"><b>${+r.figure}</b><small>${esc(r.unit || "")}</small></span>`;
 }
 function paintBand(){
   const el = $("qband"); if(!el) return;
-  const b = QB.data;
-  if(!b && !QB.err){ el.hidden = true; return; }
+  const b = State.quarter, err = State.quarterErr;
+  if(!b && !err){ el.hidden = true; return; }
   let html;
   if(!b){
-    html = `<div class="qerr">Your quarter did not answer — ${esc(QB.err)}</div>`;
+    html = `<div class="qerr">Your quarter did not answer — ${esc(qbWhy(err))}</div>`;
   }else{
     const pct = Math.max(0, Math.min(100, +b.pct || 0));
     const left = b.days_left === 0
-      ? `<div class="qleft"><b>🏁</b><span>last day</span></div>`
+      ? `<div class="qleft"><b>LAST DAY</b></div>`
       : `<div class="qleft"><b>${+b.days_left}</b><span>${b.days_left === 1 ? "day" : "days"} left</span></div>`;
     const head = `<div class="qhead"><span class="qq">${esc(b.label)}</span>` +
       `<div class="qroad" style="--qpct:${pct}%" role="img" aria-label="day ${+b.day} of ${+b.days} in ${esc(b.label)}">` +
       `<i class="qlane"></i><i class="qdone"></i><span class="qdust">💨</span>` +
-      `<span class="qtruck">🛻</span><span class="qflag">🏁</span></div>${left}</div>`;
+      `<span class="qflag">🏁</span><span class="qtruck">🛻</span></div>${left}</div>`;
     const lines = (b.lines || []).map((ln, i) => {
       const k = QB_READ[ln.reads] || {}, r = ln.reading;
       const cls = !r ? "" : r.state === "covered" ? " covered" : r.figure == null ? " unknown" : "";
@@ -4535,22 +4567,27 @@ function paintBand(){
         `<span class="qw">${esc(ln.words)}${why}</span>${qbFigure(r)}</button>`;
     }).join("");
     const ask = b.state === "ask" && b.ask ? `<div class="qask">${esc(b.ask)}</div>` : "";
-    html = head + lines + ask;
+    /* a re-read that failed keeps the last band up and SAYS so, with its
+       age — yesterday's quarter is never passed off as today's */
+    const age = err ? readAge(["quarter"], true) : "";
+    const stale = err ? `<div class="qerr">Not re-read — ${esc(qbWhy(err))}${age ? ` · showing ${esc(age)}` : ""}</div>` : "";
+    html = head + lines + ask + stale;
   }
   const n = MIRROR.length;
   html += n ? `<button class="qlook" id="qlook" data-n="${n}" aria-expanded="false" aria-controls="mirror">` +
       `👀 ${n} TO LOOK AT <span class="qchev" aria-hidden="true">▾</span></button>` +
       `<div class="mirror" id="mirror" hidden></div>` : "";
   if(!n) QB.look = false;
-  const grew = el.hidden;
-  if(el.dataset.h === html && !grew){ paintMirror(); return; }   /* same band: no redraw, no replay */
+  if(el.dataset.h === html && !el.hidden){ paintMirror(); return; }   /* same band: no redraw, no replay */
+  const h0 = el.hidden ? -1 : el.offsetHeight;
   el.dataset.h = html;
   el.hidden = false;
-  /* THE ARRIVAL — the first paint of an open, never a refresh, never for a
-     reader who asked for stillness; the class leaves once it has played so
-     a later redraw lands still */
-  const arrive = !!b && !QB.arrived && !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(b) QB.arrived = true;
+  /* THE ARRIVAL — once per open, never on a refresh, never over a read that
+     failed, never for a reader who asked for stillness. Armed here, played
+     by qbArrive when the band is first SEEN; QB.arrived flips only when it
+     plays, so a redraw before he scrolls down re-arms it, never spends it */
+  const arrive = !!b && !err && !QB.arrived && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.classList.remove("go");
   el.classList.toggle("arrive", arrive);
   el.innerHTML = html;
   el.querySelectorAll(".qline").forEach(btn => btn.addEventListener("click", e => {
@@ -4560,41 +4597,60 @@ function paintBand(){
   }));
   const lk = $("qlook");
   if(lk) lk.addEventListener("click", e => { e.stopPropagation(); QB.look = !QB.look; paintMirror(); });
-  cancelAnimationFrame(QB.raf); clearTimeout(QB.settle);
-  if(arrive){
-    qbCount(el);
-    QB.settle = setTimeout(() => el.classList.remove("arrive"), 2600);
-  }
+  clearTimeout(QB.settle);
+  if(QB.io){ QB.io.disconnect(); QB.io = null; }
+  if(arrive) qbArrive(el);
   paintMirror();
-  if(grew && !stage.classList.contains("entered")) separate();
+  /* the card is pinned to the field's floor and the field is sized from the
+     card: ANY change in the band's height re-seats the orbs, not only the
+     first paint — a reason line, the ask, a failed read all change it */
+  if(el.offsetHeight !== h0 && !stage.classList.contains("entered")) separate();
 }
-/* each figure rolls up from 0 as its line lands (the line's own delay) */
-function qbCount(el){
-  const figs = [...el.querySelectorAll(".qfig b[data-n]")]
-    .map(f => ({ f, n: +f.dataset.n, i: +(f.closest(".qline").style.getPropertyValue("--qi") || 0) }))
-    .filter(x => x.n > 0);
-  if(!figs.length) return;
-  figs.forEach(x => x.f.textContent = "0");
-  const t0 = performance.now();
-  const step = now => {
-    let live = false;
-    for(const x of figs){
-      const k = Math.min(1, Math.max(0, (now - t0 - 700 - x.i * 140) / 700));
-      if(k < 1) live = true;
-      x.f.textContent = String(Math.round(x.n * (1 - Math.pow(1 - k, 3))));
-    }
-    if(live) QB.raf = requestAnimationFrame(step);
+/* the drive starts the first time the band is in view: at once where the
+   desk opens with it showing (a wide screen), on the scroll that reaches it
+   on a phone. Without an observer it simply plays. */
+function qbArrive(el){
+  const go = () => {
+    if(QB.io){ QB.io.disconnect(); QB.io = null; }
+    QB.arrived = true;
+    el.classList.add("go");
+    QB.settle = setTimeout(() => el.classList.remove("arrive", "go"), 2600);
   };
-  QB.raf = requestAnimationFrame(step);
+  if(!("IntersectionObserver" in window)) return go();
+  /* THE FIELD GROWS ON OPEN (card #401's .75s height ease) and the card is
+     pinned to its floor, so for that moment the band rides higher than it
+     will rest — measured 10-17 at 375x812, it crossed into view and played
+     the drive, then slid to 814, under the fold. Only a field at rest counts
+     as seen; while it moves, look again once it lands. */
+  const resting = () => !field.style.height ||
+    Math.abs(field.offsetHeight - parseFloat(field.style.height)) < 2;
+  /* the lines are held invisible until the drive, so the wait is CAPPED: a
+     field that never reads as resting (a stalled transition, a rounding
+     miss) must never leave his three hidden — the third look plays it */
+  let again = 0, looks = 0;
+  const look = () => { again = 0; if(QB.io){ QB.io.unobserve(el); QB.io.observe(el); } };
+  QB.io = new IntersectionObserver(es => {
+    if(!es.some(e => e.isIntersecting)) return;
+    if(resting() || looks >= 3) return go();
+    if(!again){ looks++; again = setTimeout(look, 900); }   /* the ease is .75s */
+  }, { threshold: 0.35 });
+  QB.io.observe(el);
 }
-/* opening the app again: a phone wakes the page rather than reloading it,
-   so ten minutes away re-reads the band and lets the pickup drive again */
+/* opening the app again: a phone wakes the page rather than reloading it.
+   NOTHING RE-READS BEHIND HIS BACK (his ruling 07-29: "should load on
+   bringing up the page and only update if i refresh") — so ten minutes away
+   replays the drive over the band already on screen and fetches nothing.
+   The READ stamp says how old it is; his tap re-reads. A band read on an
+   earlier day, or one whose last read failed, does not replay. */
 document.addEventListener("visibilitychange", () => {
   if(document.hidden){ QB.hiddenAt = Date.now(); return; }
-  if(!QB.hiddenAt || Date.now() - QB.hiddenAt < QB_ARRIVE_AFTER || !configured()) return;
+  if(!QB.hiddenAt || Date.now() - QB.hiddenAt < QB_ARRIVE_AFTER) return;
   QB.hiddenAt = 0;
-  if(ACTIVE === null){ QB.arrived = false; $("qband") && ($("qband").dataset.h = ""); }
-  loadBand().catch(() => {});
+  const b = State.quarter, el = $("qband");
+  if(ACTIVE !== null || !b || State.quarterErr || !el) return;
+  if(String(b.as_of || "").slice(0, 10) !== new Date().toLocaleDateString("en-CA")) return;
+  QB.arrived = false; el.dataset.h = "";
+  paintBand();
 });
 
 /* ── entering a domain ────────────────────────────────────────────── */
@@ -13434,9 +13490,10 @@ async function load(keep){
        leaves MIRROR empty, which draws nothing: a dark mirror is SILENT, and
        silence here is indistinguishable from clear by design — the spine is
        where a blind check announces itself (/api/notice?why=1). */
-    /* THE Q4 BAND (card #437) rides beside it, for the same reason: the
-       band, the canon and the chip land in one paint */
-    await Promise.all([loadMirror().catch(() => {}), loadBand().catch(() => {})]);
+    /* THE Q4 BAND (card #437) came in with READ_REST above; it paints here
+       for the same reason — the band, the canon and the chip land in one paint */
+    await loadMirror().catch(() => {});
+    paintBand();
     deriveTemp(); paintField(); stampRead();
     /* the day card rides AFTER the field paints — a hung geolocation
        prompt must never hold the desk (errors swallowed, fan-out law) */
