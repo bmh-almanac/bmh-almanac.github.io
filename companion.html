@@ -790,7 +790,12 @@ function grabFix(){
     if(!navigator.geolocation){ GEO.why = "this device offers no location"; return res(null); }
     navigator.geolocation.getCurrentPosition(
       p => { GEO.fix = { lat:p.coords.latitude, lng:p.coords.longitude };
-             GEO.at = Date.now(); GEO.why = ""; res(GEO.fix); },
+             // the POSITION's time, not the ask's (card #357): maximumAge lets the
+             // browser hand back a fix up to five minutes old, and stamping it now
+             // sent that as age 0. A stamp missing or ahead of this clock is no age.
+             const t = Number(p.timestamp), now = Date.now();
+             GEO.at = (isFinite(t) && t > 0 && t <= now) ? t : now;
+             GEO.why = ""; res(GEO.fix); },
       e => { GEO.why = e.message || "the device refused"; res(null); },
       { enableHighAccuracy:false, timeout:10000, maximumAge:300000 });
   });
