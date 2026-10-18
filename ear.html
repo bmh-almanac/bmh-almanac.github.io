@@ -172,6 +172,14 @@ body{background:var(--void);color:var(--ink);font-family:var(--sans);
 .lg-hours i{position:absolute;top:0;bottom:0;background:rgba(var(--key),.55);
   border-radius:1px;min-width:2px}
 .lg-hours i.pst{background:rgba(232,163,61,.6)}
+/* THE EAR SESSIONS (card #445) — a listen sits under its day, set in a step,
+   its lamp amber when he flagged something in it; the first words it kept
+   ride under the name so one listen reads apart from another */
+.lg-row.lg-sess{border-top:0;padding:6px 2px 6px 14px}
+.lg-row.lg-sess .lg-tune .nm{font-size:12.5px}
+.lg-row.lg-sess.lit .lamp{background:var(--amber);box-shadow:0 0 7px rgba(232,163,61,.7)}
+.lg-tune .lead{display:block;margin-top:2px;font:italic 400 11.5px/1.35 var(--sans);
+  color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ═══ THE PASTE — a transcript he hands over when the ear was off ═══════════ */
 .pst{position:fixed;inset:0;z-index:46;display:none;place-items:center;
   background:rgba(4,6,9,.72);padding:16px}
@@ -288,7 +296,8 @@ body{background:var(--void);color:var(--ink);font-family:var(--sans);
     <div class="law">WORDS ARE KEPT · AUDIO IS DESTROYED ON ARRIVAL · THE SAME TAP IS THE MUTE<br>
       LEAVING THIS PAGE CLOSES THE EAR — A CALL, ANOTHER APP, A DARK SCREEN. IT COMES BACK ON WHEN THE PAGE IS YOURS AGAIN.<br>
       ⚑ MARKS WHAT HIT YOU · TALK PAUSES THE EAR AND KEEPS YOUR WHY — NOTHING ANSWERS<br>
-      PLAYING ON THIS PHONE? THE EAR CANNOT HEAR IT — USE PASTE.</div>
+      PLAYING ON THIS PHONE? THE EAR CANNOT HEAR IT — USE PASTE.<br>
+      NO SIGNAL? TAKES AND FLAGS ARE HELD ON THIS PHONE AND SENT WHEN IT'S BACK, EACH AT ITS OWN MOMENT.</div>
   </div></div>
 </div>
 <div class="sc-scrim" id="scrim" hidden></div>
@@ -334,6 +343,8 @@ function toast(m){ const el = $("toast"); el.textContent = m; el.classList.add("
   clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("on"), 3200); }
 
 /* ── the ear ── */
+/* THE HOLD (card #446) — what the phone keeps until signal returns; see below */
+const H = { db:null, mem:[], n:0, busy:false, t:0, cut:0 };
 const E = { on:false, stream:null, mr:null, cycleT:0, wake:null,
             takes:0, kept:0, bytes:0, fails:0, ac:null, an:null, vuRaf:0,
             lastId:0,
@@ -343,6 +354,32 @@ const E = { on:false, stream:null, mr:null, cycleT:0, wake:null,
             sess:"", seq:0, takeT0:0, talking:false, mark:null, marks:[], waitT:0 };
 const TAKE_MS = 20000;                    // one take = 20s; back-to-back = continuous
 const FLAG = "almanac.sc.ear";            // his standing intent survives a reload
+/* ONE LISTEN, ONE SESSION (card #445). The ear closes for a call, another app
+   or a mute and opens again — and every opening used to mint a new session, so
+   10-18's Big Leap listen split in two at 12:47 when he stepped out to message.
+   Back inside RESUME_MS on the same day, the ear carries on the same listen:
+   same session, the take numbers running on. Kept on the device so a reload
+   carries on too. */
+const SESS_KEY = "almanac.ear.sess", RESUME_MS = 15 * 60000;
+function sessSave(){
+  if(!E.sess) return;
+  try{ localStorage.setItem(SESS_KEY, JSON.stringify({ sess:E.sess, seq:E.seq,
+    end:Date.now(), day:todayStr() })); }catch(e){}
+}
+function sessPick(){
+  try{
+    const s = JSON.parse(localStorage.getItem(SESS_KEY) || "null");
+    if(s && typeof s.sess === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(s.sess)
+       && Number.isInteger(s.seq) && s.seq >= 0 && s.day === todayStr()
+       && Date.now() - s.end < RESUME_MS){
+      /* past two takes of gap, the numbers skip one: the first flag after a
+         mute binds only its own take, never words from before the mute (the
+         review's catch — seq-1 would have been the take before the gap) */
+      E.sess = s.sess; E.seq = s.seq + (Date.now() - s.end > 2 * TAKE_MS ? 1 : 0); return;
+    }
+  }catch(e){}
+  E.sess = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); E.seq = 0;
+}
 
 function paint(){
   $("big").classList.toggle("on", E.on && !E.talking);
@@ -370,10 +407,11 @@ function paint(){
     $("counts").textContent = "keeping your words on the flag — the ear comes back on after";
     return;
   }
+  const held = H.n ? ` · ${H.n} held for signal` : "";
   $("counts").textContent = E.on || E.takes
     ? `${E.takes} takes · ${E.kept} kept · ${(E.bytes/1048576).toFixed(1)} MB shipped`
-      + (E.fails ? ` · ${E.fails} failed` : "")
-    : "the ear is off — nothing is heard, nothing is kept";
+      + (E.fails ? ` · ${E.fails} let go` : "") + held
+    : "the ear is off — nothing is heard, nothing is kept" + held;
 }
 const eesc = s => String(s ?? "").replace(/[&<>"]/g,
   c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -392,7 +430,14 @@ function feedAdd(row, ruling){
   el.innerHTML = `<span class="t">${eesc((row.at || "").slice(11,16))}</span>`
     + (row.source === "pasted" ? '<span class="t" style="color:var(--amber)">PASTED</span>' : "")
     + eesc(row.text || row.album || row.title || "");
-  f.prepend(el);                     // column-reverse: prepend = the bottom edge
+  /* a take held through a dead zone lands after takes heard later (card
+     #446): it takes its place by when it was heard, not at the edge */
+  const after = !ruling && row.at
+    ? [...f.querySelectorAll(".ln[data-at]")].find(x => x.dataset.at && x.dataset.at <= row.at)
+    : null;
+  if(!ruling && row.at && !after && f.querySelector(".ln[data-at]")) f.append(el);
+  else if(after) after.before(el);
+  else f.prepend(el);                // column-reverse: prepend = the bottom edge
   while(f.children.length > 200) f.lastChild.remove();
 }
 /* ══ THE BACK PAGES ══════════════════════════════════════════════════════════
@@ -447,7 +492,58 @@ function pageRow(d, on){
     acts.appendChild(flip);
   }
   row.appendChild(lamp); row.appendChild(tune); row.appendChild(acts); row.appendChild(hours);
+  if(!(d.sessions || []).length) return row;
+  const frag = document.createDocumentFragment();
+  frag.appendChild(row);
+  for(const s of d.sessions) frag.appendChild(sessRow(d, s));
+  return frag;
+}
+/* ══ THE EAR SESSIONS (card #445, his ask 10-18: "do we have a way to select
+   ear sessions. Kinda like we do with our sessions") ═══════════════════════
+   Under each day, one row per listen: his name for it (or its span until he
+   names it), the minutes and flags, and the first words it kept so a listen
+   can be told from another. Tap it and the page narrows to that listen's
+   words and flags; NAME is his hand, and an empty name gives the span back. */
+const sessLabel = s => s.name || `${s.from}–${s.to}`;
+function sessRow(d, s){
+  const row = document.createElement("div");
+  const live = E.on && s.session === E.sess;
+  row.className = "lg-row lg-sess" + (s.flags ? " lit" : "")
+                + (E.viewSess === s.session ? " now" : "");
+  const lamp = document.createElement("span"); lamp.className = "lamp";
+  const tune = document.createElement("button"); tune.className = "lg-tune";
+  tune.title = "read this listen — its own words and flags";
+  const bits = [];
+  if(s.name) bits.push(`${s.from}–${s.to}`);
+  bits.push(`${s.minutes} MIN`);
+  if(s.flags) bits.push(`⚑ ${s.flags}`);
+  if(live) bits.push("LISTENING NOW");
+  tune.innerHTML = `<span class="nm">${eesc(sessLabel(s))}</span>`
+    + `<span class="meta">${bits.join(" · ")}</span>`
+    + (s.lead ? `<span class="lead">“${eesc(s.lead)}”</span>` : "");
+  tune.addEventListener("click", () => { turnTo(d.day, s.session, sessLabel(s)); closeLog(); });
+  const acts = document.createElement("div"); acts.className = "lg-acts";
+  const nm = document.createElement("button");
+  nm.className = "lg-act"; nm.textContent = s.name ? "RENAME" : "NAME";
+  nm.title = "your name for this listen — an empty name gives its span back";
+  nm.addEventListener("click", e => { e.stopPropagation(); nameSess(s); });
+  acts.appendChild(nm);
+  row.appendChild(lamp); row.appendChild(tune); row.appendChild(acts);
   return row;
+}
+async function nameSess(s){
+  const v = prompt("Name this listen — what was playing?", s.name || "");
+  if(v === null) return;                                  // CANCEL keeps what was there
+  try{
+    const r = await fetch(url(`/api/listening/session/${encodeURIComponent(s.session)}/name`),
+      { method:"POST", headers: hdr({"Content-Type":"application/json"}),
+        body: JSON.stringify({ name: v }) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
+    toast(d.name ? `named — ${d.name}` : "name cleared — the span names it again");
+    if(E.viewSess === s.session){ E.viewLabel = d.name || `${s.from}–${s.to}`; paintKick(); }
+    loadPages();
+  }catch(err){ toast("the name did not take — " + (err.message || err)); }
 }
 function renderPages(){
   const list = $("pagelist"), off = $("offlist"), head = $("offhead");
@@ -473,28 +569,36 @@ async function loadPages(){
 function todayStr(){ const n = new Date();
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; }
 function paintKick(){
-  $("kick").textContent = E.viewing ? "THE BACK PAGES · " + E.viewing.toUpperCase()
-                                    : "THE DIET · INTAKE";
+  $("kick").textContent = E.viewSess ? "ONE LISTEN · " + (E.viewLabel || "").toUpperCase()
+                        : E.viewing ? "THE BACK PAGES · " + E.viewing.toUpperCase()
+                        : "THE DIET · INTAKE";
 }
-async function turnTo(day){
+async function turnTo(day, sess, label){
   /* THE RULING: the page rules itself in from the top, line by line, the way a
      ledger gets written. Turning back a page never stops the ear — today keeps
-     landing in the ledger behind it. */
+     landing in the ledger behind it. One listen (card #445) is a page of its
+     own, even today's: the live ear keeps landing behind it, and tapping
+     today in the book brings the live page back. */
   const isToday = day === todayStr();
-  E.viewing = isToday ? null : day;
+  E.viewSess = sess || null; E.viewLabel = sess ? (label || "") : "";
+  E.viewing = isToday && !sess ? null : day;
   paintKick(); renderPages();
   const f = $("feed"); f.textContent = "";
   try{
-    const d = await fetch(url(`/api/listening/day/${day}`), { headers: hdr() }).then(x => x.json());
+    const q = sess ? `?session=${encodeURIComponent(sess)}` : "";
+    const d = await fetch(url(`/api/listening/day/${day}${q}`), { headers: hdr() }).then(x => x.json());
+    if(E.viewSess !== (sess || null) || E.viewing !== (isToday && !sess ? null : day)) return;   // he turned again meanwhile
     const rows = d.rows || [];
     if(!rows.length){ f.innerHTML = '<div class="none">nothing was kept on this page</div>'; }
     else rows.forEach((r, i) => feedAdd(r, i + 1));
-    loadMarks(isToday ? null : day);
-    $("counts").textContent = isToday
+    loadMarks(E.viewing, E.viewSess);
+    $("counts").textContent = sess
+      ? `${rows.length} line(s) in this listen — tap today in the book for the live ear`
+      : isToday
       ? (E.on ? "listening — today" : "today's page")
       : `${rows.length} line(s) kept on ${day}` + (d.page ? " · the night wrote this page"
                                                           : " · no entry written");
-    if(!isToday) toast("turned back to " + day + " — the ear keeps landing on today");
+    if(!isToday && !sess) toast("turned back to " + day + " — the ear keeps landing on today");
   }catch(e){ f.innerHTML = '<div class="none">that page would not open</div>'; }
 }
 function openLog(){ $("scrim").hidden = false; requestAnimationFrame(() => {
@@ -516,20 +620,173 @@ async function pullTrail(){
     loadMarks();
   }catch(e){}
 }
+/* ══ THE HOLD (card #446) ═══════════════════════════════════════════════════
+   10-18 12:26: two takes never reached the spine and the flag after them lost
+   the words before its tap — a dead zone, and the page counted the takes and
+   dropped them. Now a take or a tap that cannot be sent is HELD on this phone
+   (IndexedDB, so a reload or a killed page keeps it; memory if the store is
+   refused) and sent oldest-first when signal returns, each stamped with when
+   it was heard. Only a refusal — the spine saying the thing itself is wrong —
+   is let go, and it says so. ══ */
+const HOLD_MAX = 240;              // ~80 min of takes; past it the oldest TAKES go, said out loud
+const TAKE_WAIT_MS = 120000;       // twice the spine's slowest take (the CLI floor, or behind a TALK); past it, held
+const holdable = s => !(s === 400 || s === 404 || s === 413 || s === 422);
+function holdOpen(){
+  return new Promise(res => {
+    try{
+      const rq = indexedDB.open("almanac-ear-hold", 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore("q", { keyPath:"k", autoIncrement:true });
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => res(null);
+    }catch(e){ res(null); }
+  });
+}
+async function holdDB(){ if(H.db === null) H.db = (await holdOpen()) || false; return H.db; }
+function idb(db, mode, fn){
+  return new Promise((res, rej) => {
+    const t = db.transaction("q", mode), rq = fn(t.objectStore("q"));
+    t.oncomplete = () => res(rq && rq.result); t.onerror = t.onabort = () => rej(t.error);
+  });
+}
+async function holdList(){
+  const db = await holdDB(); let rows = [];
+  if(db){ try{ rows = (await idb(db, "readonly", st => st.getAll())) || []; }catch(e){} }
+  return rows.concat(H.mem);
+}
+async function holdDel(it){
+  if(it.k !== undefined){
+    const db = await holdDB();
+    if(db) try{ await idb(db, "readwrite", st => st.delete(it.k)); }catch(e){}
+  }else H.mem = H.mem.filter(x => x !== it);
+}
+async function holdCount(){
+  const db = await holdDB(); let n = 0;
+  if(db){ try{ n = (await idb(db, "readonly", st => st.count())) || 0; }catch(e){} }
+  H.n = n + H.mem.length; paint(); return H.n;
+}
+function holdOrder(rows){
+  /* a tap goes after the takes it binds to (the review's catch): queued while
+     its own take was still recording, it would land first, read BARE, and the
+     night could ink it 'no words around it' */
+  const rest = rows.slice(), out = [];
+  while(rest.length){
+    const it = rest[0];
+    if(it.kind === "flag"){
+      const j = rest.findIndex(r => r.kind === "take" && r.sess === it.sess && r.seq <= it.seq);
+      if(j > 0){ out.push(rest.splice(j, 1)[0]); continue; }
+    }
+    out.push(rest.shift());
+  }
+  return out;
+}
+async function holdCut(over){
+  /* past the cap the oldest TAKES go — a flag is a few bytes and his. A cursor
+     from the oldest, so only what is cut is ever read */
+  let cut = 0;
+  const db = await holdDB();
+  if(db){
+    try{ await new Promise((res, rej) => {
+      const t = db.transaction("q", "readwrite"), rq = t.objectStore("q").openCursor();
+      rq.onsuccess = () => { const cur = rq.result; if(!cur || over <= 0) return;
+        if(cur.value.kind === "take"){ cur.delete(); over--; cut++; } cur.continue(); };
+      t.oncomplete = res; t.onerror = t.onabort = () => rej(t.error);
+    }); }catch(e){}
+  }
+  for(let i = 0; i < H.mem.length && over > 0;){
+    if(H.mem[i].kind === "take"){ H.mem.splice(i, 1); over--; cut++; } else i++;
+  }
+  return cut;
+}
+async function holdPut(it){
+  it.held = true;                    // from here it carries the phone's own clock
+  const db = await holdDB(); let put = false;
+  if(db){ try{ await idb(db, "readwrite", st => st.add(it)); put = true; }catch(e){} }
+  if(!put) H.mem.push(it);
+  const over = (await holdCount()) - HOLD_MAX;
+  if(over > 0){
+    const cut = await holdCut(over);
+    if(cut){ H.cut += cut;
+      toast(`the hold is full — the oldest ${H.cut} take(s) were let go to keep the newest`); }
+    await holdCount();
+  }
+  holdSoon(30000);
+}
+function holdSoon(ms){ clearTimeout(H.t); if(H.n) H.t = setTimeout(drain, ms); }
+async function sendTake(it){
+  const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), TAKE_WAIT_MS);
+  try{
+    const r = await fetch(url("/api/listening/sample"), { method:"POST", signal: ctrl.signal,
+      /* only a HELD take carries the phone's clock — a live one keeps the
+         spine's arrival clock, so a phone running a few minutes off never
+         files a take in the wrong place */
+      headers: hdr(Object.assign({ "Content-Type": it.type || "audio/webm", "X-Device": "fold7-ear",
+                     "X-Ear-Session": it.sess, "X-Take-Seq": String(it.seq) },
+                     it.held ? { "X-Take-At": it.at } : {})),
+      body: it.blob });
+    const d = await r.json().catch(() => ({}));
+    /* a 200 that is not the spine's answer (a hotel or truck-stop login page)
+       is no signal, not a kept take */
+    if(r.ok && typeof d.kept === "boolean"){ if(d.kept){ E.kept++; pullTrail(); } return "ok"; }
+    if(r.ok) return "hold";
+    return holdable(r.status) ? "hold" : (d.error || "the spine answered " + r.status);
+  }catch(err){ return "hold"; }
+  finally{ clearTimeout(tm); }
+}
+async function sendFlag(it){
+  const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 8000);
+  try{
+    const r = await fetch(url("/api/listening/flag"), { method:"POST", signal: ctrl.signal,
+      headers: hdr({"Content-Type":"application/json"}),
+      body: JSON.stringify({ session: it.sess, seq: it.seq, offset_ms: it.offset_ms,
+                             device: "fold7-ear", at: it.held ? it.at : undefined }) });
+    const d = await r.json().catch(() => ({}));
+    if(r.ok && d.id) return { id: d.id };
+    if(r.ok) return "hold";
+    return holdable(r.status) ? "hold" : (d.error || "the spine answered " + r.status);
+  }catch(err){ return "hold"; }
+  finally{ clearTimeout(tm); }
+}
+async function drain(){
+  /* oldest first (a tap after its takes), one at a time; the first that still
+     cannot go stops the run and the next try waits — a dead zone is not
+     hammered. The hold is read once per pass, never once per item: each read
+     carries every held take's audio */
+  if(H.busy) return; H.busy = true; clearTimeout(H.t);
+  let sent = 0, stuck = false;
+  try{
+    for(;;){
+      const batch = holdOrder(await holdList());
+      if(!batch.length) break;
+      for(const it of batch){
+        const out = it.kind === "flag" ? await sendFlag(it) : await sendTake(it);
+        if(out === "hold"){ stuck = true; break; }
+        await holdDel(it);
+        if(typeof out === "string" && out !== "ok"){
+          E.fails++; toast(`a held ${it.kind} was refused — ${out}`);
+        }else sent++;
+      }
+      if(stuck) break;
+    }
+  }finally{ H.busy = false; }
+  await holdCount();
+  if(stuck) holdSoon(30000);
+  if(sent){ toast(`signal's back — ${sent} held ${sent === 1 ? "thing" : "things"} sent, each at its own moment`);
+            loadMarks(E.viewing || null, E.viewSess); }
+}
 async function post(blob, sess, seq){
   E.takes++; E.bytes += blob.size;
-  try{
-    const r = await fetch(url("/api/listening/sample"), { method:"POST",
-      headers: hdr({ "Content-Type": blob.type || "audio/webm", "X-Device": "fold7-ear",
-                     "X-Ear-Session": sess, "X-Take-Seq": String(seq) }),
-      body: blob });
-    const d = await r.json().catch(() => ({}));
-    if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
-    if(d.kept){ E.kept++; pullTrail(); }
-  }catch(err){
+  /* the take ENDED now — that is the clock the row carries, held or not */
+  const it = { kind:"take", blob, type: blob.type || "audio/webm", sess, seq,
+               at: new Date().toISOString() };
+  if(H.n){ await holdPut(it); drain(); return paint(); }   // behind what is already held, in order
+  const out = await sendTake(it);
+  if(out === "hold"){
+    await holdPut(it);
+    if(H.n === 1) toast("no signal — the ear is holding takes and sends them when it's back");
+  }else if(out !== "ok"){
     E.fails++;
-    /* the ear survives a bad POST — count it, keep listening, say it once */
-    if(E.fails === 1 || E.fails % 10 === 0) toast("a take was lost — " + (err.message || err));
+    /* refused, not unreachable: holding it would only refuse again */
+    if(E.fails === 1 || E.fails % 10 === 0) toast("a take was refused — " + out);
   }
   paint();
 }
@@ -544,6 +801,7 @@ function cycle(){
   E.mr = mr;
   const sess = E.sess, seq = ++E.seq;      // this take's name, fixed before it records
   E.takeT0 = performance.now();
+  sessSave();                              // the listen carries on past a mute or a reload
   mr.addEventListener("dataavailable", ev => { if(ev.data && ev.data.size > 2048) post(ev.data, sess, seq); });
   mr.addEventListener("stop", () => { if(E.on) cycle(); });
   mr.start();
@@ -564,7 +822,7 @@ async function arm(){
   if(E.armCancel){ stream.getTracks().forEach(t => t.stop()); E.armCancel = false; paint(); return; }
   E.stream = stream;
   E.on = true; localStorage.setItem(FLAG, "1");
-  E.sess = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); E.seq = 0;
+  sessPick();                              // the same listen if he is back inside RESUME_MS (card #445)
   try{ E.wake = await navigator.wakeLock?.request("screen"); }catch(e){}
   /* the ring breathes with the ROOM's real level — a measurement, not a mood */
   try{
@@ -590,6 +848,7 @@ function disarm(silent, keepFlag){
   if(E.arming) E.armCancel = true;          // a mic still answering is stopped when it does
   if(!E.on){ paint(); return; }
   E.on = false;
+  sessSave();                               // the listen's clock stops here, not at its last take's start
   clearTimeout(E.cycleT);
   try{ E.mr && E.mr.state !== "inactive" && E.mr.stop(); }catch(e){}
   E.mr = null;
@@ -655,7 +914,7 @@ $("pstsend").addEventListener("click", async () => {
     toast(`kept — ${d.rows} line(s), ${d.words.toLocaleString()} words`);
     $("psttext").value = ""; $("pstlabel").value = ""; $("pstcnt").textContent = "0 words";
     $("pstwrap").classList.remove("on");
-    E.lastId = 0; E.viewing = null; paintKick();
+    E.lastId = 0; E.viewing = null; E.viewSess = null; paintKick();
     $("feed").textContent = ""; pullTrail(); loadPages();
   }catch(err){ toast(err.message || String(err)); }
   finally{ $("pstsend").disabled = false; $("pstsend").textContent = "KEEP IT"; }
@@ -665,19 +924,24 @@ $("pstsend").addEventListener("click", async () => {
    and the one before. UNDO rides a strip for six seconds — a reversible mark,
    so a tap is the right gesture on a moving dash. ══ */
 const MARK_UNDO_MS = 6000, TALK_REUSE_MS = 60000, SILENCE_MS = 1800;
-async function loadMarks(day){
+async function loadMarks(day, sess){
   /* no day = TODAY, and today is the spine's clock (the rows are stamped by
-     the Mac, not this phone); a back page names its own day */
+     the Mac, not this phone); a back page names its own day, one listen its
+     own session (card #445) */
+  sess = sess || null;
   try{
-    const d = await fetch(url("/api/listening/flags" + (day ? `?day=${day}` : "")),
+    const q = [day ? `day=${day}` : "", sess ? `session=${encodeURIComponent(sess)}` : ""]
+      .filter(Boolean).join("&");
+    const d = await fetch(url("/api/listening/flags" + (q ? "?" + q : "")),
                           { headers: hdr() }).then(x => x.json());
     if(day ? E.viewing !== day : E.viewing) return;   // he turned the page meanwhile
+    if(sess !== (E.viewSess || null)) return;
     E.marks = d.flags || [];
     paintMarks();
     /* a flag still WAITING for its take re-reads until the words land — one
        loop, never stacked */
     clearTimeout(E.waitT);
-    if(E.marks.some(m => m.state === "waiting")) E.waitT = setTimeout(() => loadMarks(day), 5000);
+    if(E.marks.some(m => m.state === "waiting")) E.waitT = setTimeout(() => loadMarks(day, sess), 5000);
   }catch(e){ /* the margin never breaks the ear */ }
 }
 function paintMarks(){
@@ -711,24 +975,26 @@ function paintMarks(){
 async function mark(silent){
   if(!E.on || !E.sess) return null;
   const offset_ms = Math.round(performance.now() - E.takeT0);
-  const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 8000);
-  try{
-    const r = await fetch(url("/api/listening/flag"), { method:"POST",
-      headers: hdr({"Content-Type":"application/json"}), signal: ctrl.signal,
-      body: JSON.stringify({ session: E.sess, seq: E.seq, offset_ms, device: "fold7-ear" }) });
-    const d = await r.json().catch(() => ({}));
-    if(!r.ok) throw new Error(d.error || ("the spine answered " + r.status));
-    E.mark = { id: d.id, t: Date.now() };
-    const b = $("markbtn"); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit");
-    try{ navigator.vibrate && navigator.vibrate(14); }catch(e){}
-    if(!silent) showUndo(d.id);
-    loadMarks();
-    return d.id;
-  }catch(err){
-    toast(err.name === "AbortError" ? "the flag did not take — the spine did not answer in 8s"
-                                    : "the flag did not take — " + (err.message || err));
+  const it = { kind:"flag", sess: E.sess, seq: E.seq, offset_ms, at: new Date().toISOString() };
+  const b = $("markbtn");
+  const out = await sendFlag(it);
+  if(out === "hold"){
+    /* no signal: the tap is HELD (card #446) — it lands at the moment he
+       tapped, bound to the takes held with it. No id yet, so no UNDO strip;
+       the mark can be undone from the trail once it lands. */
+    await holdPut(it);
+    b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit");
+    try{ navigator.vibrate && navigator.vibrate([14, 60, 14]); }catch(e){}
+    toast("⚑ held — no signal; it lands at this moment when signal's back");
     return null;
-  }finally{ clearTimeout(tm); }
+  }
+  if(typeof out === "string"){ toast("the flag did not take — " + out); return null; }
+  E.mark = { id: out.id, t: Date.now() };
+  b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit");
+  try{ navigator.vibrate && navigator.vibrate(14); }catch(e){}
+  if(!silent) showUndo(out.id);
+  loadMarks();
+  return out.id;
 }
 let undoT = 0;
 function showUndo(id){
@@ -744,7 +1010,7 @@ $("undobtn").addEventListener("click", async () => {
     if(!r.ok) throw new Error("the spine answered " + r.status);
     if(E.mark && String(E.mark.id) === String(id)) E.mark = null;
     toast("unflagged");
-    loadMarks(E.viewing || null);
+    loadMarks(E.viewing || null, E.viewSess);
   }catch(err){ toast("the undo did not take — " + (err.message || err)); }
 });
 /* a bump in the road is not a second moment: one flag per 1.5 s */
@@ -909,6 +1175,10 @@ if(localStorage.getItem(FLAG) === "1") arm();
 paint();
 pullTrail();   // the day's trail meets him on open, armed or not
 loadPages();   // and the lamp says whether a page is waiting
+/* what a dead zone left held — even from a page that was killed — goes the
+   moment the page is back and again whenever the phone says it is online */
+holdCount().then(n => { if(n) drain(); });
+addEventListener("online", () => drain());
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
