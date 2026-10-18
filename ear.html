@@ -431,13 +431,16 @@ function feedAdd(row, ruling){
     + (row.source === "pasted" ? '<span class="t" style="color:var(--amber)">PASTED</span>' : "")
     + eesc(row.text || row.album || row.title || "");
   /* a take held through a dead zone lands after takes heard later (card
-     #446): it takes its place by when it was heard, not at the edge */
-  const after = !ruling && row.at
-    ? [...f.querySelectorAll(".ln[data-at]")].find(x => x.dataset.at && x.dataset.at <= row.at)
-    : null;
-  if(!ruling && row.at && !after && f.querySelector(".ln[data-at]")) f.append(el);
-  else if(after) after.before(el);
-  else f.prepend(el);                // column-reverse: prepend = the bottom edge
+     #446): it takes its place by when it was heard, not at the edge. The
+     NEWEST line still goes to the bottom edge exactly as it always did — only
+     a line heard before the newest one is placed among the others (10-18:
+     placing every line put new words above a flag that sat at the edge) */
+  const heard = !ruling && row.at
+    ? [...f.querySelectorAll(".ln[data-at]")].filter(x => x.dataset.at) : [];
+  const after = heard.find(x => x.dataset.at <= row.at);
+  if(heard.length && after !== heard[0]){
+    if(after) after.before(el); else f.append(el);
+  }else f.prepend(el);               // column-reverse: prepend = the bottom edge
   while(f.children.length > 200) f.lastChild.remove();
 }
 /* ══ THE BACK PAGES ══════════════════════════════════════════════════════════
@@ -955,6 +958,14 @@ function paintMarks(){
     mine.forEach(el => el.classList.add("bound"));
     /* the mark sits just under its newest bound line; with nothing bound yet,
        under the newest line that landed before the tap */
+    /* A FLAG WHOSE WORDS SCROLLED OUT stays off the live trail (his report
+       10-18: "it is not behaving like it used to"). The trail keeps the last
+       200 lines; a flag older than all of them had no line to sit under and
+       fell to the bottom edge — eleven of the morning's flags stacked exactly
+       where the live words and his new flag land. Its words and the flag are
+       on the back pages (the day, or the listen). */
+    const oldest = rows.length ? rows[rows.length - 1].dataset.at : "";
+    if(!mine.length && oldest && m.at < oldest) continue;
     const anchor = mine[0] || rows.find(el => el.dataset.at && el.dataset.at <= m.at);
     const fl = document.createElement("div");
     fl.className = "ln flagln" + (m.state === "waiting" ? " wait" : m.state === "bare" ? " bare" : "");
