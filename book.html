@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<title>Book a Load — the almanac</title>
+<!-- BOOK A LOAD (card #448, his ask 2026-10-21): "everything gets created like
+     a normal rate con drop...either be asked inputs or take a picture with
+     inputs". A photo and/or his words -> the spine reads them into the Load Log
+     fields (/api/booking/read), names every blank he owes, and FILE IT runs the
+     rate-con chain's own hands (/api/booking/file): the Load Log row, the
+     folder, the invoice, BMH available, the maps-link text. Nothing is filed
+     until his tap. API base + token ride the same localStorage keys the desk
+     uses, like FILL & SIGN. -->
+<link rel="icon" href="icons/favicon.png" type="image/png">
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --gold:#e5b524; --ink:#e6edf3;
+          --dim:#8b949e; --red:#f85149; --good:#3fb950; --amber:#d29922; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body { background:var(--bg); color:var(--ink); font:16px -apple-system,'Segoe UI',Roboto,sans-serif;
+         padding:0 16px calc(130px + env(safe-area-inset-bottom)); }
+  header { position:sticky; top:0; z-index:20; background:var(--panel); border-bottom:1px solid var(--line);
+           margin:0 -16px 16px; padding:12px 16px; display:flex; align-items:center; gap:10px; }
+  header h1 { font-size:18px; color:var(--gold); flex:1; letter-spacing:.04em; }
+  header a { color:var(--dim); font-size:14px; text-decoration:none; }
+  .btn { display:block; width:100%; background:#21262d; color:var(--ink); border:1px solid var(--line);
+         border-radius:12px; padding:16px; font-size:17px; font-weight:700; cursor:pointer; text-align:center; }
+  .btn:active { transform:scale(.98); }
+  .btn.gold { background:var(--gold); color:#111; border-color:var(--gold); }
+  .btn[disabled] { opacity:.45; }
+  .row2 { display:flex; gap:10px; }
+  .row2 > * { flex:1; }
+  input[type=file] { display:none; }
+  #shot { display:none; width:100%; max-height:260px; object-fit:contain; border-radius:12px;
+          border:1px solid var(--line); margin-top:12px; background:#000; }
+  textarea { width:100%; min-height:96px; margin:14px 0; padding:14px; border-radius:12px; font:inherit;
+             border:1px solid var(--line); background:var(--panel); color:var(--ink); resize:vertical; }
+  .say { color:var(--dim); font-size:14px; line-height:1.45; margin:4px 0 0; }
+  .msg { margin:14px 0; font-size:16px; line-height:1.45; }
+  .msg.err { color:var(--red); font-weight:700; }
+  .group { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:14px 0; }
+  .group h2 { font-size:13px; letter-spacing:.14em; color:var(--gold); margin-bottom:8px; }
+  .f { margin:10px 0 0; }
+  .f label { display:flex; justify-content:space-between; gap:8px; font-size:12px; letter-spacing:.08em;
+             color:var(--dim); text-transform:uppercase; margin-bottom:4px; }
+  .f input { width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--bg);
+             color:var(--ink); font:inherit; font-size:17px; }
+  .f.need input { border:2px solid var(--red); }
+  .f.need label b { color:var(--red); }
+  .f .guess { color:var(--amber); text-transform:none; letter-spacing:0; }
+  .f input[readonly] { color:var(--dim); }
+  .notes p { color:var(--dim); font-size:14px; line-height:1.45; margin:6px 0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .chip { background:transparent; color:var(--ink); border:1px solid var(--gold); border-radius:18px;
+          padding:9px 14px; font-size:15px; cursor:pointer; }
+  .plan { font-size:20px; font-weight:800; line-height:1.35; margin:6px 0 2px; }
+  .plan i { display:block; font-style:normal; font-size:15px; font-weight:600; color:var(--dim); margin-top:4px; }
+  #dock { position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--panel);
+          border-top:1px solid var(--line); padding:12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .done { font-size:26px; font-weight:900; color:var(--good); margin:18px 0 6px; }
+  .half { font-size:24px; font-weight:900; color:var(--amber); margin:18px 0 6px; }
+  .step { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:16px; line-height:1.4; }
+  .step b { flex:0 0 22px; }
+  .step.bad { color:var(--red); }
+  .step span i { display:block; font-style:normal; color:var(--dim); font-size:14px; word-break:break-word; }
+  .hide { display:none !important; }
+</style>
+</head>
+<body>
+<header><h1>📸 BOOK A LOAD</h1><a href="./desk.html">desk</a></header>
+
+<section id="intake">
+  <div class="row2">
+    <label class="btn gold" for="cam">📷 CAMERA</label>
+    <label class="btn" for="pick">🖼 SCREENSHOT</label>
+  </div>
+  <input type="file" id="cam" accept="image/*" capture="environment">
+  <input type="file" id="pick" accept="image/*">
+  <img id="shot" alt="the photo going with this load">
+  <textarea id="words" placeholder="In your words: who, pickup and delivery, the dates, the rate.
+e.g. Stark Summit — picking up today, delivering tomorrow to their new HQ in NC, $1200"></textarea>
+  <p class="say">A photo, your words, or both. Nothing is filed until you tap FILE IT.</p>
+  <div class="msg" id="readMsg"></div>
+</section>
+
+<section id="card" class="hide"></section>
+<section id="receipt" class="hide"></section>
+
+<div id="dock"><button class="btn gold" id="go">READ IT</button></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const lsGet = k => { try { return localStorage.getItem(k) || ""; } catch (_) { return ""; } };
+const API = lsGet("almanac_api"), TOK = lsGet("almanac_token");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const B = { image: "", fill: null, draft: null, stage: "read", busy: false };
+
+/* the groups he reads top to bottom — [key, label, kind] */
+const GROUPS = [
+  ["CUSTOMER", [["broker_name","customer"],["broker_agent","contact"],["broker_phone","phone"],["invoice_email","invoice email"]]],
+  ["LOAD", [["load_number","load #"],["invoice_number","invoice #","ro"]]],
+  ["PICKUP", [["pickup_company","company"],["pickup_address","address"],["pickup_city","city"],
+              ["pickup_state","state"],["pickup_zip","zip"],["pickup_date","date","date"]]],
+  ["DELIVERY", [["delivery_company","deliver to"],["delivery_address","address"],["delivery_city","city"],
+                ["delivery_state","state"],["delivery_zip","zip"],["delivery_date","date","date"],
+                ["delivery_contact","contact"],["delivery_phone","phone"]]],
+  ["MONEY & FREIGHT", [["total_rate","rate ($)","money"],["commodity","freight"],["weight_lbs","weight (lbs)"]]],
+];
+const REQUIRED = ["broker_name","invoice_email","load_number","pickup_city","pickup_state","pickup_date",
+                  "delivery_company","delivery_city","delivery_state","delivery_date","total_rate"];
+
+const toIso = v => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v || ""); return m ? `${m[3]}-${m[1]}-${m[2]}` : (v || ""); };
+const fromIso = v => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? `${m[2]}/${m[3]}/${m[1]}` : (v || ""); };
+
+async function call(path, body){
+  if(!API || !TOK) throw new Error("this phone is not connected — open the desk once, then come back");
+  const r = await fetch(API + path, { method:"POST",
+    headers:{ "Content-Type":"application/json", Authorization:"Bearer " + TOK },
+    body: JSON.stringify(body) });
+  const o = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.ok, o };
+}
+
+/* a phone photo can run 8 MB; the text in it reads fine at 2000px */
+function shrink(file){
+  return new Promise((res, rej) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, 2000 / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u);
+      res(c.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); rej(new Error("that file did not open as a picture")); };
+    img.src = u;
+  });
+}
+for (const id of ["cam", "pick"]) $(id).addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if(!f) return;
+  try {
+    B.image = await shrink(f);
+    $("shot").src = B.image; $("shot").style.display = "block";
+    $("readMsg").textContent = "";
+  } catch(err){ $("readMsg").textContent = err.message; $("readMsg").className = "msg err"; }
+});
+
+function missingNow(){ return REQUIRED.filter(k => !String(B.draft[k] || "").trim()); }
+
+function paintCard(){
+  const f = B.fill, d = B.draft, miss = missingNow(), as = f.assumed || {};
+  let h = "";
+  if((f.notes || []).length || (f.candidates || []).length){
+    h += `<div class="group notes"><h2>WHAT I FOUND</h2>${(f.notes||[]).map(n => `<p>${esc(n)}</p>`).join("")}`;
+    if((f.candidates||[]).length) h += `<div class="chips">${f.candidates.map(c =>
+      `<button class="chip" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>`;
+    h += `</div>`;
+  }
+  for (const [title, fields] of GROUPS){
+    h += `<div class="group"><h2>${title}</h2>`;
+    for (const [k, label, kind] of fields){
+      const need = miss.includes(k), guess = as[k];
+      const v = kind === "date" ? toIso(d[k]) : (d[k] || "");
+      h += `<div class="f${need ? " need" : ""}"><label><span>${esc(label)}${need ? " <b>· NEEDED</b>" : ""}</span>${
+        guess ? `<span class="guess">${esc(guess)}</span>` : ""}</label>
+        <input data-k="${k}" ${kind === "date" ? 'type="date"' : kind === "money" ? 'inputmode="decimal"' : 'type="text"'}
+          ${kind === "ro" ? "readonly" : ""} value="${esc(v)}"></div>`;
+    }
+    h += `</div>`;
+  }
+  const r = parseFloat(String(d.total_rate || "").replace(/[^0-9.]/g, ""));
+  h += `<div class="group"><h2>FILE IT DOES</h2><div class="plan">${esc(d.broker_name || "—")} · load ${esc(d.load_number || "—")}
+    <i>${esc(d.pickup_city || "—")}, ${esc(d.pickup_state || "")} → ${esc(d.delivery_city || "—")}, ${esc(d.delivery_state || "")} ·
+    ${r > 0 ? "$" + r.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : "rate —"}</i></div>
+    <p class="say">Load Log row · folder · invoice · BMH available · the maps text. No email yet — that comes with the BOL scan, like a rate con.</p></div>`;
+  h += `<button class="btn" id="again">START OVER</button>`;
+  $("card").innerHTML = h;
+  $("card").querySelectorAll("input[data-k]").forEach(el => el.addEventListener("input", () => {
+    const k = el.dataset.k;
+    B.draft[k] = el.type === "date" ? fromIso(el.value) : el.value;
+    const box = el.closest(".f"), need = REQUIRED.includes(k) && !String(B.draft[k]).trim();
+    box.classList.toggle("need", need);
+    paintDock();
+  }));
+  $("card").querySelectorAll(".chip").forEach(el => el.addEventListener("click", async () => {
+    el.textContent = "filling…";
+    const res = await call("/api/booking/fill", { read: { ...f.read, customer: el.dataset.c } }).catch(e => ({ o:{ error:e.message } }));
+    if(res.ok){ B.fill = res.o; B.draft = { ...res.o.draft }; paintCard(); paintDock(); }
+    else el.textContent = res.o.error || "could not fill";
+  }));
+  $("again").addEventListener("click", reset);
+}
+
+function paintDock(){
+  const go = $("go");
+  if(B.stage === "read"){ go.textContent = B.busy ? "READING…" : "READ IT"; go.disabled = B.busy; return; }
+  if(B.stage === "card"){
+    const miss = missingNow();
+    go.disabled = B.busy || miss.length > 0;
+    go.textContent = B.busy ? "FILING…" : miss.length ? `${miss.length} BLANK${miss.length > 1 ? "S" : ""} TO FILL` : "FILE IT";
+    return;
+  }
+  go.disabled = false; go.textContent = "BOOK ANOTHER";
+}
+
+async function doRead(){
+  const words = $("words").value.trim();
+  if(!words && !B.image){ $("readMsg").textContent = "Take a photo or say it in words first."; $("readMsg").className = "msg err"; return; }
+  B.busy = true; paintDock();
+  $("readMsg").textContent = "reading…"; $("readMsg").className = "msg";
+  try {
+    const res = await call("/api/booking/read", { text: words, image: B.image });
+    if(!res.ok){ $("readMsg").textContent = res.o.error || `the spine said ${res.status}`; $("readMsg").className = "msg err"; return; }
+    B.fill = res.o; B.draft = { ...res.o.draft }; B.stage = "card";
+    $("intake").classList.add("hide"); $("card").classList.remove("hide");
+    paintCard(); window.scrollTo(0, 0);
+  } catch(err){ $("readMsg").textContent = err.message; $("readMsg").className = "msg err"; }
+  finally { B.busy = false; paintDock(); }
+}
+
+async function doFile(){
+  B.busy = true; paintDock();
+  try {
+    const res = await call("/api/booking/file", { draft: B.draft, image: B.image });
+    const o = res.o;
+    if(!o.steps){
+      /* refused before anything landed: a blank, a second tap, the sheet unreachable */
+      $("receipt").innerHTML = `<div class="msg err">${esc(o.error || "the spine said " + res.status)}</div>`;
+      $("receipt").classList.remove("hide");
+      $("receipt").scrollIntoView({ block:"start" });
+      return;
+    }
+    const all = o.ok === true;
+    $("receipt").innerHTML = `<div class="${all ? "done" : "half"}">${all ? "✓ FILED" : "⚠ FILED — NOT ALL OF IT"}</div>
+      <div class="plan">${esc(o.plan.customer)} · load ${esc(o.plan.load)}<i>line ${esc(o.line || o.plan.line)} · invoice ${esc(o.plan.invoice)} · ${esc(o.plan.rate)}</i></div>
+      ${o.steps.map(s => `<div class="step${s.ok ? "" : " bad"}"><b>${s.ok ? "✓" : "✗"}</b><span>${esc(s.step)}<i>${esc(s.said)}</i></span></div>`).join("")}`;
+    B.stage = "done";
+    $("card").classList.add("hide"); $("receipt").classList.remove("hide");
+    window.scrollTo(0, 0);
+  } catch(err){
+    $("receipt").innerHTML = `<div class="msg err">${esc(err.message)} — check the Load Log before tapping again</div>`;
+    $("receipt").classList.remove("hide");
+  } finally { B.busy = false; paintDock(); }
+}
+
+function reset(){
+  Object.assign(B, { image:"", fill:null, draft:null, stage:"read", busy:false });
+  $("words").value = ""; $("shot").style.display = "none"; $("readMsg").textContent = "";
+  $("intake").classList.remove("hide"); $("card").classList.add("hide"); $("receipt").classList.add("hide");
+  $("card").innerHTML = $("receipt").innerHTML = "";
+  paintDock(); window.scrollTo(0, 0);
+}
+
+$("go").addEventListener("click", () => {
+  if(B.busy) return;
+  if(B.stage === "read") doRead();
+  else if(B.stage === "card") doFile();
+  else reset();
+});
+if(!API || !TOK){ $("readMsg").textContent = "This phone is not connected yet — open the desk once, then come back."; $("readMsg").className = "msg err"; }
+paintDock();
+</script>
+</body>
+</html>
