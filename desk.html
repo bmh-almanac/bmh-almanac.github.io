@@ -6855,7 +6855,7 @@ function haulCard(l, opts){
       ${esc(l.instructions_rest)}</div>` : ""}
     ${broker ? `<div class="hlBrokerLn">${broker}</div>` : ""}
     ${(l.drive_folder_link || "").startsWith("http") ? `<div class="hlBrokerLn"><a href="${esc(l.drive_folder_link)}" target="_blank" rel="noopener">THE PAPERS — rate con, BOL, invoice</a></div>` : ""}
-    <div class="hlActs"><button class="btn go bolBtn" data-bol="${esc(l.load_number)}">📄 MAKE BOL</button>
+    <div class="hlActs"><button class="btn go bolBtn" data-bol="${esc(l.load_number)}" data-row="${esc(l.sheet_row)}">📄 MAKE BOL</button>
       <a class="btn go" href="./sign.html?row=${l.sheet_row}" target="_blank" rel="noopener" style="text-decoration:none" title="open this load's rate con to sign">✍️ FILL &amp; SIGN</a>${
       opts.road ? `<span class="roadSeg"><button type="button" class="btn roadMode${State.roadMode === "partial" ? " on" : ""}" data-m="partial" title="running partials — the cheapest legal order across the book">PARTIAL</button><button type="button" class="btn roadMode${State.roadMode === "full" ? " on" : ""}" data-m="full" title="one load at a time — finish it, then the next pickup">FULL</button></span>` : ""}</div>
   </div>`;
@@ -6914,19 +6914,22 @@ function wireHearBtns(root){
 
 /* MAKE BOL — the old MC contract, spoken to the spine: need_weight comes
    back as a question, never a silent zero (no-fabrication) */
-async function makeBol(loadNum, btn){
+/* the card's own Load Log line rides along: direct customers reuse short
+   load numbers (Stark-Summit 3, Mom 3, Pine Tree 3), and "3" alone is
+   refused as ambiguous (card #451, his report 10-21) */
+async function makeBol(loadNum, btn, row){
   const label = btn.textContent;
   btn.disabled = true; btn.textContent = "⏳ GENERATING…";
   try{
     const post = b => fetch(url("/api/hotshot/bol"), { method:"POST",
       headers: hdr({"Content-Type":"application/json"}), body: JSON.stringify(b) })
       .then(r => r.json());
-    let resp = await post({ load: loadNum });
+    let resp = await post({ load: loadNum, row });
     if(resp && resp.need_weight){
       const w = prompt(`No weight on the Load Log for #${loadNum} — enter weight (lbs):`);
       if(!w){ return; }
       const c = prompt("Commodity description (blank = use sheet / generic):") || "";
-      resp = await post({ load: loadNum, weight: parseInt(w, 10), commodity: c });
+      resp = await post({ load: loadNum, row, weight: parseInt(w, 10), commodity: c });
     }
     if(resp && resp.saved)
       toast("✔ BOL written: " + resp.saved.split("/").pop() + " — open FILL & SIGN at the dock");
@@ -6945,7 +6948,7 @@ function wireBolBtns(scope){
   scope.querySelectorAll(".bolBtn").forEach(b =>
     b.addEventListener("click", e => {
       e.stopPropagation();
-      makeBol(b.dataset.bol, b);
+      makeBol(b.dataset.bol, b, b.dataset.row);
     }));
   scope.querySelectorAll(".hlNumBtn").forEach(b =>
     b.addEventListener("click", e => {
