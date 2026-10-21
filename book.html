@@ -228,9 +228,12 @@ async function doFile(){
   try {
     const res = await call("/api/booking/file", { draft: B.draft, image: B.image });
     const o = res.o;
-    if(!o.steps){
-      /* refused before anything landed: a blank, a second tap, the sheet unreachable */
-      $("receipt").innerHTML = `<div class="msg err">${esc(o.error || "the spine said " + res.status)}</div>`;
+    if(res.status !== 200 && res.status !== 207){
+      /* NOT filed, or not known to be: a blank, a second tap, the sheet unreachable,
+         a row sent but not found again. The error leads, in the spine's own words; the
+         card stays so nothing he typed is lost. Never a receipt (review 10-21). */
+      $("receipt").innerHTML = `<div class="msg err">${esc(o.error || "the spine said " + res.status)}</div>` +
+        (o.steps || []).map(s => `<div class="step${s.ok ? "" : " bad"}"><b>${s.ok ? "✓" : "✗"}</b><span>${esc(s.step)}<i>${esc(s.said)}</i></span></div>`).join("");
       $("receipt").classList.remove("hide");
       $("receipt").scrollIntoView({ block:"start" });
       return;
