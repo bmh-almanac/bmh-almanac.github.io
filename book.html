@@ -10,7 +10,7 @@
      inputs". A photo and/or his words -> the spine reads them into the Load Log
      fields (/api/booking/read), names every blank he owes, and FILE IT runs the
      rate-con chain's own hands (/api/booking/file): the Load Log row, the
-     folder, the invoice, BMH available, the maps-link text. Nothing is filed
+     folder, the invoice, BMH available. Nothing is filed
      until his tap. API base + token ride the same localStorage keys the desk
      uses, like FILL & SIGN. -->
 <link rel="icon" href="icons/favicon.png" type="image/png">
@@ -177,7 +177,7 @@ function paintCard(){
   h += `<div class="group"><h2>FILE IT DOES</h2><div class="plan">${esc(d.broker_name || "—")} · load ${esc(d.load_number || "—")}
     <i>${esc(d.pickup_city || "—")}, ${esc(d.pickup_state || "")} → ${esc(d.delivery_city || "—")}, ${esc(d.delivery_state || "")} ·
     ${r > 0 ? "$" + r.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : "rate —"}</i></div>
-    <p class="say">Load Log row · folder · invoice · BMH available · the maps text. No email yet — that comes with the BOL scan, like a rate con.</p></div>`;
+    <p class="say">Load Log row · folder · invoice · BMH available. No email yet — that comes with the BOL scan, like a rate con.</p></div>`;
   h += `<button class="btn" id="again">START OVER</button>`;
   $("card").innerHTML = h;
   $("card").querySelectorAll("input[data-k]").forEach(el => el.addEventListener("input", () => {
