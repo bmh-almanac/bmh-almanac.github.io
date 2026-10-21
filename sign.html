@@ -24,7 +24,27 @@
   #dock { position:fixed; bottom:0; left:0; right:0; z-index:20; background:var(--panel);
           border-top:1px solid var(--line); }
   #toolbar { display:flex; gap:8px; padding:10px 14px calc(12px + env(safe-area-inset-bottom)); }
-  #toolbar .btn { flex:1; text-align:center; }
+  #toolbar .btn { flex:1; text-align:center; padding:12px 4px; }   /* six across a phone (card #453) */
+  /* EMAIL A COPY (card #453) — the address read back big: it was dictated at a dock */
+  #mailbox { position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.7); display:none;
+             align-items:center; justify-content:center; }
+  #mailbox .card { background:var(--panel); border:1px solid var(--line); border-radius:16px;
+                   padding:20px; width:min(92vw,420px); max-height:90vh; overflow:auto; }
+  #mailbox h3 { color:var(--gold); margin-bottom:10px; }
+  #mailbox .mf { color:#8b949e; font-size:14px; margin-bottom:12px; word-break:break-all; }
+  #mailbox input { width:100%; font-size:20px; padding:14px; border-radius:10px; border:1px solid var(--line);
+                   background:#0d1117; color:var(--ink); }
+  #mailbox .readback { font-size:22px; font-weight:800; margin:12px 0 14px; word-break:break-all; min-height:28px; }
+  #mailbox .readback.bad { color:#f85149; }
+  #mailbox .readback.ok { color:#3fb950; }
+  #mailbox .lbl { font-size:12px; letter-spacing:.12em; color:#8b949e; margin:4px 0 8px; }
+  #mailbox .picks { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+  #mailbox .pick { text-align:left; background:transparent; color:var(--ink); border:1px solid var(--line);
+                   border-radius:10px; padding:11px 12px; font-size:15px; cursor:pointer; }
+  #mailbox .pick i { display:block; font-style:normal; color:#8b949e; font-size:12px; margin-top:2px; }
+  #mailbox .err { color:#f85149; font-weight:700; margin:0 0 12px; line-height:1.4; }
+  #mailbox .row { display:flex; gap:10px; }
+  #mailbox .row .btn { flex:1; text-align:center; }
   #picker-wrap { padding:40px 20px; text-align:center; }
   #picker-wrap p { color:#8b949e; margin:14px 0 26px; line-height:1.5; }
   #file-btn { font-size:18px; padding:18px 26px; }
@@ -134,6 +154,7 @@
     <button class="btn" id="mode-date">📅 Date</button>
     <button class="btn" id="undo">↩️</button>
     <button class="btn gold" id="save">💾 Save</button>
+    <button class="btn" id="email">📧 Email</button>
   </div>
 </div>
 
@@ -193,6 +214,26 @@
     <div class="row" style="display:flex;gap:10px;">
       <button class="btn" id="text-cancel" style="flex:1;text-align:center;">Cancel</button>
       <button class="btn gold" id="text-ok" style="flex:1;text-align:center;">✔ Place</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL A COPY (card #453, his ask 10-21): the address the receiver reads
+     out at the drop, typed or dictated; the last five broker addresses one tap
+     each. Read back big before SEND. Sent from his Gmail by the spine. -->
+<div id="mailbox">
+  <div class="card">
+    <h3>📧 Email a copy</h3>
+    <div class="mf" id="mail-file"></div>
+    <input type="email" id="mail-to" inputmode="email" autocapitalize="off" autocorrect="off"
+      spellcheck="false" autocomplete="email" placeholder="Their email — type it or tap the mic">
+    <div class="readback" id="mail-read"></div>
+    <div class="err" id="mail-err"></div>
+    <div class="lbl">LAST 5 BROKERS</div>
+    <div class="picks" id="mail-picks"></div>
+    <div class="row">
+      <button class="btn" id="mail-cancel">Cancel</button>
+      <button class="btn gold" id="mail-send">✔ Send</button>
     </div>
   </div>
 </div>
@@ -778,6 +819,94 @@ $("save").onclick = async () => {
     toast("Server save failed (" + e.message + ") — downloaded instead", true);
   }
   $("save").textContent = "💾 Save";
+};
+
+/* ── Email a copy (card #453) ── */
+const MAIL_RX = /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+const escH = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* a dictated address arrives as words: "john dot smith at acme dot com" */
+function mailOf(raw) {
+  return String(raw || "").trim()
+    .replace(/\s+(at)\s+/gi, "@").replace(/\s+(dot|period)\s+/gi, ".")
+    .replace(/\s+(underscore)\s+/gi, "_").replace(/\s+(dash|hyphen)\s+/gi, "-")
+    .replace(/\s+/g, "").replace(/[.,;]+$/, "");
+}
+async function buildSigned() {   // the page as it stands — every stamp placed — as PDF bytes
+  const doc = await PDFLib.PDFDocument.load(origBytes);
+  const pages = doc.getPages();
+  const font = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  for (const p of placements) {
+    const { scale, pdfH } = pageScales[p.page];
+    const pg = pages[p.page];
+    const x = parseFloat(p.el.style.left) / scale, topPdf = parseFloat(p.el.style.top) / scale;
+    if (p.type === "sig") {
+      const img = await doc.embedPng(p.png);
+      const w = parseFloat(p.el.style.width) / scale, h = w * p.aspect;
+      pg.drawImage(img, { x, y: pdfH - topPdf - h, width: w, height: h });
+    } else {
+      pg.drawText(p.text,
+        { x, y: pdfH - topPdf - 11, size: 11, lineHeight: 13.2, font, color: PDFLib.rgb(0.06, 0.09, 0.13) });
+    }
+  }
+  let name = origName;
+  if (placements.length && !/signed/i.test(name)) name = name.replace(/\.pdf$/i, " Signed.pdf");
+  return { bytes: await doc.save(), name };
+}
+function mailRead() {
+  const a = mailOf($("mail-to").value), r = $("mail-read");
+  r.textContent = a ? a : "";
+  r.className = "readback" + (a ? (MAIL_RX.test(a) ? " ok" : " bad") : "");
+  $("mail-send").disabled = !MAIL_RX.test(a);
+}
+let mailPicksLoaded = false;
+async function mailPicks() {
+  if (mailPicksLoaded) return;
+  const box = $("mail-picks");
+  box.textContent = "reading the Load Log…";
+  try {
+    const API = lsGet("almanac_api"), TOK = lsGet("almanac_token");
+    const r = await fetch(API + "/api/hotshot/sign/emails", { headers: { Authorization: "Bearer " + TOK } });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+    box.innerHTML = (j.emails || []).map(e =>
+      `<button class="pick" data-mail="${escH(e.email)}">${escH(e.email)}<i>${escH(e.broker)}${e.load ? " · load " + escH(e.load) : ""}</i></button>`
+    ).join("") || "no broker emails on the Load Log yet";
+    box.querySelectorAll(".pick").forEach(b => b.onclick = () => { $("mail-to").value = b.dataset.mail; mailRead(); });
+    mailPicksLoaded = true;
+  } catch (e) { box.textContent = "couldn't read the recent brokers (" + e.message + ") — type the address"; }
+}
+$("email").onclick = () => {
+  if (!origBytes) { toast("Open a PDF first", true); return; }
+  const name = placements.length && !/signed/i.test(origName) ? origName.replace(/\.pdf$/i, " Signed.pdf") : origName;
+  $("mail-file").textContent = name + (placements.length ? " · with your " + placements.length + " stamp" + (placements.length > 1 ? "s" : "") : " · as opened, nothing placed");
+  $("mail-err").textContent = "";
+  $("mailbox").style.display = "flex";
+  mailRead(); mailPicks();
+};
+$("mail-to").addEventListener("input", mailRead);
+$("mail-cancel").onclick = () => { $("mailbox").style.display = "none"; };
+$("mail-send").onclick = async () => {
+  const to = mailOf($("mail-to").value);
+  if (!MAIL_RX.test(to)) { mailRead(); return; }
+  const btn = $("mail-send");
+  btn.disabled = true; btn.textContent = "Sending…"; $("mail-err").textContent = "";
+  try {
+    const { bytes, name } = await buildSigned();
+    const b64 = btoa(new Uint8Array(bytes).reduce((s, b) => s + String.fromCharCode(b), ""));
+    const API = lsGet("almanac_api"), TOK = lsGet("almanac_token");
+    const r = await fetch(API + "/api/hotshot/sign/email", { method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + TOK },
+      body: JSON.stringify({ to, filename: name, data: b64, row: openedRow }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.sent) throw new Error(j.error || ("HTTP " + r.status));
+    $("mailbox").style.display = "none";
+    toast("✔ Emailed to " + j.to);
+  } catch (e) {
+    $("mail-err").textContent = "Not sent — " + e.message;   /* the sheet stays: nothing he typed is lost */
+  } finally {
+    btn.textContent = "✔ Send"; mailRead();
+  }
 };
 
 async function downloadFallback() {
