@@ -7483,7 +7483,11 @@ function finFloor(){
     !!t.filed_at
     || (t.expired && aged(t.updated_at || t.date, 2))
     || (t.deposit_refund && aged(t.deposit_refund.refund_date || t.date, 2))
-    || ((t.undraggable_because || "").startsWith("cash") && aged(t.date, 2));
+    /* CASH NEVER WAITS ON THE PILE (card #455, his word 10-24: "remove the
+       cash withdrawl from this list won't be placed on any loads"). Posted,
+       pending or an expired ATM hold alike — by category, because an expired
+       one's reason reads 'expired', never 'cash'. The fold and the books keep it. */
+    || t.category === "Cash Withdrawal";
   const doneRow = t => (t.placements || []).length || t.accounted || filed(t);
   const work = pile.filter(t => !doneRow(t)).sort((a,b) => tier(a) - tier(b));
   const folded = pile.filter(doneRow).sort((a,b) => tier(a) - tier(b));
