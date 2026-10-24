@@ -4672,7 +4672,14 @@ document.addEventListener("visibilitychange", () => {
 function enter(i, direct){
   if(spinGuard()) return;   // a spin's release is not a tap
   if(SYS && D[i].room !== "radio") closeSys(true);
-  if(D[i].room === "radio" && !direct){ SYS ? closeSys() : openSys(); return; }
+  /* FROM INSIDE A ROOM the orbs are a 70px rail — the constellation drawn
+     there landed its doors off the screen and over MONEY and SOUL (card #456,
+     his report 10-24). The radio is a domain: leave the room, open it on the
+     field where it has the room to orbit. */
+  if(D[i].room === "radio" && !direct){
+    if(ACTIVE !== null && !SYS){ goHome(); openSys(); return; }
+    SYS ? closeSys() : openSys(); return;
+  }
   if(SYS) closeSys(true);
   ACTIVE = i;
   if(D[i].room === "learn") LR.entryPending = true;   // the landing keys off ENTRY, never render
@@ -4684,7 +4691,8 @@ function enter(i, direct){
   $("home").hidden = false;
   layout(); renderRoom();
 }
-$("home").addEventListener("click", () => {
+$("home").addEventListener("click", () => goHome());
+function goHome(){
   cmTeardown();   // the glass's animations, timers, listeners and fetches die with the room (#360)
   svcTeardown();  // and the service cluster's (#362)
   if(SYS) closeSys(true);
@@ -4699,7 +4707,7 @@ $("home").addEventListener("click", () => {
   layout(); $("room").innerHTML = "";
   if(ROAD_DIRTY || ROADMAP){ ROAD_DIRTY = false; drawRoadMap(); }
   history.replaceState(null, "", location.pathname + location.search);
-});
+}
 
 /* ── THE RADIO SYSTEM (card #93) — the parent becomes the sun ──────────
    His refinement 2026-08-11: the children ORBIT the radio orb like the main
