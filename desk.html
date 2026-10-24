@@ -1114,6 +1114,15 @@ body.hot .seg button.on{background:rgba(var(--hot-rgb),.16);color:var(--hot);box
 .lane .drop-in span{font:400 11px/1.3 var(--sans);color:var(--mid);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lane .drop-in b{font:700 11px var(--mono);color:var(--ink);flex:0 0 auto}
+/* card #454: expired holds fold shut under the live rows */
+.lane .heldx{margin:2px 0 4px}
+.lane .heldx summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;
+  padding:4px 6px;font:400 10px/1.3 var(--sans);color:var(--etch);font-style:italic}
+.lane .heldx summary b{font:400 10px var(--mono);color:var(--etch);text-decoration:line-through}
+.lane .drop-in.gone{opacity:.5}
+.lane .drop-in.gone b{text-decoration:line-through}
+.lgfold{display:block;width:100%;margin-top:6px;padding:6px;background:none;cursor:pointer;
+  border:1px dashed var(--line);border-radius:3px;font:400 11px var(--sans);color:var(--etch)}
 .lane .lf{padding:8px 11px;border-top:1px solid var(--line);
   display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .lane .lf span{font:400 10px/1.3 var(--mono);letter-spacing:.06em;color:var(--etch);
@@ -7718,7 +7727,28 @@ function finLane(ld, ro){
   const nut = row ? row.nut_contribution : null;
   const ids = row ? (row.assigned_txn_ids || []) : [];
   const txns = State.fin.expenses ? (State.fin.expenses.transactions||[]) : [];
-  const inside = ids.map(id => txns.find(t => t.id === id)).filter(Boolean);
+  const placed = ids.map(id => txns.find(t => t.id === id)).filter(Boolean);
+  /* AN EXPIRED HOLD IS NOT A SECOND CHARGE (card #454, his report 10-24: "we
+     had double entry on the floor"). The bank's pending row and its posted
+     twin both sat in the box looking like two costs; the cost already held the
+     expired one out (#315). It folds into one closed line, its rows still
+     there to take back off. */
+  const inside = placed.filter(t => !t.expired);
+  const held = placed.filter(t => t.expired);
+  const dropIn = (t, cls) => {
+      /* what THIS load carries of that transaction — a Pilot week sits on
+         several loads, so the portion is the truth here, never the whole */
+      const p = (t.placements||[]).find(x => x.sheet_row === ld.sheet_row);
+      const part = p ? p.amount : t.amount;
+      return `<div class="drop-in${p&&p.source==="auto"?" auto":""}${cls||""}" data-txn="${t.id}"
+        title="${esc(p && p.basis ? p.basis : "click to take it back off")}">
+        <span>${esc(t.merchant || t.category || "—")}${
+          (t.placements||[]).length>1 ? ` <i class="pt">part</i>` : ""}</span>
+        <b>${money(part)}</b></div>`; };
+  const heldBox = !held.length ? "" : `<details class="heldx"
+      title="${esc((row && row.held_expired_basis) || "")}">
+      <summary>bank never charged · ${held.length} <b>${money((row && row.held_expired) || 0)}</b></summary>
+      ${held.map(t => dropIn(t, " gone")).join("")}</details>`;
   /* the verdict first, then its evidence (his 2026-08-11 ruling). Same served
      figure that used to sit in the footer — moved, not copied. */
   const nutBand = `<div class="lnut${nut != null && nut < 0 ? " dn" : ""}" title="${esc((row && row.net_basis) || "")}">
@@ -7732,17 +7762,8 @@ function finLane(ld, ro){
       <div class="lm">${esc(ld.pickup_city||"?")} &rarr; ${esc(ld.delivery_city||"?")}${
         ld.delivery_state ? ", " + esc(ld.delivery_state) : ""}<br>${esc(ld.delivery_date||"")}</div></div>
     ${nutBand}
-    <div class="lin">${inside.length ? inside.map(t => {
-      /* what THIS load carries of that transaction — a Pilot week sits on
-         several loads, so the portion is the truth here, never the whole */
-      const p = (t.placements||[]).find(x => x.sheet_row === ld.sheet_row);
-      const part = p ? p.amount : t.amount;
-      return `<div class="drop-in${p&&p.source==="auto"?" auto":""}" data-txn="${t.id}"
-        title="${esc(p && p.basis ? p.basis : "click to take it back off")}">
-        <span>${esc(t.merchant || t.category || "—")}${
-          (t.placements||[]).length>1 ? ` <i class="pt">part</i>` : ""}</span>
-        <b>${money(part)}</b></div>`; }).join("")
-      : `<div class="empty">drag an expense here</div>`}
+    <div class="lin">${inside.length ? inside.map(t => dropIn(t)).join("")
+      : held.length ? "" : `<div class="empty">drag an expense here</div>`}${heldBox}
       ${row && row.fee != null ? `<div class="drop-in" style="opacity:.6;cursor:default">
         <span>factoring fee</span><b>${money(row.fee)}</b></div>` : ""}
       ${row && row.trip_accrual ? `<div class="drop-in" style="opacity:.6;cursor:default">
@@ -8395,7 +8416,15 @@ function finBooks(){
      standing beside it. Read-only here — the floor is where rows get worked. */
   const txAll = (State.fin.expenses && State.fin.expenses.transactions) || [];
   const sift = FIN.catFilter;
-  const tx = sift ? txAll.filter(t => (t.category || "uncategorized") === sift) : txAll;
+  const txSift = sift ? txAll.filter(t => (t.category || "uncategorized") === sift) : txAll;
+  /* an expired hold sat beside its posted twin and read as a double entry
+     (card #454, his report 10-24) — closed by default, one tap to see them */
+  const nExpired = txSift.filter(t => t.expired).length;
+  const tx = FIN.showExpired ? txSift : txSift.filter(t => !t.expired);
+  const foldBtn = !nExpired ? "" : `<button class="lgfold" id="lgFold">${FIN.showExpired
+    ? `hide the ${nExpired} expired hold${nExpired===1?"":"s"}`
+    : `${nExpired} expired hold${nExpired===1?"":"s"} hidden — the bank never charged ${
+        nExpired===1?"it":"them"} · show`}</button>`;
   const note = t => (
     (t.placements||[]).length ? (t.placements.length > 1
       ? `split ${t.placements.length} ways on loads` : "placed on a load")
@@ -8442,7 +8471,7 @@ function finBooks(){
     <div class="lghead"><span>date</span><span>category</span><span>payee</span>
       <span class="ra">amount</span><span>notes</span><span style="text-align:right">status</span></div>
     <div class="scroll" style="max-height:52vh">${
-      tx.length ? tx.map(t => `<div class="lgr${t.accounted ? " dim" : ""}" data-txn="${t.id}"
+      tx.length ? tx.map(t => `<div class="lgr${t.accounted || t.expired ? " dim" : ""}" data-txn="${t.id}"
         title="tap the row for its moves — MONTHLY, a load, accounted, deposit">
         <span class="ld" title="${esc(t.date)}">${esc(String(t.date||"").slice(5))}</span>
         <span class="lc"><span class="catchip edit" data-cat-txn="${t.id}"
@@ -8455,7 +8484,7 @@ function finBooks(){
         <span class="lst ${bank(t)}">${bank(t)}</span>
         <span class="lsub">${esc(String(t.date||"").slice(5))} · ${note(t)} · ${bank(t)}</span></div>`).join("")
       : `<p class="nodata">${sift ? `nothing in ${esc(sift)} this window` :
-          "nothing in the window — drop a csv up on the floor"}</p>`}</div></div>`;
+          "nothing in the window — drop a csv up on the floor"}</p>`}</div>${foldBtn}</div>`;
   /* WHERE THE MONEY GOES — the window's five biggest categories, trailing
      six windows etched like level marks on glass; the viewed window burns
      amber, the dashed line is the trailing average. The producer computed
@@ -12269,6 +12298,8 @@ function wireFin(){
   R.querySelectorAll("#holdGrp button").forEach(b => b.addEventListener("click", () => {
     FIN.group = b.dataset.g; FIN.pick = null; renderRoom();
   }));
+  const lgFold = $("lgFold");
+  lgFold && lgFold.addEventListener("click", () => { FIN.showExpired = !FIN.showExpired; renderRoom(); });
 
   if(FIN.view === "hold"){ paintHold(); wireHold(); return; }
   /* the intake wells live in THE BOOKS now (Bryan, 2026-08-02: "move the
