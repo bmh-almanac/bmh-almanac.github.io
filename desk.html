@@ -146,6 +146,62 @@ canvas.stars{position:fixed;inset:0;z-index:0;width:100%;height:100%}
 .docket .drow .dact:disabled{opacity:.4;cursor:wait}
 .docket .dempty{font:400 11px/1.5 var(--mono);color:var(--dim);padding:18px 4px}
 .docket .dunknown{font:400 9.5px/1.4 var(--mono);color:var(--hot);padding-top:6px}
+/* THE SKY WATCH (card #459) — his ask 10-28: "the homepage should scream if
+   there is a major event". The scream is the one thing on the desk allowed to
+   be this loud, so it only stands while the last good NWS read holds a major
+   storm or a warning over his road — never for an unknown sky alone. */
+.skyalarm{display:block;width:100%;border:0;cursor:pointer;text-align:left;
+  background:var(--hot);color:#fff;padding:12px 16px;margin:0 0 6px;
+  font:800 clamp(17px,4.6vw,26px)/1.15 var(--sans);letter-spacing:.02em;
+  box-shadow:0 0 34px -4px rgba(var(--hot-rgb),.85);animation:skyscream 1.6s ease-in-out infinite}
+.skyalarm .sub{display:block;font:700 11px/1.4 var(--mono);letter-spacing:.12em;opacity:.92;margin-top:4px}
+.skyalarm:focus-visible{outline:3px solid #fff;outline-offset:-5px}
+@keyframes skyscream{50%{box-shadow:0 0 6px -2px rgba(var(--hot-rgb),.4);filter:brightness(1.18)}}
+@media (prefers-reduced-motion:reduce){.skyalarm{animation:none}}
+/* A calm sky is silent on a wide screen (📡 SKY sits in the masthead). On a
+   phone the masthead's right side runs off the glass, so the radar's only door
+   there is this one quiet line — dim and small. It goes red only while the sky
+   is unknown or the last try failed, the same test that turns the masthead
+   door red; a read that is only old keeps its AS OF words dim, because an old
+   read is not an outage and a red that stands all day is wallpaper. */
+.skyalarm.calm{display:none}
+@media (max-width:700px){
+  .skyalarm.calm{display:block;background:transparent;color:var(--dim);box-shadow:none;animation:none;
+    font:700 9px/1 var(--mono);letter-spacing:.18em;padding:4px 26px 8px;text-align:left}
+  .skyalarm.calm.unk{color:var(--hot)}
+}
+.skywrap{position:fixed;inset:0;z-index:61}
+.skysheet{position:absolute;inset:0 0 0 auto;width:min(760px,100vw);overflow-y:auto;
+  background:linear-gradient(200deg,rgba(24,28,34,.99),rgba(10,12,15,.99));
+  border-left:1px solid rgba(var(--hot-rgb),.35);padding:16px 16px 28px;
+  display:flex;flex-direction:column;gap:12px;color:var(--ink)}
+.skysheet .shead{display:flex;align-items:baseline;gap:10px}
+.skysheet .shead .t{font:700 13px/1 var(--mono);letter-spacing:.22em;color:var(--amber)}
+.skysheet .shead .n{font:400 10px/1 var(--mono);color:var(--dim)}
+.skysheet .shead .x{margin-left:auto}
+/* the sheet is a fixed-height flex column that scrolls: its rows must never
+   shrink to fit, or a busy sky crushes the radar (overflow:hidden lets a flex
+   item collapse below its image) — caught with a staged storm, 10-28 */
+.skysheet > *{flex-shrink:0}
+.skysheet .radar{position:relative;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:#000}
+.skysheet .radar img{display:block;width:100%;height:auto}
+.skysheet .radar .rtog{position:absolute;right:8px;bottom:8px}
+.skysheet .lab{font:700 9.5px/1 var(--mono);letter-spacing:.2em;color:var(--dim);margin-top:4px}
+.skysheet .storm{border-left:4px solid var(--hot);padding:8px 10px;background:rgba(var(--hot-rgb),.08)}
+.skysheet .storm .st{font:800 17px/1.2 var(--sans);color:var(--ink)}
+.skysheet .storm .sw{font:400 11px/1.45 var(--mono);color:var(--mid);margin-top:3px}
+.skysheet .calm{font:600 13px/1.5 var(--sans);color:var(--mid)}
+.skysheet .unk{font:700 12px/1.45 var(--mono);color:var(--hot)}
+/* a read that is only old says its age in the doubt's place, dim: nothing
+   failed, so it is not red */
+.skysheet .aged{font:700 12px/1.45 var(--mono);color:var(--mid)}
+/* HEADS UP ON YOUR LANE: the watches and advisories over his road are a
+   maybe, so they are listed here only, dim, never red and never on the banner
+   (loud is a budget, bearing 87) */
+.skysheet .heads{font:400 11px/1.45 var(--mono);color:var(--dim)}
+/* Above 700px the calm line is hidden, so the masthead door itself turns red
+   when the sky is unknown or the last try failed, and its title says why */
+#skyBtn.unk{color:var(--hot);border-color:rgba(var(--hot-rgb),.55)}
 .bar .right{margin-left:auto;display:flex;align-items:center;gap:9px}
 .readstamp{font:700 8px/1 var(--mono);letter-spacing:.15em;color:var(--etch);
   white-space:nowrap;transition:color .4s;background:none;border:0;cursor:pointer;
@@ -2736,6 +2792,13 @@ body.hot .act .h .n{color:var(--hot)}
 :root.paper .docket{background:linear-gradient(200deg,rgba(248,241,226,.99),rgba(238,228,205,.99));
   box-shadow:-18px 0 48px rgba(80,60,30,.3)}
 :root.paper .page{background:linear-gradient(196deg,rgba(250,244,230,.99),rgba(240,231,210,.99))}
+/* the sky sheet (card #459) is hard-dark by night, so on paper its var(--ink)
+   type went dark on dark — it prints on vellum like the docket, its storms a
+   pale red wash. The banner is left alone: red with white type in both. */
+:root.paper .skysheet{background:linear-gradient(200deg,rgba(248,241,226,.99),rgba(238,228,205,.99));
+  border-left-color:rgba(var(--hot-rgb),.45);box-shadow:-18px 0 48px rgba(80,60,30,.3)}
+:root.paper .skysheet .storm{background:rgba(var(--hot-rgb),.07)}
+:root.paper .skysheet .radar{border-color:rgba(70,56,32,.3)}
 :root.paper .dockback,:root.paper .pageback{background:rgba(62,48,24,.42)}
 :root.paper .toast{background:rgba(247,240,224,.97)}
 :root.paper .panelbox{background:rgba(90,72,40,.55)}
@@ -2761,9 +2824,17 @@ body.hot .act .h .n{color:var(--hot)}
       <button class="readstamp" id="shellv"
         title="the shell this device is serving — tap to fetch the newest and reload">&#8203;</button>
       <button class="readstamp" id="readstamp" title="click to pull the Load Log and re-read the spine"></button>
+      <button class="btn" id="skyBtn" title="the sky — the national radar and every major storm">&#128225; SKY</button>
       <span class="pill" id="pill">reading the spine</span>
       <button class="btn" id="home" hidden>&#9666; THE FIELD</button>
     </span>
+  </div>
+
+  <!-- THE SKY WATCH (card #459) — the scream, and the sheet it opens -->
+  <button class="skyalarm" id="skyAlarm" hidden></button>
+  <div class="skywrap" id="skyWrap" hidden>
+    <div class="dockback" id="skyBack"></div>
+    <aside class="skysheet" id="skySheet" role="dialog" aria-label="the sky"></aside>
   </div>
 
   <!-- THE DOCKET (card #84) — the clipboard at the dock: everything awaiting
@@ -4918,6 +4989,328 @@ function openDocket(){
 }
 function closeDocket(){ $("dockWrap").hidden = true; }
 
+/* ── THE SKY WATCH (card #459) ───────────────────────────────────────
+   /api/sky is the one producer (spine/sky.py): major storms nationwide by
+   name, Severe/Extreme warnings over home or a stop still to run, the
+   watches and advisories over them (HEADS UP: listed, never rung), and the
+   NWS national radar. The scream stands while the LAST GOOD READ holds a
+   major storm or a lane warning: a hurricane does not leave the desk because
+   the weather service stopped answering — the banner says since when
+   instead. An outage alone never screams (bearing 87: an alarm that cries on
+   an outage is wallpaper), and it is never calm either: with no read to
+   stand on, the sky is UNKNOWN. */
+let SKY_LOOP = false;
+const SKY_BTN_TITLE = $("skyBtn").title;   // the masthead door's own words while the sky is known
+const SKY_OLD_S = 2700;                     // a read older than 45 min wears its age on the banner and the phone line
+/* a warning past its own end is gone, even on a read the desk has held for
+   hours; one with no end (until further notice) stands */
+function skyLive(e){ return !!e.ufn || !e.ends || !(Date.parse(e.ends) < Date.now()); }
+/* what the read holds, as every painter reads it: the storms that scream
+   (major, lane), the short-fused WARNINGS over his road that are listed and
+   never rung (they are still warnings — never 'no warning' over them), and
+   the places that could not be checked */
+function skyStorms(){
+  const s = State.sky || {};
+  return { major: (s.major || []).filter(skyLive), lane: (s.lane || []).filter(skyLive),
+           short: (s.heads_up || []).filter(h => h.short_fused && h.warning !== false && skyLive(h)),
+           blind: s.lane_unknown || [] };
+}
+function skyWhen(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleString("en-US",
+    {weekday:"short", hour:"numeric", minute:"2-digit", timeZoneName:"short"});
+}
+/* a warning with no end runs until further notice (ufn) — the spine never
+   lends it the end of the message that carried it, and neither does the page */
+function skyUntil(e){
+  if(e.ufn) return "until further notice";
+  const w = skyWhen(e.ends);
+  return w ? "until " + w : "";
+}
+/* when a read was made: the clock alone for today's, the weekday in front
+   for another day's, so an old read never passes for this morning's */
+function skyAsOf(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  if(isNaN(d)) return "";
+  return d.toDateString() === new Date().toDateString() ? readClock(d)
+    : d.toLocaleDateString("en-US", {weekday:"short"}) + " " + readClock(d);
+}
+/* HOW OLD THE READ ON SCREEN IS NOW, in seconds (review of #459). The
+   payload's age_s was true the moment it landed and never again: the desk
+   does not re-read behind his back (07-29), so a 9 AM read is still the read
+   at 3 PM. Its age is the spine's age_s at landing plus the time it has sat
+   here since, timed on this device — so a phone clock that drifts from the
+   Mac's cannot make it look newer or older. With no age_s (an older spine),
+   fetched_at against this device's clock. */
+function skyAge(){
+  const s = State.sky || {};
+  if(s.age_s != null && State.skyAt) return Number(s.age_s) + (Date.now() - State.skyAt) / 1000;
+  const at = Date.parse(s.fetched_at || "");
+  return isNaN(at) ? null : (Date.now() - at) / 1000;
+}
+/* HOW FAR THE SKY ON SCREEN CAN BE TRUSTED — one judgement, so the banner,
+   the phone line, the masthead door and the sheet never disagree.
+     reading  nothing read yet and nothing failed (the spine's first read)
+     unknown  nothing read, and the last try failed — or the desk itself
+              could not reach the spine, so no ask for the sky is in flight
+              and 'reading' would be a lie (review of #459)
+     failed   the last try failed, read or not: the masthead door and the
+              phone line turn red
+     aged     nothing failed, but the read is older than SKY_OLD_S by
+              skyAge(): it is said with its age, dim, never red — an old
+              read is not an outage (bearing 87)
+     said     the words over a last good read that is not current: the last
+              try failed, or it is aged
+   State.skyErr is the spine not answering the desk; ok false is the NWS not
+   answering the spine. They are worded apart because they are fixed apart.
+   An aged read is worded apart from both: nothing failed, it was just not
+   read again — 'has not answered' would blame a service nobody asked.
+   key is every word this paints from, so the tick repaints only a change. */
+function skyTrust(){
+  const s = State.sky || {};
+  const asOf = skyAsOf(s.fetched_at), known = !!asOf;
+  const deskErr = !known && !State.skyErr && State.err ? String(State.err) : "";
+  const failed = !!State.skyErr || s.ok === false || !!deskErr;
+  const err = State.skyErr || (s.ok === false && s.error) || deskErr || "";
+  const why = State.skyErr ? "the spine did not answer the sky"
+    : s.ok === false ? "the weather service did not answer"
+    : deskErr ? "the spine did not answer" : "";
+  const age = known && !failed ? skyAge() : null;
+  const aged = age != null && age > SKY_OLD_S;
+  const said = !known ? ""
+    : State.skyErr ? `AS OF ${asOf} — THE LAST ASK FOR THE SKY DID NOT ANSWER`
+    : s.ok === false ? `AS OF ${asOf} — THE WEATHER SERVICE HAS NOT ANSWERED SINCE`
+    : aged ? `AS OF ${asOf} — NOT READ SINCE` : "";
+  const reading = !known && !failed, unknown = !known && failed;
+  /* partial: the read answered but places on his road could not be checked —
+     never a calm line over them (final review of #459). short: a short-fused
+     warning stands over his road — listed, not rung, never 'no warning'. */
+  const { short, blind } = skyStorms();
+  const partial = known && blind.length > 0;
+  return { asOf, known, failed, aged, err, why, said: said.toUpperCase(), reading, unknown,
+           partial, blind, short,
+           key: [asOf, failed, aged, reading, why, err, blind.map(u => u.place).join(","),
+                 short.map(h => h.event).join(",")].join("|") };
+}
+/* 'Tornado Warning at Massillon, Ohio' — the first short-fused warning and the
+   first of his places it stands over, +N for more */
+function skyShortCall(h){
+  const pls = h.places || [];
+  return `${h.event}${pls[0] ? " at " + pls[0].label : ""}${pls.length > 1 ? ` +${pls.length - 1}` : ""}`;
+}
+/* THE SKY READS AFTER THE FIELD PAINTS (review of #459). /api/sky rode
+   READ_REST, so the desk's first paint waited on it — a cold read took 2-4 s
+   and a dead NWS its whole timeout. load() now asks beside loadDay, once the
+   field stands, and never waits; the ask has its own ceiling, so a hung read
+   hangs nothing. It goes through grab(), the same keyed fetch every read
+   uses. The LAST ask wins, never the last to arrive (LOAD_SEQ's law, kept on
+   its own counter as loadDay keeps DAY_SEQ): an overtaken ask neither stores
+   nor paints. A miss is RECORDED in State.skyErr; the last answer stays.
+   State.skyAt is when the answer landed here — skyAge() counts from it. */
+let SKY_SEQ = 0, SKY_AC = null;
+const SKY_WAIT_MS = 12000;                     // one ask's ceiling
+const SKY_RETRIES = 3, SKY_RETRY_MS = 5000;    // while a read the spine started lands
+async function loadSky(){
+  const seq = ++SKY_SEQ;
+  if(SKY_AC) SKY_AC.abort();   // an older ask's answer would be thrown away anyway
+  for(let n = 0; ; n++){
+    const ac = SKY_AC = new AbortController();
+    const t = setTimeout(() => ac.abort(), SKY_WAIT_MS);
+    try{
+      const v = await grab("/api/sky", ac.signal);
+      if(seq !== SKY_SEQ) return;
+      State.sky = v; State.skyAt = Date.now(); State.skyErr = null;
+    }catch(e){
+      if(seq !== SKY_SEQ) return;
+      State.skyErr = ac.signal.aborted ? `no answer in ${SKY_WAIT_MS / 1000}s` : String(e.message || e);
+    }finally{ clearTimeout(t); }
+    paintSky();
+    /* ask again while a read this very ask started is landing (sky.py
+       current): pending = the spine had never read the sky; stale with the
+       last try not failed = its read is past ten minutes, and it went to
+       the NWS in the background on this ask. That read lands in seconds —
+       without this the desk kept the old one until the next load and, past
+       45 minutes, said the weather service had not answered when it had
+       not been asked (review of #459). A failed last try is not asked
+       again: the spine waits out its own backoff before it tries again. */
+    const v = State.sky || {};
+    const landing = v.pending || (v.stale && v.ok !== false);
+    if(State.skyErr || !landing || n >= SKY_RETRIES) return;
+    await new Promise(res => setTimeout(res, SKY_RETRY_MS));
+    if(seq !== SKY_SEQ) return;
+  }
+}
+/* the banner's call for a lane warning: the event at the first of his places
+   it covers, and +N when the same warning covers N more of them */
+function laneCall(e){
+  const pls = e.places || [], first = pls[0] && pls[0].label;
+  return String("ON YOUR LANE — " + (e.event || e.title || "A WARNING") + (first ? " AT " + first : "")).toUpperCase()
+    + (pls.length > 1 ? ` +${pls.length - 1}` : "");
+}
+let SKY_PAINTED = "";   // the trust the screen last painted (skyTrust().key); "" = never painted
+function paintSky(){
+  const { major, lane } = skyStorms(), el = $("skyAlarm"), t = skyTrust();
+  SKY_PAINTED = t.key;
+  /* above 700px the calm line is hidden, so the masthead door carries the
+     doubt: red while the last try failed, its title saying why. An old read
+     leaves it quiet and says its age in the title. */
+  const door = $("skyBtn");
+  const doubt = t.failed || t.partial || t.short.length > 0;
+  door.classList.toggle("unk", doubt);
+  door.title = t.failed
+    ? (t.known ? `the sky as of ${t.asOf} — the last try failed: ` : "THE SKY IS UNKNOWN — ")
+      + t.why + (t.err ? ` (${t.err})` : "")
+    : t.short.length ? `${skyShortCall(t.short[0])} — short-fused, listed not rung`
+    : t.partial ? `the sky — ${t.blind.length} place${t.blind.length === 1 ? "" : "s"} on your road `
+      + `could not be checked: ${t.blind.map(u => u.place).join("; ")}`
+    : t.aged ? `the sky as of ${t.asOf} — not read since; tap to read it` : SKY_BTN_TITLE;
+  const n = major.length + lane.length;
+  if(!n){
+    /* the phone's quiet line is calm only over a current read of the whole
+       road, and red on the masthead door's own test (a failure, a short-fused
+       warning standing over his road, places that could not be checked): a
+       read that is only old says AS OF in the dim style, so the phone and a
+       wide screen never disagree about the same sky */
+    el.className = "skyalarm calm" + (doubt ? " unk" : "");
+    el.textContent = t.reading ? "📡 SKY · READING…"
+      : t.unknown ? "📡 SKY · UNKNOWN — TAP FOR THE RADAR"
+      : t.failed ? `📡 SKY · AS OF ${t.asOf.toUpperCase()} · NO ANSWER SINCE`
+      : t.short.length ? `📡 SKY · ${skyShortCall(t.short[0]).toUpperCase()}`
+      : t.partial ? "📡 SKY · LANE PARTLY UNKNOWN — TAP"
+      : t.aged ? `📡 SKY · AS OF ${t.asOf.toUpperCase()} · TAP TO READ`
+      : "📡 SKY · NO MAJOR STORM · RADAR";
+    el.hidden = false;
+    if(!$("skyWrap").hidden) renderSky();
+    return;
+  }
+  el.className = "skyalarm";
+  /* his road first: a warning on a stop he is driving to outranks a hurricane
+     three states away. The last good read screams whatever ok says; when it
+     is not current, its age takes the tap hint's place — a failure in the
+     spec's words, an old read as AS OF with the tap that reads it again. */
+  const st = major[0] ? (major[0].states || []) : [];
+  const top = lane[0] ? laneCall(lane[0])
+    : `⚠ ${major[0].title || "MAJOR STORM"} — ${st.slice(0, 8).join(", ")}${st.length > 8 ? " …" : ""}`;
+  const more = n > 1 ? ` · +${n - 1} more` : "";
+  const sub = t.aged ? `AS OF ${t.asOf.toUpperCase()} · TAP TO READ`
+    : t.said || "TAP FOR THE RADAR AND EVERY STORM";
+  el.innerHTML = `${esc(top)}<span class="sub">${esc(sub)}${more}</span>`;
+  el.hidden = false;
+  if(!$("skyWrap").hidden) renderSky();
+}
+/* THE READ AGES WHILE THE DESK STANDS OPEN (review of #459). Nothing
+   re-reads behind his back (07-29), so a read is re-JUDGED here instead: on
+   the READ stamp's 20 s beat, and the moment the page comes back to the
+   front, skyAge() moves on and the banner, the phone line and the door
+   repaint — only when the words would change, so an open sheet's LOOP does
+   not restart every 20 s. A repaint, never a fetch: his tap is the ask.
+   Silent until the first paint — before the desk has heard from the spine
+   there is no sky line to repaint. */
+function skyTick(){ if(SKY_PAINTED && skyTrust().key !== SKY_PAINTED) paintSky(); }
+setInterval(skyTick, 20000);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) skyTick(); });
+function stormRow(e){
+  const until = skyUntil(e), k = Number(e.alerts) || 0;
+  return `<div class="storm"><div class="st">${esc(e.title)}</div>`
+    + `<div class="sw">${esc((e.states || []).join(", "))}`
+    + `${k ? ` · ${k} NWS alert${k === 1 ? "" : "s"}` : ""}${until ? ` · ${esc(until)}` : ""}</div>`
+    + (e.headline ? `<div class="sw">${esc(e.headline)}</div>` : "") + `</div>`;
+}
+/* a lane warning lists every place of his it covers, each with why it is on
+   his road (home, or the stop and its load) */
+function laneRow(e){
+  const until = skyUntil(e);
+  return `<div class="storm"><div class="st">${esc(e.event)}</div>`
+    + (e.places || []).map(p => `<div class="sw">${esc(p.label)}${p.why ? ` · ${esc(p.why)}` : ""}</div>`).join("")
+    + (until ? `<div class="sw">${esc(until)}</div>` : "")
+    /* carried over a road the spine could not read: the last time it was
+       actually seen, never passed off as live */
+    + (e.unseen_since ? `<div class="sw aged">not seen since ${esc(skyAsOf(e.unseen_since))}`
+      + ` — your stops could not be read</div>` : "")
+    + (e.headline ? `<div class="sw">${esc(e.headline)}</div>` : "") + `</div>`;
+}
+/* a heads-up is one dim line: event · each place with why it is on his road ·
+   until. A short-fused warning (tornado, severe thunderstorm, snow squall)
+   lives about as long as the spine's half-hour read, so it is listed, never
+   rung — and the spine's own note says honestly who does alert him: a phone
+   is alerted only INSIDE the warned area (and a severe thunderstorm only when
+   it is destructive). */
+function headsRow(e){
+  const until = skyUntil(e);
+  const where = (e.places || []).map(p => p.label + (p.why ? " · " + p.why : "")).join("; ");
+  const note = e.note || (e.short_fused ? "short-fused, not rung here" : "");
+  return `<div class="heads">${esc(e.event)}${where ? ` — ${esc(where)}` : ""}`
+    + `${until ? ` · ${esc(until)}` : ""}${note ? ` · ${esc(note)}` : ""}</div>`;
+}
+/* NWS serves the radar GIF to be kept 90-120 s, so a sheet opened later could
+   show an old sweep out of the browser's cache. A two-minute bucket in the
+   query asks for the current one (sw.js never caches a foreign origin). */
+const skyRadar = u => u + (u.includes("?") ? "&" : "?") + "t=" + Math.floor(Date.now() / 120000);
+function renderSky(){
+  const s = State.sky || {}, r = s.radar || {}, t = skyTrust();
+  const { major, lane } = skyStorms();
+  const src = SKY_LOOP ? r.loop : r.still;
+  let h = `<div class="shead"><span class="t">THE SKY</span>`
+    + `<span class="n">${t.known ? "NWS · read " + esc(t.asOf) : ""}</span>`
+    + `<button class="btn x" id="skyClose">CLOSE</button></div>`;
+  /* the doubt is said first, at the top, before anything below can read as
+     calm — red for a failure, dim for a read that is only old */
+  if(t.reading) h += `<div class="calm">reading the sky…</div>`;
+  else if(t.unknown) h += `<div class="unk">THE SKY IS UNKNOWN — ${esc(t.why)}`
+    + `${t.err ? " (" + esc(t.err) + ")" : ""}. No storm shown here is not the same as no storm.</div>`;
+  else if(t.said) h += `<div class="${t.failed ? "unk" : "aged"}">${esc(t.said)}${t.err ? " (" + esc(t.err) + ")" : ""}</div>`;
+  if(src) h += `<div class="radar"><img src="${esc(skyRadar(String(src)))}" alt="NWS national radar${SKY_LOOP ? " loop" : ""}">`
+    + `<button class="btn rtog" id="skyLoop">${SKY_LOOP ? "STILL" : "▶ LOOP"}</button></div>`;
+  /* the lists stand on a read. With none there is nothing to list and no
+     'none' to say — never a calm line over an unknown sky — and a 'none'
+     over a read that is not current names that read instead of sounding calm */
+  if(t.known){
+    const none = calm => `<div class="calm">${t.said ? `None in the ${esc(t.asOf)} read.` : calm}</div>`;
+    const blind = t.blind, short = t.short;
+    const rest = (s.heads_up || []).filter(hh => skyLive(hh) && !short.includes(hh));
+    /* 'no warning' is said only when none stands: a short-fused warning over
+       his road is a warning that is not rung, and the none line says so */
+    h += `<div class="lab">ON YOUR LANE</div>` + (lane.length ? lane.map(laneRow).join("")
+      : none((short.length ? `No warning that rings — ${short.map(skyShortCall).join("; ")}`
+          + ` stands below (short-fused, listed not rung)`
+        : `No warning over home or a stop still to run`)
+        + `${blind.length ? " — and the places below could not be checked" : ""}.`));
+    blind.forEach(u => {
+      h += `<div class="unk">${esc(u.place)}${u.why ? ` · ${esc(u.why)}` : ""} — could not be checked (${esc(u.error)})</div>`;
+    });
+    if(short.length) h += `<div class="lab">SHORT-FUSED WARNINGS ON YOUR LANE — LISTED, NOT RUNG</div>`
+      + short.map(headsRow).join("");
+    if(rest.length) h += `<div class="lab">HEADS UP ON YOUR LANE</div>` + rest.map(headsRow).join("");
+    h += `<div class="lab">MAJOR STORMS — NATIONWIDE</div>` + (major.length ? major.map(stormRow).join("")
+      : none(`No hurricane, nor'easter, blizzard, ice storm or emergency standing`
+        + `${s.active != null ? ` · ${esc(s.active)} alerts in the NWS feed` : ""}.`));
+  }
+  const sheet = $("skySheet"), was = sheet.querySelector(".radar img");
+  sheet.innerHTML = h;
+  /* a read landing under an open sheet repaints it; the radar keeps its own
+     picture when the address is unchanged, so the LOOP never restarts for it */
+  const img = sheet.querySelector(".radar img");
+  if(was && img && was.src === img.src) img.replaceWith(was);
+  $("skyClose").onclick = closeSky;
+  const lp = $("skyLoop");
+  if(lp) lp.onclick = () => { SKY_LOOP = !SKY_LOOP; renderSky(); };
+}
+/* EVERY OPEN IS HIS ASK (review of #459). The banner, the phone line, 📡 SKY
+   and a #sky link each open the sheet over what is on screen at once, and
+   read the sky again under it — a sheet opened at 3 PM must not offer the
+   9 AM read as the sky. It is his tap, so nothing re-reads behind his back
+   (07-29); the answer repaints the open sheet when it lands. */
+function openSky(){
+  $("skyWrap").hidden = false; renderSky();
+  loadSky().catch(e => console.error("THE SKY WATCH could not paint —", e));
+}
+function closeSky(){ $("skyWrap").hidden = true; }
+$("skyBtn").onclick = openSky;
+$("skyAlarm").onclick = openSky;
+$("skyBack").onclick = closeSky;
+
 /* ── THE MORNING PAGE (cards #112/#113) ──────────────────────────────
    The almanac's daily page. Every money line is a SERVED sentence from
    /api/standing (one producer — the page computed nothing); weather, recap,
@@ -5140,6 +5533,7 @@ $("pageBack").addEventListener("click", closePage);
 document.addEventListener("keydown", e => {
   if(e.key === "Escape" && !$("pageWrap").hidden) closePage();
   if(e.key === "Escape" && !$("dockWrap").hidden) closeDocket();
+  if(e.key === "Escape" && !$("skyWrap").hidden) closeSky();
 });
 
 /* ── THE STANDING (hotshot) ───────────────────────────────────────── */
@@ -13552,10 +13946,22 @@ async function load(keep){
        for the same reason — the band, the canon and the chip land in one paint */
     await loadMirror().catch(() => {});
     paintBand();
-    deriveTemp(); paintField(); stampRead();
+    deriveTemp(); paintField(); stampRead(); paintSky();
     /* the day card rides AFTER the field paints — a hung geolocation
        prompt must never hold the desk (errors swallowed, fan-out law) */
     loadDay(false, keep === true).catch(() => {});
+    /* the sky rides beside it, never awaited (card #459): a cold first read
+       or a dead NWS must not hold the field. loadSky records and paints its
+       own failed reads, so only a painting bug can land here — said in the
+       console rather than let it vanish. A #sky link opens the sheet, and
+       opening it IS the sky's ask, so it is asked once, not twice. No ring
+       carries #sky today: a storm ring is a row on the dispatch line, and
+       its tap opens bik-dispatch, never this desk — so the link is reached
+       by hand (review of #459). */
+    if(location.hash === "#sky"){
+      history.replaceState(null, "", location.pathname + location.search);
+      openSky();
+    }else loadSky().catch(e => console.error("THE SKY WATCH could not paint —", e));
     /* an ask-shaped push deep-links here (#hand) — open the docket once,
        then clear the hash so a reload lands on the field */
     if(location.hash === "#hand"){
@@ -13702,6 +14108,17 @@ function toast(m){ const el = $("toast"); el.textContent = m; el.classList.add("
 
 /* a notification tap answers the radio; hash-only changes count too */
 function answerHash(){
+  if(location.hash === "#sky"){
+    /* never over a dead line: while the desk has not heard from the spine,
+       'Can't reach the spine' must stay on top — the sky sheet sits above it
+       and would bury it under a sheet with nothing to show. The hash waits;
+       load()'s own #sky branch opens the sheet once the line answers
+       (review of #459). */
+    if(State.err || !$("connect").hidden) return true;
+    history.replaceState(null, "", location.pathname + location.search);
+    openSky();
+    return true;
+  }
   if(location.hash !== "#radio") return false;
   history.replaceState(null, "", location.pathname + location.search);
   enter(2, true);   // a push tap answers the CHANNEL — straight into the room
