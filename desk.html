@@ -1344,6 +1344,12 @@ body.hot .seg button.on{background:rgba(var(--hot-rgb),.16);color:var(--hot);box
   font-style:normal;color:var(--etch)}
 .nut .bill.late{border-left-color:var(--hot)}
 .nut .bill.late em{color:var(--hot)}
+.nut .bill.skipped{opacity:.5;cursor:default;border-left-color:var(--line)}
+.nut .bill.skipped b{text-decoration:line-through}
+.nut .skipb{font:600 9px var(--mono);letter-spacing:.05em;text-transform:uppercase;
+  background:none;border:1px solid var(--line);border-radius:3px;color:var(--ink);
+  padding:1px 5px;margin-left:2px;cursor:pointer}
+.nut .skipb:hover{border-color:rgba(var(--key),.6)}
 /* an arrived bank row, waiting at the top of the bucket to be matched */
 .lane .drop-in.arr{background:rgba(255,200,60,.07);border-color:rgba(255,200,60,.35);
   border-style:dashed}
@@ -7957,10 +7963,14 @@ function finFloor(){
 function payState(){
   const s = State.standings;
   if(!s) return null;
-  const pay = [...(s.standings||[]), ...(s.tape||[])].filter(x => x.kind === "pay");
+  /* a SKIPPED cycle (card #462) is his word that the payee took nothing this
+     month: not paid, not owed — out of every count here, listed on its own */
+  const all = [...(s.standings||[]), ...(s.tape||[])].filter(x => x.kind === "pay");
+  const skipped = all.filter(x => x.state === "skipped");
+  const pay = all.filter(x => x.state !== "skipped");
   const settled = pay.filter(x => x.state === "settled");
   const open = pay.filter(x => x.state !== "settled");
-  return { pay, settled, open,
+  return { pay, settled, open, skipped,
            owed: open.reduce((a,x) => a + (x.amount||0), 0),
            settledTotal: settled.reduce((a,x) => a + (x.amount||0), 0) };
 }
@@ -7970,8 +7980,17 @@ function finNutList(m0){
   if(!ps) return "";
   const open = [...ps.open].sort((a,b) => ((a.days ?? 99) - (b.days ?? 99)));
   const mon = esc((m0 && m0.month_name || "this month").toLowerCase());
+  /* THE PAYEE TOOK NOTHING (card #462, his ruling 10-31): a skipped bill stays
+     on the list, dim, with its undo — back on its own next month */
+  const skipBtn = (x, on) => `<button class="skipb" data-skip="${on ? 1 : 0}"
+      data-bt="${esc(x.bill_type)}" data-bid="${esc(x.bill_id)}" data-cyc="${esc(x.cycle_key)}"
+      >${on ? "not taken this month" : "undo"}</button>`;
+  const skippedHtml = (ps.skipped || []).map(x => `<div class="bill skipped" title="${esc(x.why || "")}">
+      <span>${esc(x.title)}</span>
+      <em>${esc(x.sub || "not taken this month")} · ${skipBtn(x, false)}</em>
+      <b>${x.amount == null ? "——" : money(x.amount)}</b></div>`).join("");
   if(!open.length) return `<div class="nut">
-    <div class="cap">the nut — every bill recorded for ${mon}</div></div>`;
+    <div class="cap">the nut — every bill recorded for ${mon}</div>${skippedHtml}</div>`;
   const owed = ps.owed;
   return `<div class="nut">
     <div class="cap">the nut — ${open.length} due in ${mon} · ${money(owed)} open · drag a bill over as you pay it</div>
@@ -7982,8 +8001,10 @@ function finNutList(m0){
        title="${esc(x.sub || "")}">
       <span>${esc(x.title)}</span>
       <em>${x.state === "unmarked" ? "date passed — unmarked"
-           : x.state === "today" ? "today" : esc(x.sub || "due")}</em>
+           : x.state === "today" ? "today" : esc(x.sub || "due")}${
+           can && x.cycle_key ? " · " + skipBtn(x, true) : ""}</em>
       <b>${x.amount == null ? "——" : money(x.amount)}</b></div>`;}).join("")}
+    ${skippedHtml}
   </div>`;
 }
 
@@ -12847,6 +12868,24 @@ function wireFin(){
     });
     c.addEventListener("dragend", () => { c.classList.remove("dragging"); FIN.drag = null; });
   });
+  /* not taken this month / undo (card #462) — one bill, one cycle, his word */
+  R.querySelectorAll(".nut .skipb").forEach(b => b.addEventListener("click", async ev => {
+    ev.stopPropagation();
+    const on = b.dataset.skip === "1";
+    b.disabled = true;
+    try{
+      const r = await fetch(url("/api/fin/skip"), {method:"POST",
+        headers:{...hdr(), "Content-Type":"application/json"},
+        body: JSON.stringify({bill_type: b.dataset.bt, bill_id: b.dataset.bid,
+                              cycle_key: b.dataset.cyc, on})});
+      const out = await r.json().catch(() => ({}));
+      if(!r.ok){ b.disabled = false; finSay(out.error || `the spine refused (${r.status}) — nothing was written`, true); return; }
+      try{ State.standings = await grab("/api/standings"); }catch(_){}
+      renderRoom();
+      finSay(on ? `${out.name || "bill"} — not taken this month; off the nut's open list, back next month`
+                : `${out.name || "bill"} is open again for this month`, false);
+    }catch(e){ b.disabled = false; finSay("the spine did not answer — nothing was written: " + (e.message||e), true); }
+  }));
   R.querySelectorAll(".lane").forEach(z => {
     z.addEventListener("dragover", ev => { ev.preventDefault(); z.classList.add("over"); });
     z.addEventListener("dragleave", () => z.classList.remove("over"));
