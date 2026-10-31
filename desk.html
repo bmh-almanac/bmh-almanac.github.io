@@ -13080,6 +13080,14 @@ async function openAcct(ev, t){
     (t.trip_direct && loads.length >= 2
       ? `<button class="mi" data-act="split">split across these loads
           <i>one draft, several fill-ups — checkboxes decide, equal shares to the penny</i></button>` : "") +
+    /* THE FLEET DOOR (card #461, his ruling 10-31): maintenance and emergency
+       spend — the trailer shop, an oil change, parts — goes to the bucket that
+       already exists. Truck Maintenance rides the nut as the reserve the year
+       spreads; a new name would fall out of road AND the reserve. */
+    (!t.maintenance && !["Truck Maintenance", "Truck Supplies"].includes(t.category)
+      && !t.trip_direct && !t.credit && !t.transfer && !t.personal && !t.deposit
+      && !(t.placements || []).length
+      ? `<button class="mi" data-act="maint">maintenance — fleet cost<i>Truck Maintenance: off the pile, into the nut's reserve; never a load</i></button>` : "") +
     (t.accounted
       ? `<button class="mi" data-act="off">take it back into the pile<i>it will count as work again</i></button>`
       : `<button class="mi" data-act="on">already accounted for<i>a card covers it — it stays in the record, marked</i></button>`) +
@@ -13147,6 +13155,19 @@ async function openAcct(ev, t){
         finSay(act === "pers-on"
           ? `${out.merchant || "row"} is your money — held out of road, the pile and the reserve`
           : `${out.merchant || "row"} is the business's again`, false);
+      }catch(e){ finSay("the spine did not answer — nothing was written: " + (e.message||e), true); }
+      return;
+    }
+    if(act === "maint"){
+      try{
+        const r = await fetch(url("/api/fin/categorize"), {method:"POST",
+          headers:{...hdr(), "Content-Type":"application/json"},
+          body: JSON.stringify({txn_id: t.id, category: "Truck Maintenance"})});
+        const out = await r.json().catch(() => ({}));
+        if(!r.ok){ finSay(out.error || `the spine refused (${r.status}) — nothing was written`, true); return; }
+        await loadFin(); renderRoom();
+        try{ State.standings = await grab("/api/standings"); }catch(_){}
+        finSay(`${t.merchant || "row"} is maintenance — off the pile, in the nut's reserve`, false);
       }catch(e){ finSay("the spine did not answer — nothing was written: " + (e.message||e), true); }
       return;
     }
