@@ -8402,7 +8402,8 @@ function finHold(){
   const d = State.standings;
   if(!d) return `<div class="panel" style="flex:1"><div class="gen">
     <span class="nodata">the spine has not answered with the standings</span></div></div>`;
-  const all = [...(d.standings||[]), ...(d.tape||[])].filter(s => s.kind === "pay");
+  /* a skipped cycle (card #462) is neither a stone nor a weight — not owed */
+  const all = [...(d.standings||[]), ...(d.tape||[])].filter(s => s.kind === "pay" && s.state !== "skipped");
   const shown = FIN.group === "all" ? all : all.filter(s => holdBucket(s) === FIN.group);
   const standing = shown.filter(s => s.state !== "settled");
   const settled  = shown.filter(s => s.state === "settled");
@@ -9037,6 +9038,7 @@ function finBudget(){
       money(ev.covered)} carried this cycle</span>`;
     const p = pays.find(x => x.bill_type === bt && String(x.bill_id) === String(bid));
     if(p && p.state === "settled") return ` · <span class="bpay">paid — your hand</span>`;
+    if(p && p.state === "skipped") return ` · <span class="bpay">${esc(p.sub || "not taken this month — your word")}</span>`;
     /* no evidence this cycle: the writer's own words for why (card #348) —
        'no matching charge' is a flag, an unattached row that names the line
        is a nudge; 'unknown' when the refusals could not be read */
