@@ -1259,29 +1259,68 @@ body.hot .seg button.on{background:rgba(var(--hot-rgb),.16);color:var(--hot);box
 .ltab td.unk{color:var(--unknown)}
 .ltab tr:hover td{background:rgba(var(--wash),.03)}
 
-/* THE HOLD — his month as stones lying in the bottom of the phone, each body
-   sized to its amount. He settles it the way you unload a trailer: one piece
-   at a time, by hand, until the floor is bare. */
-.hold{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
-.holdw{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;border-radius:5px;
-  background:linear-gradient(180deg,rgba(0,0,0,.45),rgba(0,0,0,.18))}
-.holdw canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:pointer}
-.waterline{position:absolute;left:0;right:0;pointer-events:none;
-  border-top:1px solid rgba(var(--wash),.22)}
-.waterline .wn{position:absolute;right:9px;bottom:5px;text-align:right}
-.waterline .wn b{font:700 clamp(20px,2.2vw,30px)/1 var(--mono);color:var(--ink)}
-.waterline .wn span{display:block;margin-top:2px;font:700 7.5px var(--mono);letter-spacing:.17em;
-  color:var(--dim);text-transform:uppercase}
-.holdw .clear{position:absolute;left:9px;bottom:5px;font:600 9.5px var(--mono);
-  letter-spacing:.1em;color:var(--etch);text-transform:uppercase}
-.stone{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none}
-.hcard{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:12px;
-  width:min(420px,92%);background:var(--panel);border:1px solid var(--line);border-radius:6px;
-  padding:12px 14px;box-shadow:0 20px 50px rgba(0,0,0,.8)}
-.hcard .hn{font:600 14px/1.3 var(--sans);color:var(--ink)}
-.hcard .ha{margin-top:4px;font:700 24px/1 var(--mono);color:rgba(var(--key),1)}
-.hcard .hs{margin-top:6px;font:400 11.5px/1.5 var(--sans);color:var(--dim)}
-.hcard .hb{margin-top:11px;display:flex;gap:7px;align-items:center}
+/* THE GRADE (card #463) — THE HOLD as a mountain road (his ask 10-31: "I have
+   trouble visualizing my bills ... my mind is so visual"). The road climbs by
+   each day's bills on their due day; the dashed line is the money (what a past
+   month earned, or what is in sight now: cash + owed); above it, snow. Big bold
+   sans, one figure per thing, the Q4 band's voice — no mono caps. Every figure
+   is SERVED by /api/grade; the page draws and counts nothing. */
+/* THE GRADE needs its height, and under the strip a laptop leaves it ~100px —
+   the slit the short-screen rule (.fin, ~line 975) already refuses. So with the
+   grade open the room takes that rule at ANY height: one scroller, the strip
+   scrolls away, the mountain gets the screen. */
+.fin.gr{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.fin.gr .finbody{flex:0 0 auto;overflow:visible}
+.grade{flex:1 0 auto;min-height:max(540px,calc(100dvh - 200px));display:flex;flex-direction:column;
+  --gr-e1:#2a2016;--gr-e2:#120e0a;--gr-snow:rgba(232,242,255,.28);--gr-line:#E8F2FF;
+  --gr-ice:30,144,255;--gr-ok:120,200,120;--gr-fog:#5A5F68;--gr-tip:#16130F}
+:root.paper .grade{--gr-e1:#d9c9ae;--gr-e2:#c9b592;--gr-snow:rgba(46,111,176,.30);--gr-line:#2E6FB0;
+  --gr-ice:46,111,176;--gr-ok:46,139,62;--gr-fog:#8A7A5C;--gr-tip:#F3EBD6}
+.grsw{flex:0 0 auto;display:flex;gap:4px;padding:4px;border-radius:14px;
+  background:rgba(var(--wash),.05);border:1px solid rgba(var(--wash),.09)}
+.grsw button{flex:1;border:0;border-radius:10px;padding:10px 0;background:none;cursor:pointer;
+  color:var(--mid);font:900 16px/1 var(--sans);letter-spacing:.04em}
+.grsw button.on{color:#140c02;background:linear-gradient(135deg,#FFD166,#FFA419 55%,#FF3B18);
+  box-shadow:0 6px 18px -8px rgba(255,140,30,.9)}
+.grhero{flex:0 0 auto;margin-top:12px}
+.grhero b{display:block;font:900 30px/1.02 var(--sans);letter-spacing:-.01em;color:var(--ink)}
+.grhero span{display:block;margin-top:6px;font:850 21px/1.1 var(--sans);color:var(--amber);font-variant-numeric:tabular-nums}
+.grhero span.ice{color:rgb(var(--gr-ice))}.grhero span.ok{color:rgb(var(--gr-ok))}
+.grmt{position:relative;flex:1 1 auto;min-height:300px;margin-top:10px;touch-action:none;cursor:crosshair}
+.grmt svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.grmt text{font-family:var(--sans);font-variant-numeric:tabular-nums}
+.grread{flex:0 0 auto;min-height:72px;margin-top:8px;padding:11px 13px;border-radius:13px;--h:255,164,25;
+  border:1px solid rgba(var(--h),.34);box-shadow:inset 5px 0 0 rgb(var(--h));
+  background:linear-gradient(95deg,rgba(var(--h),.2),rgba(var(--h),.04) 65%)}
+.grread.cold{--h:var(--gr-ice)}.grread.ok{--h:var(--gr-ok)}
+.grread b{display:block;font:900 22px/1.1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+.grread span{display:block;margin-top:5px;font:850 16px/1.2 var(--sans);color:var(--mid)}
+.grrows{flex:0 0 auto;display:flex;flex-direction:column;gap:7px;margin-top:9px}
+.grrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;
+  padding:9px 13px;border-radius:13px;cursor:pointer;text-align:left;font:inherit;color:var(--ink);
+  border:1px solid rgba(var(--h),.34);box-shadow:inset 5px 0 0 rgb(var(--h));
+  background:linear-gradient(95deg,rgba(var(--h),.24),rgba(var(--h),.05) 62%)}
+.grrow .w{font:850 20px/1.05 var(--sans)}.grrow .w small{display:block;margin-top:4px;font:800 14px/1 var(--sans);color:var(--mid)}
+.grrow .f{text-align:right;font:900 26px/1 var(--sans);color:rgb(var(--h));font-variant-numeric:tabular-nums}
+.grrow .f small{display:block;margin-top:4px;font:800 13px/1 var(--sans);color:var(--mid)}
+.grtip{position:absolute;z-index:5;min-width:200px;max-width:270px;padding:11px 13px;border-radius:13px;pointer-events:none;
+  --h:255,164,25;background:var(--gr-tip);border:1px solid rgba(var(--h),.5);
+  box-shadow:0 18px 40px rgba(0,0,0,.6),inset 5px 0 0 rgb(var(--h))}
+.grtip.cold{--h:var(--gr-ice)}.grtip.ok{--h:var(--gr-ok)}
+.grtip h4{margin:0 0 7px;font:900 21px/1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+.grtip div{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font:800 16px/1.15 var(--sans);
+  color:var(--ink);border-top:1px solid rgba(var(--wash),.08)}
+.grtip div b{font-weight:900;font-variant-numeric:tabular-nums}
+.grtip div.sk{color:var(--dim);text-decoration:line-through}
+.grtip small{display:block;margin-top:6px;font:800 13px/1 var(--sans);color:var(--mid)}
+.grade.wide{min-height:max(460px,calc(100dvh - 220px));display:grid;grid-template-columns:320px minmax(0,1fr);grid-template-rows:auto auto 1fr auto;column-gap:22px}
+.grade.wide .grsw{grid-column:1;grid-row:1}.grade.wide .grhero{grid-column:1;grid-row:2}
+.grade.wide .grrows{grid-column:1;grid-row:3;align-self:end}
+.grade.wide .grmt{grid-column:2;grid-row:1/4;margin-top:0}.grade.wide .grread{grid-column:2;grid-row:4}
+.grade.wide .grhero b{font-size:36px}
+@keyframes grBreathe{0%,100%{opacity:1}50%{opacity:.55}}
+.grmt .br{animation:grBreathe 4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.grmt .br{animation:none}}
 /* THE STONES — the strip's passive tracker (his ask 2026-08-14): the month's
    bills pile above the line and drop to the bed below it as his drag settles
    them on the floor. Read-only — the act lives on the floor (08-01 ruling). */
@@ -1363,11 +1402,6 @@ body.hot .seg button.on{background:rgba(var(--hot-rgb),.16);color:var(--hot);box
 .pev{display:block;font:400 9.5px/1.4 var(--mono);letter-spacing:.04em;
   font-style:normal;color:var(--etch)}
 .pev.hand::before{content:"◇ "}
-.hgrp{display:flex;gap:2px;background:rgba(0,0,0,.3);border-radius:4px;padding:2px;flex-wrap:wrap}
-.hgrp button{background:none;border:0;color:var(--dim);cursor:pointer;padding:5px 9px;border-radius:3px;
-  font:700 7.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
-.hgrp button.on{background:rgba(var(--key),.16);color:rgba(var(--key),1)}
-.hgrp button:hover{color:var(--ink)}
 
 .recbar{margin-top:7px;height:6px;border-radius:3px;background:rgba(var(--wash),.09);overflow:hidden}
 .recbar i{display:block;height:100%;background:rgba(var(--key),1);transition:width .8s cubic-bezier(.16,1,.3,1)}
@@ -7543,17 +7577,17 @@ function wireStops(){
 /* ── LEDGER · LEARN · SOUL ────────────────────────────────────────── */
 /* ══ THE MONEY ROOM ════════════════════════════════════════════════════
    Three views on one set of served facts. FLOOR is where cost meets the load
-   that caused it; HOLD is the month's obligations as stones; LEDGER is what
+   that caused it; HOLD is THE GRADE, the bills as a mountain road (card #463); LEDGER is what
    is standing, unchanged from the room this replaced. The strip sits above
    all three and never changes with the period toggle — the nut is monthly. */
-const FIN = { period:"month", view:"floor", group:"all", pick:null, drag:null, ask:null,
+const FIN = { period:"month", view:"floor", gv:"month", gm:null, pick:null, drag:null, ask:null,
               catFilter:null, shotAcct:"pnc", pileOpen:false };
 
 function ledgerRoom(){
-  return whyBar() + `<div class="fin">
+  return whyBar() + `<div class="fin${FIN.view === "hold" ? " gr" : ""}">
     <div class="finbar">
       <div class="seg" id="finView">${
-        [["floor","the floor"],["hold","the hold"],["ledger","the books"],
+        [["floor","the floor"],["hold","the grade"],["ledger","the books"],
          ["budget","the budget"]].map(([k,l]) =>
           `<button data-v="${k}" class="${FIN.view===k?"on":""}">${l}</button>`).join("")}</div>
       <div class="sp"></div>
@@ -8386,133 +8420,277 @@ function finTable(ro){
   </tbody></table></div>`;
 }
 
-/* ── THE HOLD: the month as stones on a floor ──────────────────────── */
-const HOLD_GROUPS = [["all","all"],["monthly","monthly"],["annual","annual"],
-                     ["loans","loans"],["etc","etc"]];
+/* ── THE GRADE (card #463): the month's bills as a mountain road ──────
+   Replaces the stones (THE HOLD, which he never used). Three views on one
+   rule — the road climbs by the bills on their due days, the dashed line is
+   the money, above it is snow. MONTH: each step wears THAT DAY's bills (his
+   ruling 10-31: "the numbers are the totals on that day for bills and i can
+   hover over if multiple bills due on a day and see a breakdown"). QUARTER:
+   three peaks. YEAR: twelve (four quarter tiles on a phone). /api/grade
+   serves every figure — bills, day totals, the climb, the money, the snow
+   day, cleared; this page only places them. Read on entering the tab, never
+   on a timer: it costs the spine ~3s, so the money room's load skips it. */
+const GR_MON = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const GR_LONG = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const grOrd = d => d + (d%10===1&&d!==11?"ST":d%10===2&&d!==12?"ND":d%10===3&&d!==13?"RD":"TH");
+const grState = b => ({settled:"PAID", skipped:"NOT TAKEN", today:"TODAY", unmarked:"NO RECORD"})[b.state] || "DUE";
 
-function holdBucket(s){
-  const t = (s.bill_type || "").toLowerCase();
-  if(t === "loan") return "loans";
-  if(t === "credit_card") return "etc";
-  if(t === "fixed_monthly") return "monthly";
-  return "etc";
+function loadGrade(){
+  if(FIN.gLoading) return;
+  FIN.gLoading = true; State.fin.gradeErr = null;
+  grab("/api/grade")
+    .then(g => { State.fin.grade = g; FIN.gAnim = true; })
+    .catch(e => { State.fin.gradeErr = String(e.message || e); })
+    .finally(() => { FIN.gLoading = false; if(ACTIVE !== null && FIN.view === "hold") renderRoom(); });
+}
+
+function grMonth(G, m){ return (G.months || [])[m - 1]; }
+function grToday(G){ return { m: +G.today.slice(5,7), d: +G.today.slice(8,10) }; }
+
+function grHero(G){
+  const v = FIN.gv || "month";
+  if(v === "month"){
+    const M = grMonth(G, FIN.gm), L = GR_LONG[M.month-1];
+    if(M.when === "ahead") return `<b>${L} · ${short(M.total)}</b><span class="ice">NOTHING IN SIGHT YET</span>`;
+    if(M.money == null) return `<b>${L} · ${short(M.total)}</b><span>${esc(M.money_why || "the money could not be read")}</span>`;
+    if(M.when === "past") return M.cleared
+      ? `<b>${L} · CLEARED</b><span class="ok">${short(M.money)} CAME IN · ${short(M.total)} BILLS</span>`
+      : `<b>${L} · ❄ SNOWED</b><span class="ice">${short(M.money)} CAME IN · ${short(M.total)} BILLS</span>`;
+    if(M.snow_day) return `<b>SNOW LINE · THE ${grOrd(M.snow_day)}</b><span>${short(M.total)} TO THE TOP</span>
+      <span class="ice">${short(G.in_sight.total)} IN SIGHT</span>`;
+    return `<b>${L} · CLEAR TO THE TOP</b><span class="ok">${M.paid >= M.total ? "ALL PAID · " + short(M.paid)
+      : short(G.in_sight.total) + " IN SIGHT · " + short(M.total) + " BILLS"}</span>`;
+  }
+  if(v === "quarter") return `<b>Q${G.quarter} · ${G.year}</b>`;
+  const read = G.months.filter(M => M.cleared != null), won = read.filter(M => M.cleared).length;
+  const big = G.months.filter(M => M.money_kind === "earned" && M.money != null).sort((a,b) => b.money - a.money)[0];
+  return `<b>${G.year} · ${won} OF ${read.length} CLEARED</b>${big ? `<span>${GR_LONG[big.month-1]} BIGGEST · ${short(big.money)}</span>` : ""}`;
+}
+
+function grRows(G){
+  if((FIN.gv || "month") !== "quarter") return "";
+  const q0 = (G.quarter - 1) * 3 + 1;
+  return `<div class="grrows">${[q0, q0+1, q0+2].map(m => { const M = grMonth(G, m);
+    const skip = M.bills.filter(b => b.state === "skipped").length, paidN = M.bills.filter(b => b.state === "settled").length;
+    const [h, sub, fig, fs] = M.when === "ahead" ? ["138,143,152", "NOTHING IN SIGHT YET", short(M.total), "TO CLIMB"]
+      : M.money == null ? ["138,143,152", "MONEY NOT READ", short(M.total), "BILLS"]
+      : M.cleared ? ["120,200,120", `${paidN} PAID${skip ? ` · ${skip} NOT TAKEN` : ""}`, "✓",
+                     M.when === "past" ? `${short(M.money)} IN` : `${short(G.in_sight.total)} IN SIGHT`]
+      : ["30,144,255", M.snow_day ? `SNOW FROM THE ${grOrd(M.snow_day)}` : "SNOWED", short(M.total),
+         M.when === "past" ? `${short(M.money)} IN` : `${short(G.in_sight.total)} IN SIGHT`];
+    return `<button class="grrow" data-gm="${m}" style="--h:${h}"><span class="w">${GR_LONG[m-1]}<small>${sub}</small></span>
+      <span class="f">${fig}<small>${fs}</small></span></button>`; }).join("")}</div>`;
 }
 
 function finHold(){
-  const d = State.standings;
-  if(!d) return `<div class="panel" style="flex:1"><div class="gen">
-    <span class="nodata">the spine has not answered with the standings</span></div></div>`;
-  /* a skipped cycle (card #462) is neither a stone nor a weight — not owed */
-  const all = [...(d.standings||[]), ...(d.tape||[])].filter(s => s.kind === "pay" && s.state !== "skipped");
-  const shown = FIN.group === "all" ? all : all.filter(s => holdBucket(s) === FIN.group);
-  const standing = shown.filter(s => s.state !== "settled");
-  const settled  = shown.filter(s => s.state === "settled");
-  const left  = standing.reduce((a,s) => a + (s.amount||0), 0);
-  const clear = settled.reduce((a,s) => a + (s.amount||0), 0);
-  State.fin.stones = shown;
-  return `<div class="hold">
-    <div class="finbar" style="margin-bottom:7px">
-      <div class="hgrp" id="holdGrp">${HOLD_GROUPS.map(([k,l]) =>
-        `<button data-g="${k}" class="${FIN.group===k?"on":""}">${l}</button>`).join("")}</div>
-      <div class="sp"></div>
-      <span class="cap">${standing.length} standing${
-        standing.length ? " · drag to read · paid on the floor" : ""}</span>
-    </div>
-    <div class="panel" style="flex:1;min-height:0;padding:0;overflow:hidden">
-      <div class="holdw" id="holdW">
-        <canvas id="holdC"></canvas>
-        ${standing.length ? "" : `<div class="gen" style="position:absolute;inset:0;padding:0 24px">
-          <div><div style="font:600 15px/1.5 var(--sans);color:var(--ink)">The floor is bare.</div>
-          <div class="nodata" style="margin-top:6px">${settled.length} settled this month —
-            ${money(clear)} of it. Nothing in this hold is waiting on your hand.</div></div></div>`}
-        <div class="waterline" id="holdLine">
-          <div class="wn"><b>${money(left)}</b><span>left this ${
-            FIN.group==="all"?"month":esc(FIN.group)}</span></div></div>
-        <div class="clear">${money(clear)} clear${
-          settled.length ? ` · ${settled.length} settled` : ""}</div>
-      </div>
-    </div>
+  const G = State.fin.grade;
+  if(!G) return `<div class="panel" style="flex:1"><div class="gen"><span class="nodata">${
+    State.fin.gradeErr ? esc(State.fin.gradeErr) + " — tap THE GRADE to try again" : "reading the mountain…"}</span></div></div>`;
+  const T = grToday(G);
+  if(!FIN.gm) FIN.gm = T.m;
+  const v = FIN.gv || "month";
+  return `<div class="grade" id="grade">
+    <div class="grsw" id="grSw">${["month","quarter","year"].map(k =>
+      `<button data-gv="${k}" class="${v===k?"on":""}">${k.toUpperCase()}</button>`).join("")}</div>
+    <div class="grhero">${grHero(G)}</div>${grRows(G)}
+    <div class="grmt" id="grMt"><svg id="grSvg"></svg></div>
+    <div class="grread" id="grRead"></div>
   </div>`;
 }
 
-/* Stones are laid on the floor by size, largest first, packed in rows from the
-   bottom — a load of stone, not a chart. Positions are DERIVED FROM SERVED
-   AMOUNTS; nothing here invents a figure. The engine below is shared by the
-   hold and the strip's stones — one packer, one body, never forked. */
-
-/* SIZE IS RANK, NOT RATIO — and the code says so rather than pretending.
-   Radius grows with √amount so weight reads by AREA rather than width, but
-   rMin is a hard floor: a $1 subscription beside a $1,500 truck payment
-   would be a 1px target, and an obligation he cannot tap is an obligation
-   he cannot settle. So a small stone is BIGGER than its share. The number
-   on the stone is the truth; the size is only the ordering. */
-function packStones(items, W, floorY, o){
-  const rMin = o.rMin, rMax = o.rMax, x0 = o.x0 ?? 14, gap = o.gap ?? 7,
-        rowGap = o.rowGap ?? 8, xMax = o.xMax ?? (W - 10);
-  const mx = Math.max(1, ...items.map(s => s.amount));
-  const rad = a => rMin + (rMax - rMin)*Math.sqrt(a/mx);
-  const sorted = [...items].sort((a,b) => b.amount - a.amount);
-  const placed = [];
-  let x = x0, y = floorY, rowH = 0;
-  for(const s of sorted){
-    const R = rad(s.amount);
-    if(x + R*2 > xMax){ x = x0; y -= rowH + rowGap; rowH = 0; }
-    placed.push({s, cx: x + R, cy: y - R, R});
-    x += R*2 + gap; rowH = Math.max(rowH, R*2);
-  }
-  return placed;
+/* one mountain into a box: the step road, earth under it, snow above the money */
+function grMountain(M, box, o){
+  const {x, y, w, h} = box, N = M.days, ymax = o.ymax;
+  const X0 = d => x + (d-1)/N*w, Y = v => y + h - v/ymax*h;
+  let road = `M${x},${Y(0)}`, prev = 0;
+  for(const p of M.by_day){ road += ` L${X0(p.day)},${Y(prev)} L${X0(p.day)},${Y(p.cum)}`; prev = p.cum; }
+  road += ` L${x+w},${Y(prev)}`;
+  const fill = road + ` L${x+w},${Y(0)} Z`, id = "gr" + o.id;
+  const my = M.money == null ? null : Y(Math.min(M.money, ymax*0.985));
+  const allPaid = M.total > 0 && M.paid >= M.total;   /* served figures: a month fully paid drives green */
+  /* green only where the record says paid; a past month with bills never
+     recorded (before the books tracked them) drives muted, never as paid */
+  const roadCol = allPaid ? "rgb(var(--gr-ok))" : M.when === "past" ? "var(--dim)" : `url(#${id}r)`;
+  let s = `<defs><clipPath id="${id}a"><rect x="${x-20}" y="${y-80}" width="${w+40}" height="${Math.max(0,(my??y-80)-(y-80))}"/></clipPath>
+    <clipPath id="${id}b"><rect x="${x-20}" y="${my??y+h}" width="${w+40}" height="${Math.max(0,y+h-(my??y+h)+40)}"/></clipPath>
+    <linearGradient id="${id}e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--gr-e1)"/><stop offset="1" style="stop-color:var(--gr-e2)"/></linearGradient>
+    <linearGradient id="${id}r" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color:var(--amber)"/><stop offset="1" style="stop-color:var(--hot)"/></linearGradient>
+    <pattern id="${id}s" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" style="fill:var(--gr-snow)"/></pattern></defs>
+    <path d="${fill}" fill="url(#${id}e)"/>`;
+  const stroke = (col, clip) => `<path class="grrd" d="${road}" fill="none" style="stroke:${col}" stroke-width="${o.sw}" stroke-linejoin="round"${clip ? ` clip-path="url(#${id}${clip})"` : ""}/>`;
+  if(my == null) s += `<path d="${road}" fill="none" style="stroke:var(--gr-fog)" stroke-width="${o.sw}" stroke-dasharray="6 5" stroke-linejoin="round"/>`;
+  else if(M.cleared) s += stroke(roadCol);
+  else s += `<path d="${fill}" fill="url(#${id}s)" clip-path="url(#${id}a)"/>` + stroke(roadCol, "b") + stroke("rgb(var(--gr-ice))", "a");
+  if(my != null) s += `<line x1="${x-4}" x2="${x+w+4}" y1="${my}" y2="${my}" style="stroke:${M.cleared ? "rgb(var(--gr-ok))" : "var(--gr-line)"}" stroke-width="2" stroke-dasharray="6 4"/>`;
+  return {s, X0, Y, my};
 }
 
-function drawStone(g, p, o){
-  o = o || {};
-  const a = o.faded ? 0.42 : 1;
-  const grd = g.createRadialGradient(p.cx - p.R*0.34, p.cy - p.R*0.36, p.R*0.1,
-                                     p.cx, p.cy, p.R);
-  if(o.hot){ grd.addColorStop(0,`rgba(255,120,90,${0.98*a})`); grd.addColorStop(.55,`rgba(196,39,26,${0.8*a})`);
-             grd.addColorStop(1,`rgba(60,12,8,${0.95*a})`); }
-  else if(PAPER()){ /* warm river stone — light crown keeps the dark figure legible */
-             grd.addColorStop(0,`rgba(206,192,160,${0.95*a})`); grd.addColorStop(.55,`rgba(148,132,102,${0.8*a})`);
-             grd.addColorStop(1,`rgba(66,54,36,${0.96*a})`); }
-  else     { grd.addColorStop(0,`rgba(214,222,232,${0.95*a})`); grd.addColorStop(.55,`rgba(140,152,166,${0.72*a})`);
-             grd.addColorStop(1,`rgba(22,28,36,${0.96*a})`); }
-  g.fillStyle = grd;
-  g.beginPath(); g.arc(p.cx, p.cy, p.R, 0, 7); g.fill();
-  if(o.ring){ g.strokeStyle = o.ring; g.lineWidth = 2;
-              g.beginPath(); g.arc(p.cx, p.cy, p.R+2, 0, 7); g.stroke(); }
-}
-
-function paintHold(){
-  const cv = $("holdC"), w = $("holdW"); if(!cv || !w) return;
-  const st = (State.fin.stones || []).filter(s => s.state !== "settled" && s.amount);
-  const r = w.getBoundingClientRect();
-  const W = Math.max(200, r.width), H = Math.max(160, r.height);
-  cv.width = W*2; cv.height = H*2;
-  const g = cv.getContext("2d"); g.scale(2,2);
-  g.clearRect(0,0,W,H);
-  const hcs = getComputedStyle(document.documentElement);
-  const key = HOT ? (hcs.getPropertyValue("--hot-rgb").trim() || "255,59,24")
-                  : (hcs.getPropertyValue("--key").trim() || "255,164,25");
-  const placed = packStones(st, W, H - 16, {rMin: 13, rMax: Math.min(52, H*0.2)});
-  State.fin.placed = placed;
-  const top = placed.length ? Math.min(...placed.map(p => p.cy - p.R)) : H - 20;
-  const line = $("holdLine");
-  if(line) line.style.bottom = Math.max(28, H - top + 8) + "px";
-  for(const p of placed){
-    const sel = FIN.pick === p.s.id;
-    drawStone(g, p, {hot: p.s.severity === "short",
-                     ring: sel ? `rgba(${key},1)` : null});
-    /* The number is the truth the size cannot carry, so it goes on every stone
-       that can hold legible type — short form under 18px, and the drill-in
-       card carries the rest. */
-    g.fillStyle = "rgba(10,12,16,.84)";
-    g.textAlign = "center"; g.textBaseline = "middle";
-    if(p.R >= 22){
-      g.font = "700 10px ui-monospace,Menlo,monospace";
-      g.fillText(money(p.s.amount), p.cx, p.cy);
-    }else if(p.R >= 16){
-      g.font = "700 9px ui-monospace,Menlo,monospace";
-      g.fillText(short(p.s.amount), p.cx, p.cy);
+function paintGrade(){
+  const G = State.fin.grade, mt = $("grMt"), svg = $("grSvg"), gw = $("grade");
+  if(!G || !mt || !svg) return;
+  const v = FIN.gv || "month", T = grToday(G);
+  const wide = gw.getBoundingClientRect().width >= 700;
+  gw.classList.toggle("wide", wide);
+  const W = mt.clientWidth, H = mt.clientHeight;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  let s = "";
+  FIN.gHits = null;
+  if(v === "month"){
+    const M = grMonth(G, FIN.gm), N = M.days, box = {x:6, y:46, w:W-12, h:H-76};
+    const ymax = Math.max(M.total || 1, Math.min(M.money || 0, (M.total || 1) * 1.35)) * 1.04;   /* a line far above the summit pins near the top */
+    const mtn = grMountain(M, box, {ymax, sw:6, id:"m"});
+    s += mtn.s;
+    /* each step wears THAT day's bills, biggest first; one that would sit on a
+       neighbour's label waits for the hover card */
+    const lf = wide ? 22 : 20, boxes = [], minAmt = wide ? 100 : 300;
+    for(const p of M.by_day.filter(p => p.total >= minAmt).sort((a,b) => b.total - a.total)){
+      const txt = short(p.total), tw = txt.length*lf*0.6;
+      const cx = Math.min(Math.max(mtn.X0(p.day) + box.w/N/2, box.x + tw/2), box.x + box.w - tw/2), cy = mtn.Y(p.cum) - 10;
+      const bb = [cx-tw/2-3, cy-lf, cx+tw/2+3, cy+4];
+      if(boxes.some(q => bb[0] < q[2] && bb[2] > q[0] && bb[1] < q[3] && bb[3] > q[1])) continue;
+      boxes.push(bb);
+      const today = M.when === "now" && p.day === T.d, cold = M.money != null && p.cum > M.money;
+      s += `<text x="${cx}" y="${cy}" text-anchor="middle" font-weight="900" font-size="${lf}" style="fill:${
+        today ? "var(--amber)" : cold ? "rgb(var(--gr-ice))" : "var(--ink)"}"${today ? ' class="br"' : ""}>${txt}</text>`;
     }
+    /* the current month's line stands at paid + in sight; its words name only
+       the money in sight (cash + owed) — what is paid is already behind him */
+    if(mtn.my != null) s += `<text x="${box.x}" y="${mtn.my-8}" font-weight="850" font-size="15" style="fill:${M.cleared ? "rgb(var(--gr-ok))" : "var(--gr-line)"}">${
+      M.money_kind === "earned" ? short(M.money) + " CAME IN" : short(G.in_sight.total) + " IN SIGHT"}</text>`;
+    if(M.snow_day && !M.cleared) s += `<rect x="${box.x+box.w-74}" y="${mtn.my+6}" width="70" height="24" rx="5" style="fill:rgb(var(--gr-ice))"/>
+      <text x="${box.x+box.w-39}" y="${mtn.my+23}" text-anchor="middle" font-weight="900" font-size="14" fill="#fff">THE ${grOrd(M.snow_day)}</text>`;
+    /* the day rail: a tick per day, taller where more leaves */
+    const dayTot = Object.fromEntries(M.by_day.map(p => [p.day, p.total]));
+    for(let d = 1; d <= N; d++){
+      const tx = box.x + (d-0.5)/N*box.w, th = 4 + Math.min(18, (dayTot[d]||0)/90);
+      const col = M.when === "now" && d === T.d ? "var(--amber)" : d === M.snow_day ? "rgb(var(--gr-ice))"
+        : dayTot[d] ? "var(--mid)" : "rgba(var(--wash),.18)";
+      s += `<rect x="${tx-1.5}" y="${H-6-th}" width="3" height="${th}" rx="1.5" style="fill:${col}"/>`;
+    }
+    for(const d of [1, 8, 15, 22, N]) s += `<text x="${box.x+(d-0.5)/N*box.w}" y="${H-30}" text-anchor="middle" font-size="13" font-weight="800" style="fill:var(--dim)">${d}</text>`;
+    /* the pickup: at today's foot in this month, at the summit in a past one */
+    const td = M.when === "now" ? T.d : M.when === "past" ? N : 1;
+    const before = M.by_day.filter(p => M.when === "past" ? true : p.day < td).pop();
+    s += `<text x="${box.x+(td-0.5)/N*box.w}" y="${mtn.Y(before ? before.cum : 0)-6}" font-size="${wide?30:26}" text-anchor="middle"
+      style="transform-box:fill-box;transform-origin:center;transform:scaleX(-1)">🛻</text>`;
+    s += `<line id="grHl" x1="0" x2="0" y1="${box.y-10}" y2="${H-6}" style="stroke:var(--ink)" stroke-width="2" opacity="0"/>`;
+    FIN.gHits = {kind:"month", M, box, ymax};
+  } else {
+    const ms = v === "quarter" ? [0,1,2].map(i => (G.quarter-1)*3 + 1 + i) : [1,2,3,4,5,6,7,8,9,10,11,12];
+    /* scale to the peaks, not the money: a line far above a summit pins at the
+       top with its flag, so the bills keep their shape */
+    const ymax = Math.max(1, ...ms.map(m => grMonth(G,m).total || 0)) * 1.5;
+    const tiles = v === "year" && !wide, hits = [];
+    const cell = (m, i) => {
+      if(!tiles){ const gap = v === "quarter" ? 12 : 10, bw = (W-12-gap*(ms.length-1))/ms.length;
+        return {x:6+i*(bw+gap), y:30, w:bw, h:H-70, lab:H-12}; }
+      const q = Math.floor(i/3), k = i%3, tw = (W-18)/2, th = (H-14)/2, tx = 6+(q%2)*(tw+6), ty = Math.floor(q/2)*(th+14);
+      const bw = (tw-16)/3;
+      return {x:tx+6+k*(bw+2), y:ty+50, w:bw, h:th-78, lab:ty+th-8, tile:{tx, ty, tw, th, q}};
+    };
+    if(tiles) for(let q = 0; q < 4; q++){ const c = cell(q*3+1, q*3).tile;
+      s += `<rect x="${c.tx}" y="${c.ty}" width="${c.tw}" height="${c.th}" rx="12" style="fill:rgba(var(--wash),.03);stroke:rgba(var(--wash),.09)"/>
+        <text x="${c.tx+10}" y="${c.ty+22}" font-size="17" font-weight="900" style="fill:${q+1 === G.quarter ? "var(--amber)" : "var(--ink)"}">Q${q+1}</text>`; }
+    ms.forEach((m, i) => {
+      const M = grMonth(G, m), box = cell(m, i), big = v === "quarter" || wide;
+      const mtn = grMountain(M, box, {ymax, sw: v === "quarter" ? (wide?5:4) : (wide?3.5:3), id:"p"+m});
+      s += mtn.s;
+      const col = M.when === "now" ? "var(--amber)" : M.cleared ? "rgb(var(--gr-ok))" : M.cleared === false ? "rgb(var(--gr-ice))" : "var(--gr-fog)";
+      s += `<text x="${box.x+box.w/2}" y="${box.lab}" text-anchor="middle" font-size="${big ? (v==="quarter"?20:17) : 14}" font-weight="900" style="fill:${col}">${GR_MON[m-1]}</text>`;
+      if(v === "quarter") s += `<text x="${box.x+box.w-2}" y="${mtn.Y(M.total)-10}" text-anchor="end" font-size="${wide?20:15}" font-weight="900" style="fill:var(--ink)">${short(M.total)}</text>`;
+      if(M.cleared) s += `<text x="${box.x+box.w/2}" y="${mtn.my-6}" text-anchor="middle" font-size="${big?20:15}">🚩</text>`;
+      else if(M.cleared === false) s += `<text x="${box.x+box.w/2}" y="${mtn.Y(M.total)-8}" text-anchor="middle" font-size="${big?18:15}" font-weight="900" style="fill:rgb(var(--gr-ice))">❄</text>`;
+      if(M.when === "now") s += `<text x="${box.x+box.w/2}" y="${box.y+box.h-4}" text-anchor="middle" font-size="${big?22:17}">🛻</text>`;
+      hits.push({m, x0:box.x-4, x1:box.x+box.w+4, y0:box.y-40, y1:box.lab+6});
+    });
+    FIN.gHits = {kind:"peaks", hits};
+  }
+  svg.innerHTML = s;
+  /* the road draws in once per arrival or switch — the Q4 band's drive */
+  if(FIN.gAnim && !matchMedia("(prefers-reduced-motion: reduce)").matches){
+    svg.querySelectorAll(".grrd").forEach(p => { const L = p.getTotalLength ? p.getTotalLength() : 0; if(!L) return;
+      p.style.strokeDasharray = L; p.style.strokeDashoffset = L; p.getBoundingClientRect();
+      p.style.transition = "stroke-dashoffset 1.3s cubic-bezier(.3,.7,.3,1)"; p.style.strokeDashoffset = 0; });
+  }
+  FIN.gAnim = false;
+  grIdle();
+}
+
+function grIdle(){
+  const G = State.fin.grade, rd = $("grRead"); if(!G || !rd) return;
+  const v = FIN.gv || "month", T = grToday(G);
+  rd.className = "grread";
+  if(v !== "month"){ rd.innerHTML = `<b>TAP A MONTH TO OPEN IT</b><span>${v === "year"
+    ? "🚩 MONEY TOPPED THE BILLS · ❄ IT DIDN'T" : "MOUNTAIN = BILLS · LINE = MONEY"}</span>`; return; }
+  const M = grMonth(G, FIN.gm);
+  const todays = M.when === "now" ? M.bills.filter(b => b.day === T.d && b.state !== "skipped") : [];
+  if(M.when === "now" && todays.length){
+    rd.innerHTML = `<b>TODAY · ${todays.length === 1 ? esc(todays[0].title).toUpperCase() : todays.length + " BILLS"} · ${
+      short((M.by_day.find(p => p.day === T.d) || {}).total)}</b><span>TOUCH THE MOUNTAIN TO READ A DAY</span>`;
+  } else if(M.when === "past" || (M.when === "now" && M.paid >= M.total)){
+    const skip = M.bills.filter(b => b.state === "skipped"), paid = M.bills.filter(b => b.state === "settled");
+    rd.className = "grread ok";
+    rd.innerHTML = `<b>${paid.length} PAID · ${short(M.paid)}</b><span>${skip.length
+      ? skip.map(b => esc(b.title).toUpperCase() + " " + short(b.amount)).join(" · ") + " · NOT TAKEN THIS MONTH"
+      : "TOUCH THE MOUNTAIN TO READ A DAY"}</span>`;
+  } else {
+    const nx = M.by_day.find(p => M.when !== "now" || p.day > T.d);
+    rd.innerHTML = nx ? `<b>NEXT · ${GR_MON[M.month-1]} ${nx.day} · ${short(nx.total)}</b><span>TOUCH THE MOUNTAIN TO READ A DAY</span>`
+                      : `<b>NOTHING LEFT TO CLIMB</b><span>TOUCH THE MOUNTAIN TO READ A DAY</span>`;
+  }
+}
+
+function wireGrade(){
+  if(!State.fin.grade && !FIN.gLoading && !State.fin.gradeErr) loadGrade();
+  const R = $("room"), mt = $("grMt"), svg = $("grSvg");
+  R.querySelectorAll("#grSw button").forEach(b => b.addEventListener("click", () => {
+    FIN.gv = b.dataset.gv; FIN.gAnim = true;
+    if(FIN.gv === "month" && State.fin.grade) FIN.gm = grToday(State.fin.grade).m;
+    renderRoom();
+  }));
+  R.querySelectorAll(".grrow").forEach(b => b.addEventListener("click", () => {
+    FIN.gv = "month"; FIN.gm = +b.dataset.gm; FIN.gAnim = true; renderRoom();
+  }));
+  if(!mt || !svg) return;
+  paintGrade();
+  const H = FIN.gHits; if(!H) return;
+  const at = ev => { const r = svg.getBoundingClientRect(); return {x: ev.clientX - r.left, y: ev.clientY - r.top}; };
+  if(H.kind === "month"){
+    const {M, box, ymax} = H, N = M.days, hl = $("grHl"), rd = $("grRead");
+    const tip = document.createElement("div"); tip.className = "grtip"; tip.hidden = true; mt.appendChild(tip);
+    const show = ev => {
+      const d = Math.max(1, Math.min(N, Math.ceil((at(ev).x - box.x)/box.w*N)));
+      const p = M.by_day.find(q => q.day === d), on = M.bills.filter(b => b.day === d);
+      const climbed = (M.by_day.filter(q => q.day <= d).pop() || {cum:0}).cum;
+      const cx = box.x + (d-0.5)/N*box.w;
+      hl.setAttribute("x1", cx); hl.setAttribute("x2", cx); hl.setAttribute("opacity", ".45");
+      const cold = M.money != null && !M.cleared && climbed > M.money;
+      const tone = M.when === "past" && M.cleared ? " ok" : cold ? " cold" : "";
+      rd.className = "grread" + tone;
+      if(!on.length){ rd.innerHTML = `<b>${GR_MON[M.month-1]} ${d} · NOTHING DUE</b><span>A QUIET DAY</span>`; tip.hidden = true; return; }
+      rd.innerHTML = `<b>${GR_MON[M.month-1]} ${d} · ${on.length === 1 ? esc(on[0].title).toUpperCase() : on.length + " BILLS"} · ${
+        p ? short(p.total) : "——"}</b><span>${on.length === 1 ? grState(on[0]) : "THE LIST IS ON THE MOUNTAIN"}${cold ? " · ❄ PAST THE SNOW LINE" : ""}</span>`;
+      tip.className = "grtip" + tone; tip.hidden = false;
+      tip.innerHTML = `<h4>${GR_MON[M.month-1]} ${d} · ${p ? short(p.total) : "——"}</h4>` +
+        on.slice().sort((a,b) => (b.amount||0) - (a.amount||0)).map(b =>
+          `<div class="${b.state === "skipped" ? "sk" : ""}"><span>${esc(b.title)}</span><b>${short(b.amount)}</b></div>`).join("") +
+        `<small>${[...new Set(on.map(grState))].join(" · ")}</small>`;
+      const tw = tip.offsetWidth, th = tip.offsetHeight, ty = box.y + box.h - climbed/ymax*box.h;
+      tip.style.left = Math.max(0, Math.min(mt.clientWidth - tw, cx - tw/2)) + "px";
+      tip.style.top = Math.max(0, ty - th - 16) + "px";
+    };
+    mt.addEventListener("pointerdown", e => { mt.setPointerCapture && mt.setPointerCapture(e.pointerId); show(e); });
+    mt.addEventListener("pointermove", e => { if(e.buttons || e.pointerType === "mouse") show(e); });
+    mt.addEventListener("pointerleave", e => { if(e.pointerType === "mouse"){ tip.hidden = true; hl.setAttribute("opacity", "0"); grIdle(); } });
+  } else {
+    const pick = ev => { const p = at(ev); return H.hits.find(h => p.x >= h.x0 && p.x <= h.x1 && p.y >= h.y0 && p.y <= h.y1); };
+    const rd = $("grRead");
+    mt.addEventListener("pointermove", e => { const h = pick(e); if(!h) return; const M = grMonth(State.fin.grade, h.m);
+      rd.className = "grread" + (M.cleared ? " ok" : M.cleared === false ? " cold" : "");
+      rd.innerHTML = `<b>${GR_LONG[h.m-1]} · ${short(M.total)} BILLS</b><span>${M.money == null ? "NOTHING IN SIGHT YET"
+        : (M.money_kind === "earned" ? short(M.money) + " CAME IN" : short(State.fin.grade.in_sight.total) + " IN SIGHT") +
+          (M.cleared ? " · 🚩 TOPPED IT" : " · ❄ SHORT " + short(M.total - M.money))}</span>`; });
+    mt.addEventListener("click", e => { const h = pick(e); if(h){ FIN.gv = "month"; FIN.gm = h.m; FIN.gAnim = true; renderRoom(); } });
   }
 }
 
@@ -12503,8 +12681,8 @@ function wireCards(){
    the hold lands: return false to re-arm quietly (the sheet opened); throw
    to refuse in words (the toast carries o.refused + the reason); return
    anything else to leave the button as it set itself (CLOSED, RECORDED).
-   holdToAct, not wireHold — the money room owns wireHold (its drag-to-read
-   hold, ~7860), and a second declaration of that name would hoist over it. */
+   holdToAct, not wireHold — the money room's tab once owned wireHold (its
+   drag-to-read stones, retired for THE GRADE, card #463); keep the name free. */
 function holdToAct(btn, o, onHeld, signal){
   let t = 0, anim = null;
   const r2 = btn.querySelector(".r2"), cc = btn.querySelector(".cc");
@@ -12712,6 +12890,7 @@ function wireFin(){
 
   R.querySelectorAll("#finView button").forEach(b => b.addEventListener("click", () => {
     FIN.view = b.dataset.v; FIN.pick = null;
+    if(FIN.view === "hold") loadGrade();     /* THE GRADE re-reads each time he walks in (card #463) */
     /* the books measure against the NUT, and the nut is monthly — entering
        them on a week/quarter toggle would draw a monthly line under a
        non-month window. Snap to month, refetch, redraw. */
@@ -12724,13 +12903,10 @@ function wireFin(){
   R.querySelectorAll("#finPeriod button").forEach(b => b.addEventListener("click", () => {
     FIN.period = b.dataset.p; loadFin(); renderRoom();
   }));
-  R.querySelectorAll("#holdGrp button").forEach(b => b.addEventListener("click", () => {
-    FIN.group = b.dataset.g; FIN.pick = null; renderRoom();
-  }));
   const lgFold = $("lgFold");
   lgFold && lgFold.addEventListener("click", () => { FIN.showExpired = !FIN.showExpired; renderRoom(); });
 
-  if(FIN.view === "hold"){ paintHold(); wireHold(); return; }
+  if(FIN.view === "hold"){ wireGrade(); return; }
   /* the intake wells live in THE BOOKS now (Bryan, 2026-08-02: "move the
      drop cards from the floor to the books") — wire them there, along with
      the record's tap-to-edit category chips */
@@ -13760,40 +13936,6 @@ async function sendShot(dataUrl){
       `${txns.length} rows read from the image`);
     await loadFin(); renderRoom();
   }catch(e){ dropState(el,"bad","nothing was saved", String(e.message||e)); }
-}
-
-/* ── THE HOLD: drag to read — paying happens on the floor ──────────── */
-function wireHold(){
-  const cv = $("holdC"); if(!cv) return;
-  const hit = ev => {
-    const r = cv.getBoundingClientRect();
-    const x = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
-    const y = (ev.touches ? ev.touches[0].clientY : ev.clientY) - r.top;
-    return (State.fin.placed||[]).find(p =>
-      Math.hypot(p.cx - x, p.cy - y) <= p.R + 3);
-  };
-  const read = ev => {
-    const p = hit(ev);
-    if(p && FIN.pick !== p.s.id){ FIN.pick = p.s.id; paintHold(); showStone(p.s); }
-  };
-  cv.addEventListener("pointerdown", read);
-  cv.addEventListener("pointermove", e => { if(e.buttons) read(e); });
-}
-
-function showStone(s){
-  const w = $("holdW"); if(!w) return;
-  w.querySelector(".hcard")?.remove();
-  const el = document.createElement("div");
-  el.className = "hcard";
-  el.innerHTML = `<div class="hn">${esc(s.title)}</div>
-    <div class="ha">${s.amount == null ? "——" : money(s.amount)}</div>
-    <div class="hs">${esc(s.sub || "")}${s.next_due ? " · next " + esc(s.next_due) : ""}</div>
-    <div class="hb"><span class="cap">${s.state === "settled"
-        ? "paid — it sits in the monthly bucket on the floor"
-        : "paid on the floor — drag the bill into MONTHLY as you pay it"}</span>
-      <button class="btn" id="stoneClose">close</button></div>`;
-  w.appendChild(el);
-  $("stoneClose").addEventListener("click", () => { el.remove(); FIN.pick = null; paintHold(); });
 }
 
 /* The hold-to-settle latch lived here until 2026-08-01. It recorded a bill paid
