@@ -202,6 +202,26 @@ canvas.stars{position:fixed;inset:0;z-index:0;width:100%;height:100%}
 /* Above 700px the calm line is hidden, so the masthead door itself turns red
    when the sky is unknown or the last try failed, and its title says why */
 #skyBtn.unk{color:var(--hot);border-color:rgba(var(--hot-rgb),.55)}
+/* THE CIRCLE (card #467) rides the sky's sheet; green edge, his people big */
+.skysheet.circ{border-left-color:rgba(120,200,120,.45)}
+.circ .shead .t{color:rgb(120,200,120)}
+.circ .who{border-left:4px solid rgba(120,200,120,.6);padding:10px 12px;background:rgba(120,200,120,.06);
+  display:flex;flex-direction:column;gap:6px}
+.circ .who.quiet{border-left-color:var(--amber)}
+.circ .who .nm{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.circ .who .nm b{font:800 22px/1.15 var(--sans);color:var(--ink)}
+.circ .who .nm span{font:700 12px/1 var(--mono);letter-spacing:.08em;color:var(--mid)}
+.circ .who.quiet .nm span{color:var(--amber)}
+.circ .who .ab{font:500 13px/1.45 var(--sans);color:var(--mid)}
+.circ .who .tl{font:400 12px/1.5 var(--mono);color:var(--dim)}
+.circ .who .tl .vd{cursor:pointer;text-decoration:underline;margin-left:6px;opacity:.7}
+.circ form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.circ input{font:500 15px/1.3 var(--sans);color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+  border-radius:4px;padding:9px 10px;min-width:0;flex:1 1 220px}
+.circ input[type=date]{flex:0 0 auto}
+.circ .err{font:700 12px/1.45 var(--mono);color:var(--hot)}
+.circ .ok{font:700 12px/1.45 var(--mono);color:rgb(120,200,120)}
+.circ .lab{margin-top:8px}
 .bar .right{margin-left:auto;display:flex;align-items:center;gap:9px}
 .readstamp{font:700 8px/1 var(--mono);letter-spacing:.15em;color:var(--etch);
   white-space:nowrap;transition:color .4s;background:none;border:0;cursor:pointer;
@@ -2876,6 +2896,11 @@ body.hot .act .h .n{color:var(--hot)}
     <div class="dockback" id="skyBack"></div>
     <aside class="skysheet" id="skySheet" role="dialog" aria-label="the sky"></aside>
   </div>
+  <!-- THE CIRCLE (card #467) — BUILD MY NETWORK's door: his people, each touch -->
+  <div class="skywrap" id="circWrap" hidden>
+    <div class="dockback" id="circBack"></div>
+    <aside class="skysheet circ" id="circSheet" role="dialog" aria-label="your circle"></aside>
+  </div>
 
   <!-- THE DOCKET (card #84) — the clipboard at the dock: everything awaiting
        his hand, listed and linked. A queue of doorknobs, never a room: the
@@ -4647,7 +4672,8 @@ const QB = { arrived: false, look: false, settle: 0, io: null, hiddenAt: 0 };
 const QB_READ = {   /* the reading's room, its mark and its color — the orb it opens */
   loads_to_go: { room: "standing", icon: "🔧", hue: "255,110,50" },
   posts_week:  { room: "glass",    icon: "📣", hue: "30,144,255" },
-  sparks:      { room: "glass",    icon: "🤝", hue: "120,200,120" }
+  sparks:      { room: "glass",    icon: "🤝", hue: "120,200,120" },
+  network:     { room: "circle",   icon: "🤝", hue: "120,200,120" }   /* THE CIRCLE's sheet (card #467) */
 };
 const QB_HUES = ["255,110,50", "30,144,255", "120,200,120", "190,160,60", "150,90,220"];
 const QB_ARRIVE_AFTER = 10 * 60 * 1000;   /* back after ten minutes away = opening the app again */
@@ -4718,6 +4744,7 @@ function paintBand(){
   el.innerHTML = html;
   el.querySelectorAll(".qline").forEach(btn => btn.addEventListener("click", e => {
     e.stopPropagation();
+    if(btn.dataset.room === "circle") return openCircle();
     const i = D.findIndex(d => d.room === btn.dataset.room);
     if(i >= 0) enter(i);
   }));
@@ -5351,6 +5378,106 @@ $("skyBtn").onclick = openSky;
 $("skyAlarm").onclick = openSky;
 $("skyBack").onclick = closeSky;
 
+/* ── THE CIRCLE (card #467) ──────────────────────────────────────────
+   BUILD MY NETWORK's door. His words 10-31: "i need a method to be able to
+   update what i am working on to build my network". The sheet lists who is
+   in the circle — the never-reached and longest-quiet first, as the spine
+   serves them — and logs a touch in one box, in his words. Every write
+   answers with the whole circle; the Q4 band re-reads so its count moves. */
+const CIRC = { open: null, err: null, ok: null, drafts: {} };
+const circAgo = d => d == null ? "not reached yet" : d === 0 ? "today" : d === 1 ? "yesterday" : `${d} days ago`;
+const circKey = f => f.dataset.touch ? "t" + f.dataset.touch : "add";
+async function openCircle(){
+  $("circWrap").hidden = false; CIRC.open = null; CIRC.err = null; CIRC.ok = null; paintCircle();
+  try{ State.network = await grab("/api/network"); State.networkErr = null; }
+  catch(e){ State.networkErr = String(e.message || e); }
+  paintCircle();
+}
+function closeCircle(){ $("circWrap").hidden = true; }
+$("circBack").onclick = closeCircle;
+function paintCircle(){
+  const el = $("circSheet"), n = State.network, today = new Date().toLocaleDateString("en-CA");
+  /* HIS TYPING SURVIVES EVERY REPAINT (review of #467): a dead zone, a
+     refusal, opening another person's box or another form's save all redraw
+     the sheet — each form's words are read off before the redraw and handed
+     back after. Only a save that LANDED clears its own draft. */
+  el.querySelectorAll("form").forEach(f => {
+    CIRC.drafts[circKey(f)] = [...f.querySelectorAll("input")].map(i => i.value); });
+  const head = `<div class="shead"><span class="t">🤝 THE CIRCLE</span>` +
+    `<span class="n">${n ? `${+n.touched_this_quarter} reached this quarter` : ""}</span>` +
+    `<button class="btn x" id="circX">CLOSE</button></div>`;
+  let body;
+  if(!n) body = State.networkErr ? `<div class="err">The circle did not answer — ${esc(qbWhy(State.networkErr))}</div>`
+    : `<div class="calm">reading your circle…</div>`;
+  else {
+    /* a re-read that failed keeps the last circle up and SAYS so */
+    const stale = State.networkErr ? `<div class="err">Not re-read — ${esc(qbWhy(State.networkErr))} · showing the last read</div>` : "";
+    const err = CIRC.err ? `<div class="err">${esc(CIRC.err)}</div>` : "";
+    const ok = CIRC.ok ? `<div class="ok">${esc(CIRC.ok)}</div>` : "";
+    const ppl = n.people.map(p => {
+      const quiet = p.days_since == null || p.days_since > 30;
+      const tl = (p.recent || []).map(t => `<div class="tl">${esc(t.at.slice(5))} · ${esc(t.note)}` +
+        `<span class="vd" data-void="${t.id}" title="a mistyped touch stops counting; the row is kept">void</span></div>`).join("");
+      const box = CIRC.open === p.id
+        ? `<form data-touch="${p.id}"><input name="note" placeholder="what happened — your words" autocomplete="off">` +
+          `<input name="at" type="date" value="${today}" max="${today}"><button class="btn">LOG IT</button></form>`
+        : `<div><button class="btn" data-open="${p.id}">+ TOUCH</button></div>`;
+      return `<div class="who${quiet ? " quiet" : ""}"><div class="nm"><b>${esc(p.name)}</b>` +
+        `<span>${esc(circAgo(p.days_since))}</span></div>` +
+        (p.who ? `<div class="ab">${esc(p.who)}</div>` : "") + tl + box + `</div>`;
+    }).join("") || `<div class="calm">No one in your circle yet.</div>`;
+    body = stale + err + ok + ppl + `<div class="lab">SOMEONE NEW</div>` +
+      `<form data-add="1"><input name="name" placeholder="name" autocomplete="off">` +
+      `<input name="who" placeholder="who they are — your words" autocomplete="off"><button class="btn">ADD</button></form>`;
+  }
+  el.innerHTML = head + body;
+  el.querySelectorAll("form").forEach(f => {
+    const d = CIRC.drafts[circKey(f)];
+    if(d) [...f.querySelectorAll("input")].forEach((i, k) => { if(d[k] != null && d[k] !== "") i.value = d[k]; });
+  });
+  $("circX").onclick = closeCircle;
+  el.querySelectorAll("[data-open]").forEach(b => b.onclick = () => {
+    CIRC.open = +b.dataset.open; CIRC.err = null; CIRC.ok = null; paintCircle();
+    const i = el.querySelector(`form[data-touch="${CIRC.open}"] [name=note]`); if(i) i.focus();
+  });
+  el.querySelectorAll("form[data-touch]").forEach(f => f.onsubmit = e => {
+    e.preventDefault();
+    circPost("/api/network/touch", {person_id: +f.dataset.touch, note: f.note.value, at: f.at.value}, f);
+  });
+  const add = el.querySelector("form[data-add]");
+  if(add) add.onsubmit = e => { e.preventDefault(); circPost("/api/network/person",
+    {name: add.elements.namedItem("name").value, who: add.elements.namedItem("who").value}, add); };
+  el.querySelectorAll(".vd[data-void]").forEach(v => v.onclick = () => {
+    if(v.dataset.busy) return;            /* a double tap is one void, not a void and a false "not kept" */
+    v.dataset.busy = "1"; v.textContent = "voiding…"; circPost("/api/network/void", {id: +v.dataset.void}, null);
+  });
+}
+async function circPost(path, body, form){
+  const btn = form && form.querySelector("button");
+  if(btn){ if(btn.disabled) return; btn.disabled = true; btn.textContent = "SAVING…"; }
+  const fail = msg => {
+    CIRC.err = "not kept — " + msg; CIRC.ok = null;
+    if(btn){ btn.disabled = false; btn.textContent = path.endsWith("/person") ? "ADD" : "LOG IT"; }
+    paintCircle();   /* the redraw hands his typing back (paintCircle's drafts) */
+  };
+  let r, o;
+  try{
+    r = await fetch(url(path), {method: "POST",
+      headers: {...hdr(), "Content-Type": "application/json"}, body: JSON.stringify(body)});
+    o = await r.json().catch(() => ({}));
+  }catch(e){ return fail("the spine did not answer — your words are still here"); }
+  if(!r.ok || !o.ok) return fail(o.error || `the spine said ${r.status}`);
+  if(form) delete CIRC.drafts[circKey(form)];
+  if(form) form.querySelectorAll("input").forEach(i => { i.value = ""; });   /* landed: not read back as a draft */
+  State.network = o.network; State.networkErr = null; CIRC.err = null; CIRC.open = null;
+  /* said in the sheet: the toast sits under it (z 20 vs 61) */
+  CIRC.ok = path.endsWith("/person") ? "added to your circle" : path.endsWith("/touch") ? "touch logged" : "voided";
+  paintCircle();
+  try{ State.quarter = await grab("/api/quarter"); State.quarterErr = null; }
+  catch(e){ State.quarterErr = String(e.message || e); }   /* the band says "Not re-read" with its age */
+  paintBand();
+}
+
 /* ── THE MORNING PAGE (cards #112/#113) ──────────────────────────────
    The almanac's daily page. Every money line is a SERVED sentence from
    /api/standing (one producer — the page computed nothing); weather, recap,
@@ -5574,6 +5701,7 @@ document.addEventListener("keydown", e => {
   if(e.key === "Escape" && !$("pageWrap").hidden) closePage();
   if(e.key === "Escape" && !$("dockWrap").hidden) closeDocket();
   if(e.key === "Escape" && !$("skyWrap").hidden) closeSky();
+  if(e.key === "Escape" && !$("circWrap").hidden) closeCircle();
 });
 
 /* ── THE STANDING (hotshot) ───────────────────────────────────────── */
