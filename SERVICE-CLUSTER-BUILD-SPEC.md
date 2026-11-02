@@ -154,7 +154,7 @@ All static. Nothing animates a filter, shadow or blur, and no `backdrop-filter` 
 
 ### 3.1 Spine first (tier 0; the page computes nothing)
 
-Each change is a line or two in `board()` in `/Users/bryanhertzig/Almanac/spine/service.py`. I verified in the code that none of these is served today.
+Each change is a line or two in `board()` in `~/Almanac/spine/service.py`. I verified in the code that none of these is served today.
 
 1. **Tie bug (fix first), line 154.** `reading["odometer"] >= done["odometer"]` keeps the dash reading when a DONE is logged at the same odometer, so the payoff would refill nothing. The newest entry must win:
    ```python
@@ -854,6 +854,6 @@ Cut these, in order:
 ---
 
 **Files to touch:**
-- `/Users/bryanhertzig/Almanac/spine/service.py`: tie fix at line 154, plus `riding`, `soon_pct`, `span_est`, `age_days` / `est_stale`, the zero-pct fix, `pace_why`, `est_days`, `leg`.
-- `/Users/bryanhertzig/Local Models/almanac-pwa/desk.html`: `.svc-*` CSS block, `svcHTML` / `svcGauge` / `svcDial`, `wireSvc` / `svcPlay` / `svcHold`, `svcPost`, `svcTeardown` in `renderRoom`, `hsBar` rail, `#toast` role at line 2279.
-- `/Users/bryanhertzig/Local Models/almanac-pwa/sw.js`: bump to v181.
+- `~/Almanac/spine/service.py`: tie fix at line 154, plus `riding`, `soon_pct`, `span_est`, `age_days` / `est_stale`, the zero-pct fix, `pace_why`, `est_days`, `leg`.
+- `~/Local Models/almanac-pwa/desk.html`: `.svc-*` CSS block, `svcHTML` / `svcGauge` / `svcDial`, `wireSvc` / `svcPlay` / `svcHold`, `svcPost`, `svcTeardown` in `renderRoom`, `hsBar` rail, `#toast` role at line 2279.
+- `~/Local Models/almanac-pwa/sw.js`: bump to v181.

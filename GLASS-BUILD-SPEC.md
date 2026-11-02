@@ -836,7 +836,7 @@ Opaque tape, ghost off, no tilt.
 Decal tilt → momentum lean → ghost layer → canvas bloom → dawn radial (keep the horizon line) → view transitions → drive holds (keep linear days). **Never cut:** truth-first, the drums, the verdict words, the copy gate.
 
 ### Ship
-- Bump `/Users/bryanhertzig/Local Models/almanac-pwa/sw.js` `VERSION` from `almanac-shell-v178` to `v179` in lockstep with the page build tag, with a one-line house comment. Add the mark SVG to `SHELL`.
+- Bump `~/Local Models/almanac-pwa/sw.js` `VERSION` from `almanac-shell-v178` to `v179` in lockstep with the page build tag, with a one-line house comment. Add the mark SVG to `SHELL`.
 
 **Spine tests** (run the suite as **one command**, card #285):
 - `TEST_CONTRACT` refuses "Acme Logistics of Delaware" by name.
@@ -913,9 +913,9 @@ Decal tilt → momentum lean → ghost layer → canvas bloom → dawn radial (k
 
 **Files this spec is built against:**
 - `/private/tmp/claude-501/-Users-bryanhertzig-Library-CloudStorage-GoogleDrive-bmhsolutions3711-gmail-com-My-Drive-BMH-Solutions/d1c718c2-5713-4268-8609-423f430b65e6/scratchpad/journey/ORB_BRIEF.md`
-- `/Users/bryanhertzig/Local Models/almanac-pwa/desk.html`
-- `/Users/bryanhertzig/Local Models/almanac-pwa/sw.js` (VERSION `almanac-shell-v178` at line 17 → v179)
-- `/Users/bryanhertzig/Almanac/spine/server.py`
-- `/Users/bryanhertzig/Almanac/spine/entry.py` (`record_post`)
-- `/Users/bryanhertzig/Local Models/bik/docs/publish_policy.md`
-- `/Users/bryanhertzig/Almanac/docs/brand/almanac-mark.svg`
+- `~/Local Models/almanac-pwa/desk.html`
+- `~/Local Models/almanac-pwa/sw.js` (VERSION `almanac-shell-v178` at line 17 → v179)
+- `~/Almanac/spine/server.py`
+- `~/Almanac/spine/entry.py` (`record_post`)
+- `~/Local Models/bik/docs/publish_policy.md`
+- `~/Almanac/docs/brand/almanac-mark.svg`
