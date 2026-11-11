@@ -8396,6 +8396,14 @@ function finReconcile(){
       <span><b class="${R.unattributed > 0 ? "hot" : ""}">${money(R.unattributed||0)}</b> still to place</span>
       <span>of <b>${money(roadWin||0)}</b> spent this ${esc(FIN.period)}</span>
     </div>
+    ${/* card #314: pending money is counted in the road at full value from the
+          moment it imports, and the next import expires any the bank has not
+          posted within 7 days, so it is named here before it can move */
+      R.pending_in_road ? `<div class="recline" title="a pending charge counts in the road at full value from the moment it imports; the next import expires any the bank has not posted within 7 days">
+      <span>of that, <b>${money(R.pending_in_road)}</b> is still pending at the bank
+        (${R.pending_in_road_n} row${R.pending_in_road_n===1?"":"s"})</span>
+      <span>the next import expires any the bank hasn't posted within 7 days</span>
+    </div>` : ""}
     ${R.road_shift && (R.road_shift.off || R.road_shift.on) ? `<div class="recline">
       <span>road follows the load:</span>
       ${R.road_shift.off ? `<span><b>−${money(R.road_shift.off)}</b> riding loads outside this ${esc(FIN.period)}</span>` : ""}
@@ -9257,14 +9265,21 @@ function finBooks(){
   /* the intake lives HERE now (Bryan, 2026-08-02: "move the drop cards from
      the floor to the books") — dropping feeds the record and the tanks, and
      both of those live on this tab. Moved, not copied. */
+  /* card #314: the last drop's answer survives the re-render that follows it.
+     loadFin + renderRoom rebuild this template, which wiped a red warning about
+     a second after it appeared, and these boxes are where he reads it. */
+  const dk = id => (FIN.drops || {})[id];
+  const dCls = id => dk(id) ? " " + dk(id).cls : "";
+  const dMsg = (id, html) => dk(id) ? esc(dk(id).msg) : html;
+  const dSub = (id, html) => dk(id) && dk(id).sub != null ? esc(dk(id).sub) : html;
   const intake = `<div class="panel" style="margin-bottom:10px;display:grid;
       grid-template-columns:1fr 1fr;gap:8px">
-    <div class="drop" id="dropCsv" style="margin:0">
-      <div class="dl">drop a transactions csv</div>
-      <div class="ds">LoadPay, PNC or Gemini card · deduped by the importer</div></div>
-    <div class="drop" id="dropShot" tabindex="0" style="margin:0">
-      <div class="dl">balances &amp; statements</div>
-      <div class="ds">click then &#8984;V, or drop an image</div>
+    <div class="drop${dCls("dropCsv")}" id="dropCsv" style="margin:0">
+      <div class="dl">${dMsg("dropCsv", "drop a transactions csv")}</div>
+      <div class="ds">${dSub("dropCsv", "LoadPay, PNC or Gemini card · deduped by the importer")}</div></div>
+    <div class="drop${dCls("dropShot")}" id="dropShot" tabindex="0" style="margin:0">
+      <div class="dl">${dMsg("dropShot", "balances &amp; statements")}</div>
+      <div class="ds">${dSub("dropShot", "click then &#8984;V, or drop an image")}</div>
       <div class="acctpick" title="whose transactions are in this image — pendings ride in under the right account">${
         ["pnc","loadpay"].map(a => `<button data-acct="${a}" class="${
           (FIN.shotAcct||"pnc")===a ? "on" : ""}">${a}</button>`).join("")}</div></div>
@@ -13985,10 +14000,37 @@ const fileToDataUrl = f => new Promise((res,rej) => {
   const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej;
   r.readAsDataURL(f);
 });
+/* card #314: the writer's expire count, said where the import lands. An
+   expired row that a load still carried is the loud case: its placement stops
+   counting until you rule it, so the box turns red and names the rows. A
+   writer that could not read the placements says so (null), never "none". */
+function expiredNote(o){
+  const n = +o.expired || 0;
+  /* an answer with no expired_placed key never checked, so it is unknown */
+  const placed = "expired_placed" in o ? o.expired_placed : null;
+  if(!n) return {bad:false, msg:"", sub:""};
+  const it = n === 1 ? "it" : "them";
+  const base = ` · ${n} expired (the bank never posted ${it} within 7 days)`;
+  if(placed === null) return {bad:true, msg:` · ⚠ ${n} expired`,
+    sub: base + ` — the writer could not check ${it} against your loads; look on THE BOOKS`};
+  if(!placed || !placed.length) return {bad:false, msg:"", sub:base};
+  const loads = ((State.fin && State.fin.rollup) || {}).loads || [];
+  const name = sr => { const l = loads.find(x => x.sheet_row === sr);
+    return l ? `${l.broker || "load"}${l.delivery_city ? " → " + l.delivery_city : ""}` : `load row ${sr}`; };
+  const one = placed.length === 1;
+  return {bad:true, msg:` · ⚠ ${placed.length} placed row${one?"":"s"} expired`,
+    sub: `${base} — ${placed.map(p => `txn ${p.txn_id} on ${name(p.sheet_row)}`).join(" · ")}: ` +
+         `${one?"its placement no longer counts":"their placements no longer count"} until you rule ${one?"it":"them"} on THE BOOKS`};
+}
 function dropState(el, cls, msg, sub){
   el.className = "drop " + cls;
   el.querySelector(".dl").textContent = msg;
   if(sub != null) el.querySelector(".ds").textContent = sub;
+  /* card #314: a finished answer is kept for the template to paint again after
+     the re-render the import triggers; a busy state is not kept */
+  if(cls !== "busy" && el.id)
+    (FIN.drops = FIN.drops || {})[el.id] =
+      {cls, msg, sub: sub != null ? sub : el.querySelector(".ds").textContent};
 }
 async function sendCsv(file){
   const el = $("dropCsv");
@@ -14012,8 +14054,9 @@ async function sendCsv(file){
       body: JSON.stringify({source, csv:text, account:source})});
     const o = await r.json().catch(() => ({}));
     if(!r.ok){ dropState(el,"bad","not imported", o.error || `the writer said ${r.status}`); return; }
-    dropState(el, "ok", `${o.imported||0} in · ${o.skipped||0} already had`,
-      `${o.reconciled||0} settled from pending · ${o.uncategorized||0} uncategorized`);
+    const ex = expiredNote(o);
+    dropState(el, ex.bad ? "bad" : "ok", `${o.imported||0} in · ${o.skipped||0} already had${ex.msg}`,
+      `${o.reconciled||0} settled from pending · ${o.uncategorized||0} uncategorized${ex.sub}`);
     await loadFin(); renderRoom();
   }catch(e){ dropState(el,"bad","nothing was imported", String(e.message||e)); }
 }
@@ -14060,8 +14103,9 @@ async function sendShot(dataUrl){
       body: JSON.stringify({transactions:txns, account: FIN.shotAcct || "pnc"})});
     const so = await s.json().catch(() => ({}));
     if(!s.ok){ dropState(el,"bad","read but not saved", so.error || `the writer said ${s.status}`); return; }
-    dropState(el, "ok", `${so.saved||0} saved · ${so.skipped||0} already had`,
-      `${txns.length} rows read from the image`);
+    const ex = expiredNote(so);
+    dropState(el, ex.bad ? "bad" : "ok", `${so.saved||0} saved · ${so.skipped||0} already had${ex.msg}`,
+      `${txns.length} rows read from the image${ex.sub}`);
     await loadFin(); renderRoom();
   }catch(e){ dropState(el,"bad","nothing was saved", String(e.message||e)); }
 }
