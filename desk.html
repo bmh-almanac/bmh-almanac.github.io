@@ -9149,6 +9149,36 @@ function finBooks(){
     `<div class="panel" style="margin-bottom:10px"><div class="cap">faults — the spine cannot place these</div>${
       faults.map(f => `<div class="hotline">${esc(f.name||f.bill_id||"?")}${
         f.amount != null ? " · " + money(f.amount) : ""} — ${esc(f.why||f.kind||"")}</div>`).join("")}</div>`;
+  /* EVERY ROW WITH NO CATEGORY, ALL TIME (card #308). Every money figure
+     filters on a named category, so a blank row is counted by no road,
+     revenue or reserve figure, and THE BOOKS is forced to the month, so a
+     February blank was out of sight here. The spine serves this with no date
+     bound on the rollup this tab already reads; every figure is served and
+     nothing is summed here. 'show them' opens the rows, each with the
+     category chip, so the count falls row by row as he files them and the
+     line leaves at 0 — the one way to quiet it. */
+  const U = (ro && ro.uncategorized_standing) || null;
+  const uRows = (U && U.rows) || [];
+  const uncatLine = !(U && U.n > 0) ? "" :
+    `<div class="panel" id="uncatLine" style="margin-bottom:10px">
+      <div class="hotline">${U.n} ${U.n === 1 ? "row carries" : "rows carry"} no category — all time, no date bound · ${
+        money(U.out)} out (${U.out_n}) · ${money(U.in)} in (${U.in_n}) — counted by no road, revenue or reserve figure · <button
+        class="uncatfold" id="uncatFold" style="background:none;border:0;padding:0;cursor:pointer;
+        font:inherit;color:inherit;text-decoration:underline">${FIN.showUncat ? "hide them" : "show them"}</button></div>${
+      !FIN.showUncat ? "" : `<div class="lghead" style="margin-top:8px"><span>date</span><span>category</span><span>payee</span>
+        <span class="ra">amount</span><span>notes</span><span style="text-align:right">status</span></div>
+      <div class="scroll" style="max-height:40vh">${uRows.map(t => `<div class="lgr">
+        <span class="ld" title="${esc(t.date)}">${esc(String(t.date||"").slice(5))}</span>
+        <span class="lc"><span class="catchip edit uncat" data-cat-txn="${t.id}" data-cat-from="standing"
+          style="border-color:rgba(255,90,70,.55);color:rgba(255,120,90,.95)"
+          title="tap to file it — no rule is learned from an old row">uncategorized</span></span>
+        <span class="lp" title="${esc(t.description || "")}">${esc(t.merchant || t.description || "—")}</span>
+        <span class="la${t.amount > 0 ? " cr" : ""}">${t.amount > 0 ? "+" + money(t.amount) : money(t.amount)}</span>
+        <span class="ln">${esc(t.date)} · ${esc(t.account || "")}</span>
+        <span class="lst ${esc(t.status || "posted")}">${esc(t.status || "posted")}</span>
+        <span class="lsub">${esc(t.date)} · ${esc(t.account || "")} · ${esc(t.status || "posted")}</span></div>`).join("")}</div>${
+        U.rows_capped ? `<div class="sfoot">the newest ${uRows.length} of the ${U.n} — file these and the older ones come up</div>` : ""}`}
+    </div>`;
   /* THE RECORD — Bryan, 2026-08-02: "where are the individual transactions
      with categories... we will use the running list as all transactions with
      categories." 2026-08-03: reordered to read like a ledger line — Date |
@@ -9236,7 +9266,12 @@ function finBooks(){
   let goes;
   if(!sp) goes = `<span class="nodata">the spine has not answered with the breakdown</span>`;
   else if(!(sp.categories||[]).length) goes = `<span class="nodata">no spend in the window yet</span>`;
-  else goes = sp.categories.map((c,ix) => {
+  /* the uncategorized lane stands APART (card #308): served first and
+     outside the ranking, so it wears '··' instead of a rank and the ranked
+     lanes still count 01..10 under it */
+  let rk = 0;
+  if(sp && (sp.categories||[]).length) goes = sp.categories.map(c => {
+      const rank = c.unranked ? "··" : String(++rk).padStart(2,"0");
       const mx = Math.max(...c.series.map(v => Math.max(v,0)), 1);
       const bars = c.series.map((v,i) => {
         const on = i === sp.windows.length - 1;
@@ -9247,16 +9282,19 @@ function finBooks(){
       const wl = c.avg > 0 ? Math.min(c.avg/mx*100, 100) : null;
       const un = c.name === "uncategorized";
       return `<div class="scat${FIN.catFilter===c.name ? " picked" : ""}" data-spend-cat="${esc(c.name)}"
-        title="tap to sift the record to ${esc(c.name)}">
-        <div class="sr1"><span class="rank">${String(ix+1).padStart(2,"0")}</span>
+        title="${un ? "tap to open every uncategorized row, all time" : "tap to sift the record to " + esc(c.name)}">
+        <div class="sr1"><span class="rank">${rank}</span>
           <span class="scn${un ? " uncat" : ""}">${esc(c.name)}${un ? " — needs your hand" : ""}</span>
-          <span class="sca">${money(c.now)}<i>${c.share != null ? Math.round(c.share)+"%" : ""}</i></span></div>
+          <span class="sca">${money(c.now)}${c.in_now > 0 ? " · " + money(c.in_now) + " in" : ""}<i>${
+            c.share != null ? Math.round(c.share)+"%" : ""}</i></span></div>
         <div class="strough">${wl != null ? `<div class="wline" style="bottom:${wl}%"
           title="trailing average · ${money(c.avg)}"></div>` : ""}${bars}</div>
         <div class="sxl">${sp.windows.map(w => `<span>${esc(w.label)}</span>`).join("")}</div>
       </div>`;}).join("");
   const spend = `<div class="panel" style="min-width:0">
-    <div class="cap">where the money goes — top ${(sp && (sp.categories||[]).length) || 0} · ${
+    <div class="cap">where the money goes — top ${
+      ((sp && sp.categories) || []).filter(c => !c.unranked).length}${
+      ((sp && sp.categories) || []).some(c => c.unranked) ? " · uncategorized apart" : ""} · ${
       esc((sp && sp.ranked_by) || "ranked by the trailing average")}</div>
     <div class="scroll" style="max-height:58vh">${goes}</div>
     ${sp && (sp.categories||[]).length ? `<div class="sfoot">${money(sp.window_total)} spent in the
@@ -9334,7 +9372,7 @@ function finBooks(){
         [["month","mo"],["quarter","qtr"]].map(([k,l]) =>
           `<button data-incp="${k}" class="${(FIN.incPeriod||"month")===k?"on":""}">${l}</button>`).join("")}</div>
     </div>${moneyIn}</div>`;
-  return `<div class="finscroll">${intake}${faultStrip}<div class="floor" style="grid-template-columns:minmax(280px,380px) 1fr">
+  return `<div class="finscroll">${intake}${faultStrip}${uncatLine}<div class="floor" style="grid-template-columns:minmax(280px,380px) 1fr">
     <div class="panel"><div class="cap">cash — the tanks${
       A && A.as_of ? " · newest reading " + esc(String(A.as_of).slice(0,10)) : ""}</div>${cash}</div>
     <div class="panel"><div class="cap">feeding the nut — ${esc(FIN.period)}, each load's surviving contribution</div>${feed}</div>
@@ -13062,13 +13100,25 @@ function wireFin(){
            and dies as it is born — "works for one, not the next"). The chip's
            click must not reach it. */
         ev.stopPropagation();
-        /* the chip lives on TWO ledgers now — the record (spend) and
-           MONEY IN (deposits, card #103); one writer serves both */
-        const t = [...(((State.fin.expenses||{}).transactions)||[]),
-                   ...(((State.fin.income||{}).deposits)||[])]
+        /* the chip lives on THREE lists now — the record (spend), MONEY IN
+           (deposits, card #103) and the all-time uncategorized rows (card
+           #308); one writer serves all three. A row filed from the standing
+           list learns NO rule: on an old row the rule is that row's whole
+           merchant string, which matches only itself, and for a factoring
+           payer it switches the category mirror's tier 3 off for that
+           payer. Every other chip keeps today's default. */
+        const standing = ((((State.fin.rollup||{}).uncategorized_standing)||{}).rows)||[];
+        const fromStanding = ch.dataset.catFrom === "standing";
+        const t = (fromStanding ? standing
+                   : [...(((State.fin.expenses||{}).transactions)||[]),
+                      ...(((State.fin.income||{}).deposits)||[]),
+                      ...standing])
           .find(x => x.id === Number(ch.dataset.catTxn));
-        if(t) openCat(ev, t);
+        if(t) openCat(ev, t, fromStanding ? {learn: false} : {});
       }));
+    /* the standing line's fold — the rows to file, one tap away (card #308) */
+    const uFold = $("uncatFold");
+    uFold && uFold.addEventListener("click", () => { FIN.showUncat = !FIN.showUncat; renderRoom(); });
     /* MONEY IN's own window — deposits are sparse; a month that reset
        yesterday hides the very rows he came to validate */
     R.querySelectorAll("#incPeriod button").forEach(b =>
@@ -13085,7 +13135,15 @@ function wireFin(){
       el.addEventListener("click", () => {
         const c = el.dataset.spendCat;
         FIN.catFilter = FIN.catFilter === c ? null : c;
+        /* the amber lane leads to the rows (card #308): the record is the
+           month only, so on its own this sift often lands on an empty page
+           while the blanks stand in older months. It opens the all-time
+           list on the standing line too and brings that line into view. */
+        const toRows = c === "uncategorized" && FIN.catFilter === c;
+        if(toRows) FIN.showUncat = true;
         renderRoom();
+        const line = toRows && $("uncatLine");
+        line && line.scrollIntoView({block: "start", behavior: "smooth"});
       }));
     /* THE RECORD WORKS ROWS NOW (Bryan, 2026-08-03: "not letting me drag or
        use the right click" — he was in the books, where the ledger was
@@ -13340,8 +13398,9 @@ let MOVEMENU = null;
    need to be editable from books...same categories as bik"). The vocabulary
    is SERVED (/api/fin/categories = bik's canon ∪ the ledger); the write goes
    through the one writer, which learns a rule so this merchant's next
-   arrival categorizes itself. */
-async function openCat(ev, t){
+   arrival categorizes itself, except a row filed from the all-time
+   uncategorized list, which sends learn:false (card #308). */
+async function openCat(ev, t, opts = {}){
   closeMove();
   if(!State.fin.cats){
     try{ State.fin.cats = (await grab("/api/fin/categories")).categories || []; }
@@ -13366,9 +13425,13 @@ async function openCat(ev, t){
     closeMove();
     if(!cat || cat === t.category) return;
     try{
+      /* learn rides only when the caller says false (a row from the
+         all-time uncategorized list, card #308); otherwise the spine's
+         default stands, exactly as before */
       const r = await fetch(url("/api/fin/categorize"), {method:"POST",
         headers:{...hdr(), "Content-Type":"application/json"},
-        body: JSON.stringify({txn_id: t.id, category: cat})});
+        body: JSON.stringify({txn_id: t.id, category: cat,
+                              ...(opts.learn === false ? {learn: false} : {})})});
       const out = await r.json().catch(() => ({}));
       if(!r.ok){ finSay(out.error || `the spine refused (${r.status}) — nothing was written`, true); return; }
       await loadFin(); renderRoom();
